@@ -2,6 +2,7 @@ package Forms
 
 import (
 	"GoMiniblink/Forms/CrossPlatform"
+	"GoMiniblink/Utils"
 )
 
 type Form struct {
@@ -33,8 +34,8 @@ func (_this *Form) getImpl() CrossPlatform.IForm {
 func (_this *Form) Init() *Form {
 	_this.impl = Provider.NewForm()
 	_this.Controls = new(controlList).Init()
-	_this.OnResize = ifNull(_this.OnResize, _this.onResize).(func(int, int))
-	_this.OnMove = ifNull(_this.OnMove, _this.onMove).(func(int, int))
+	_this.OnResize = Utils.IfNull(_this.OnResize, _this.onResize).(func(int, int))
+	_this.OnMove = Utils.IfNull(_this.OnMove, _this.onMove).(func(int, int))
 	_this.registerEvents()
 	_this.isInit = true
 	return _this

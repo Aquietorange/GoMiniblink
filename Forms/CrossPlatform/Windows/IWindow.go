@@ -6,5 +6,6 @@ type IWindow interface {
 	class() string
 	name() string
 	hWnd() win32.HWND
-	wndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
+	fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
+	addEvCreate(func(IWindow))
 }

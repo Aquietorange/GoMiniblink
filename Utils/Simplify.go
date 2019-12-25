@@ -1,8 +1,8 @@
-package Forms
+package Utils
 
 import "reflect"
 
-func ifNull(a, b interface{}) interface{} {
+func IfNull(a, b interface{}) interface{} {
 	defer func() {
 		recover()
 	}()

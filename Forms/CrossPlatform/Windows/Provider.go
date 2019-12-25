@@ -11,11 +11,11 @@ import (
 type Provider struct {
 	hInstance win32.HINSTANCE
 	className string
-	uncreate  []IWindow
-	created   map[win32.HWND]*IWindow
+	wnds      map[win32.HWND]IWindow
 }
 
 func (_this *Provider) Init() *Provider {
+	_this.wnds = make(map[win32.HWND]IWindow)
 	_this.className = "GoMiniblinkForms"
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.registerWndClass()
@@ -34,24 +34,20 @@ func (_this *Provider) registerWndClass() {
 }
 
 func (_this *Provider) add(window IWindow) {
-	_this.uncreate = append(_this.uncreate, window)
+	window.addEvCreate(func(wnd IWindow) {
+		_this.wnds[wnd.hWnd()] = wnd
+	})
 }
 
 func (_this *Provider) remove(hWnd win32.HWND) {
-
+	delete(_this.wnds, hWnd)
 }
 
 func (_this *Provider) defaultWndProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-	if msg == win32.WM_CREATE {
-		println(hWnd)
-	}
-	for _, v := range _this.uncreate {
-		if v.hWnd() == hWnd {
-			ret := v.wndProc(hWnd, msg, wParam, lParam)
-			if ret != 0 {
-				return ret
-			}
-			break
+	if w, ok := _this.wnds[hWnd]; ok {
+		ret := w.fireWndProc(hWnd, msg, wParam, lParam)
+		if ret != 0 {
+			return ret
 		}
 	}
 	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
