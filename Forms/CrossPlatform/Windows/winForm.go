@@ -120,11 +120,30 @@ func (_this *winForm) SetTitle(title string) {
 
 func (_this *winForm) SetBorderStyle(style plat.IFormBorder) {
 	newStyle := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	bak := newStyle
 	switch style {
 	case plat.IFormBorder_Default:
-		newStyle |= win32.WS_BORDER
+		newStyle |= win32.WS_OVERLAPPEDWINDOW
 	case plat.IFormBorder_None:
-		newStyle &= ^win32.WS_BORDER
+		newStyle &= ^win32.WS_SIZEBOX & ^win32.WS_CAPTION
+	case plat.IFormBorder_Disable_Resize:
+		newStyle |= win32.WS_OVERLAPPEDWINDOW &^ win32.WS_SIZEBOX
 	}
-	win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, newStyle)
+	if bak != newStyle {
+		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, newStyle)
+	}
+}
+
+func (_this *winForm) ShowInTaskbar(isShow bool) {
+	newStyle := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	bak := newStyle
+	if isShow {
+		newStyle |= win32.WS_EX_APPWINDOW
+	} else {
+		newStyle &= ^win32.WS_EX_APPWINDOW
+	}
+	if bak != newStyle {
+		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, newStyle)
+		win32.SetParent()
+	}
 }

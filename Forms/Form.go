@@ -13,14 +13,15 @@ type Form struct {
 	EvMove   []func(f *Form, x, y int)
 	OnMove   func(x, y int)
 
-	impl        plat.IForm
-	isInit      bool
-	x           int
-	y           int
-	weight      int
-	height      int
-	title       string
-	borderStyle FormBorder
+	impl          plat.IForm
+	isInit        bool
+	x             int
+	y             int
+	weight        int
+	height        int
+	title         string
+	borderStyle   FormBorder
+	showInTaskbar bool
 }
 
 func (_this *Form) RunMain(provider plat.IProvider) {
@@ -39,6 +40,7 @@ func (_this *Form) Init() *Form {
 	_this.Controls = new(controlList).Init()
 	_this.title = ""
 	_this.borderStyle = FormBorder_Default
+	_this.showInTaskbar = true
 	_this.OnLoad = _this.defOnLoad
 	_this.OnResize = _this.defOnResize
 	_this.OnMove = _this.defOnMove
@@ -53,6 +55,7 @@ func (_this *Form) registerEvents() {
 		_this.SetLocation(_this.x, _this.y)
 		_this.SetTitle(_this.title)
 		_this.SetBorderStyle(_this.borderStyle)
+		_this.ShowInTaskbar(_this.showInTaskbar)
 		_this.OnLoad()
 	})
 	_this.impl.SetOnResize(func(w, h int) {
@@ -114,5 +117,16 @@ func (_this *Form) SetBorderStyle(style FormBorder) {
 		case FormBorder_None:
 			_this.getImpl().SetBorderStyle(plat.IFormBorder_None)
 		}
+	}
+}
+
+func (_this *Form) GetBorderStyle() FormBorder {
+	return _this.borderStyle
+}
+
+func (_this *Form) ShowInTaskbar(isShow bool) {
+	_this.showInTaskbar = isShow
+	if _this.getImpl().IsCreate() {
+		_this.getImpl().ShowInTaskbar(isShow)
 	}
 }
