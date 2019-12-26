@@ -2,11 +2,16 @@ package CrossPlatform
 
 type IEmptyControl interface {
 	Create()
-	SetSize(w int, h int)
-	OnResize(func(w int, h int))
-	SetLocation(x int, y int)
-	OnMove(func(x int, y int))
+	IsCreate() bool
+	SetOnCreate(func())
 
+	SetSize(w int, h int)
+	SetOnResize(func(w int, h int))
+
+	SetLocation(x int, y int)
+	SetOnMove(func(x int, y int))
+
+	Invoke(fn func(state interface{}), state interface{})
 	Show()
 	Hide()
 }
