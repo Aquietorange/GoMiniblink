@@ -12,18 +12,15 @@ func main() {
 	frm.SetLocation(100, 100)
 	frm.SetTitle("miniblink窗口")
 	frm.ShowInTaskbar(false)
-	//frm.SetBorderStyle(Forms.FormBorder_None)
-	frm.EvLoad = append(frm.EvLoad, func(form *Forms.Form) {
+	//frm.SetBorderStyle(Forms.FormBorder_Disable_Resize)
+	frm.EvLoad["load"] = func(form *Forms.Form) {
+		//frm.SetBorderStyle(Forms.FormBorder_None)
 		//go func(f *Forms.Form) {
-		//	time.Sleep(2 * time.Second)
+		//	time.Sleep(5 * time.Second)
 		//	f.Invoke(func(state interface{}) {
-		//		frm.ShowInTaskbar(false)
-		//	}, nil)
-		//	time.Sleep(2 * time.Second)
-		//	f.Invoke(func(state interface{}) {
-		//		frm.Show()
+		//		frm.SetBorderStyle(Forms.FormBorder_None)
 		//	}, nil)
 		//}(form)
-	})
+	}
 	Forms.Run(frm)
 }

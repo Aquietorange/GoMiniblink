@@ -6,7 +6,7 @@ import (
 
 type Form struct {
 	Controls *controlList
-	EvLoad   []func(form *Form)
+	EvLoad   map[string]func(form *Form)
 	OnLoad   func()
 	EvResize []func(f *Form, w, h int)
 	OnResize func(w, h int)
@@ -15,6 +15,7 @@ type Form struct {
 
 	impl          plat.IForm
 	isInit        bool
+	delayExec     map[string]func(form *Form)
 	x             int
 	y             int
 	weight        int
@@ -22,10 +23,13 @@ type Form struct {
 	title         string
 	borderStyle   FormBorder
 	showInTaskbar bool
+	isFirstShow   bool
 }
 
 func (_this *Form) RunMain(provider plat.IProvider) {
-	provider.RunMain(_this.impl)
+	provider.RunMain(_this.impl, func() {
+		_this.Show()
+	})
 }
 
 func (_this *Form) getImpl() plat.IForm {
@@ -36,6 +40,8 @@ func (_this *Form) getImpl() plat.IForm {
 }
 
 func (_this *Form) Init() *Form {
+	_this.delayExec = make(map[string]func(form *Form))
+	_this.EvLoad = make(map[string]func(*Form))
 	_this.impl = Provider.NewForm()
 	_this.Controls = new(controlList).Init()
 	_this.title = ""
@@ -51,13 +57,15 @@ func (_this *Form) Init() *Form {
 
 func (_this *Form) registerEvents() {
 	_this.impl.SetOnCreate(func() {
-		_this.SetSize(_this.weight, _this.height)
-		_this.SetLocation(_this.x, _this.y)
-		_this.SetTitle(_this.title)
-		_this.SetBorderStyle(_this.borderStyle)
-		_this.ShowInTaskbar(_this.showInTaskbar)
 		_this.OnLoad()
 	})
+	_this.EvLoad["__initProp"] = func(f *Form) {
+		for _, v := range _this.delayExec {
+			v(_this)
+		}
+		_this.delayExec = nil
+		delete(_this.EvLoad, "__initProp")
+	}
 	_this.impl.SetOnResize(func(w, h int) {
 		_this.weight, _this.height = w, h
 		_this.OnResize(w, h)
@@ -68,24 +76,32 @@ func (_this *Form) registerEvents() {
 	})
 }
 
-func (_this *Form) Invoke(fn func(state interface{}), state interface{}) {
+func (_this *Form) exec(key string, fn func(frm *Form)) {
 	if _this.getImpl().IsCreate() {
-		_this.getImpl().Invoke(fn, state)
+		fn(_this)
+	} else {
+		_this.delayExec[key] = fn
 	}
 }
 
+func (_this *Form) Invoke(fn func(state interface{}), state interface{}) {
+	_this.exec("__invoke", func(frm *Form) {
+		frm.impl.Invoke(fn, state)
+	})
+}
+
 func (_this *Form) Show() {
-	if _this.getImpl().IsCreate() == false {
-		_this.getImpl().Create()
+	if _this.impl.IsCreate() == false {
+		_this.impl.Create()
 	}
-	_this.getImpl().Show()
+	_this.impl.Show()
 }
 
 func (_this *Form) SetSize(w, h int) {
 	_this.weight, _this.height = w, h
-	if _this.getImpl().IsCreate() {
-		_this.getImpl().SetSize(_this.weight, _this.height)
-	}
+	_this.exec("__setSize", func(frm *Form) {
+		frm.impl.SetSize(frm.weight, frm.height)
+	})
 }
 
 func (_this *Form) GetSize() (w, h int) {
@@ -94,30 +110,30 @@ func (_this *Form) GetSize() (w, h int) {
 
 func (_this *Form) SetLocation(x, y int) {
 	_this.x, _this.y = x, y
-	if _this.getImpl().IsCreate() {
-		_this.getImpl().SetLocation(_this.x, _this.y)
-	}
+	_this.exec("__setLocation", func(frm *Form) {
+		frm.impl.SetLocation(frm.x, frm.y)
+	})
 }
 
 func (_this *Form) SetTitle(title string) {
 	_this.title = title
-	if _this.getImpl().IsCreate() {
-		_this.getImpl().SetTitle(_this.title)
-	}
+	_this.exec("__setTitle", func(frm *Form) {
+		frm.impl.SetTitle(frm.title)
+	})
 }
 
 func (_this *Form) SetBorderStyle(style FormBorder) {
 	_this.borderStyle = style
-	if _this.getImpl().IsCreate() {
-		switch style {
+	_this.exec("__setBorderStyle", func(frm *Form) {
+		switch frm.borderStyle {
 		case FormBorder_Default:
-			_this.getImpl().SetBorderStyle(plat.IFormBorder_Default)
+			frm.impl.SetBorderStyle(plat.IFormBorder_Default)
 		case FormBorder_Disable_Resize:
-			_this.getImpl().SetBorderStyle(plat.IFormBorder_Disable_Resize)
+			frm.impl.SetBorderStyle(plat.IFormBorder_Disable_Resize)
 		case FormBorder_None:
-			_this.getImpl().SetBorderStyle(plat.IFormBorder_None)
+			frm.impl.SetBorderStyle(plat.IFormBorder_None)
 		}
-	}
+	})
 }
 
 func (_this *Form) GetBorderStyle() FormBorder {
@@ -126,7 +142,7 @@ func (_this *Form) GetBorderStyle() FormBorder {
 
 func (_this *Form) ShowInTaskbar(isShow bool) {
 	_this.showInTaskbar = isShow
-	if _this.getImpl().IsCreate() {
-		_this.getImpl().ShowInTaskbar(isShow)
-	}
+	_this.exec("__showInTaskbar", func(frm *Form) {
+		frm.impl.ShowInTaskbar(frm.showInTaskbar)
+	})
 }

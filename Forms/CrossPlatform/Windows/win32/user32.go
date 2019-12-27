@@ -2672,13 +2672,13 @@ func GetWindow(hWnd HWND, uCmd uint32) HWND {
 	return HWND(ret)
 }
 
-func GetWindowLong(hWnd HWND, index int32) int32 {
+func GetWindowLong(hWnd HWND, index int32) int64 {
 	ret, _, _ := syscall.Syscall(getWindowLong.Addr(), 2,
 		uintptr(hWnd),
 		uintptr(index),
 		0)
 
-	return int32(ret)
+	return int64(ret)
 }
 
 func GetWindowLongPtr(hWnd HWND, index int32) uintptr {
@@ -3231,7 +3231,7 @@ func SetWinEventHook(eventMin uint32, eventMax uint32, hmodWinEventProc HMODULE,
 	return HWINEVENTHOOK(ret), nil
 }
 
-func SetWindowLong(hWnd HWND, index, value int32) int32 {
+func SetWindowLong(hWnd HWND, index, value int64) int32 {
 	ret, _, _ := syscall.Syscall(setWindowLong.Addr(), 3,
 		uintptr(hWnd),
 		uintptr(index),

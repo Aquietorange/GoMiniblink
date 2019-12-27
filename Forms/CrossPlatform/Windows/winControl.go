@@ -13,15 +13,16 @@ type winControl struct {
 	handle       win32.HWND
 	isCreated    bool
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
-	wndCreate    func(hWnd win32.HWND)
+	evWndCreate  map[string]func(hWnd win32.HWND)
 	owner        *winForm
 	invokeCtxMap map[string]*InvokeContext
 }
 
 func (_this *winControl) init() {
+	_this.evWndCreate = make(map[string]func(hWnd win32.HWND))
 	_this.invokeCtxMap = make(map[string]*InvokeContext)
 	_this.evWndProc = make(map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr)
-	_this.evWndProc["execInvoke"] = _this.execInvoke
+	_this.evWndProc["__execInvoke"] = _this.execInvoke
 }
 
 func (_this *winControl) IsCreate() bool {
@@ -31,17 +32,13 @@ func (_this *winControl) IsCreate() bool {
 func (_this *winControl) onWndCreate(hWnd win32.HWND) {
 	_this.isCreated = true
 	_this.handle = hWnd
-	if _this.wndCreate != nil {
-		_this.wndCreate(_this.handle)
+	for _, v := range _this.evWndCreate {
+		v(hWnd)
 	}
 }
 
 func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	var list []func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
 	for _, v := range _this.evWndProc {
-		list = append(list, v)
-	}
-	for _, v := range list {
 		ret := v(hWnd, msg, wParam, lParam)
 		if ret != 0 {
 			return ret

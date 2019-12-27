@@ -56,11 +56,13 @@ func (_this *Provider) defaultWndProc(hWnd win32.HWND, msg uint32, wParam uintpt
 		}
 	} else if msg == win32.WM_CREATE {
 		cp := *((*win32.CREATESTRUCT)(unsafe.Pointer(lParam)))
-		id := *((*string)(unsafe.Pointer(cp.CreateParams)))
-		if w, ok := _this.unCreateWnds[id]; ok {
-			w.onWndCreate(hWnd)
-			delete(_this.unCreateWnds, id)
-			_this.wnds[hWnd] = w
+		if cp.CreateParams != 0 {
+			id := *((*string)(unsafe.Pointer(cp.CreateParams)))
+			if w, ok := _this.unCreateWnds[id]; ok {
+				delete(_this.unCreateWnds, id)
+				_this.wnds[hWnd] = w
+				w.onWndCreate(hWnd)
+			}
 		}
 	}
 	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
@@ -70,14 +72,15 @@ func (_this *Provider) Exit(code int) {
 	win32.PostQuitMessage(int32(code))
 }
 
-func (_this *Provider) RunMain(form CrossPlatform.IForm) {
+func (_this *Provider) RunMain(form CrossPlatform.IForm, show func()) {
 	frm, ok := form.(*winForm)
 	if ok == false {
 		panic("类型不正确")
 	}
-	frm.Create()
-	_this.main = frm.hWnd()
-	frm.Show()
+	frm.evWndCreate["setMain"] = func(hWnd win32.HWND) {
+		_this.main = hWnd
+	}
+	show()
 	var message win32.MSG
 	for {
 		if win32.GetMessage(&message, 0, 0, 0) {

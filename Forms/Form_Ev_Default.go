@@ -1,7 +1,7 @@
 package Forms
 
 func (_this *Form) defOnLoad() {
-	for _, v := range _this.EvLoad[:] {
+	for _, v := range _this.EvLoad {
 		v(_this)
 	}
 }

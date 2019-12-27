@@ -13,6 +13,8 @@ type winForm struct {
 	onResize func(int, int)
 	onMove   func(int, int)
 	onClose  func() (cancel bool)
+
+	hideParent win32.HWND
 }
 
 func (_this *winForm) hWnd() win32.HWND {
@@ -69,14 +71,14 @@ func (_this *winForm) Create() {
 	if _this.IsCreate() {
 		return
 	}
-	_this.wndCreate = func(hWnd win32.HWND) {
+	_this.evWndCreate["__onCreate"] = func(hWnd win32.HWND) {
 		if _this.onCreate != nil {
 			_this.onCreate()
 		}
 	}
 	lp := _this.name()
 	win32.CreateWindowEx(
-		win32.WS_EX_LEFT,
+		0,
 		sto16(_this.className),
 		sto16(""),
 		win32.WS_OVERLAPPEDWINDOW,
@@ -118,32 +120,44 @@ func (_this *winForm) SetTitle(title string) {
 	win32.SetWindowText(_this.hWnd(), sto16(title))
 }
 
-func (_this *winForm) SetBorderStyle(style plat.IFormBorder) {
-	newStyle := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
-	bak := newStyle
-	switch style {
+func (_this *winForm) SetBorderStyle(border plat.IFormBorder) {
+	style := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	bak := style
+	switch border {
 	case plat.IFormBorder_Default:
-		newStyle |= win32.WS_OVERLAPPEDWINDOW
+		style |= win32.WS_OVERLAPPEDWINDOW
 	case plat.IFormBorder_None:
-		newStyle &= ^win32.WS_SIZEBOX & ^win32.WS_CAPTION
+		style &= ^win32.WS_SIZEBOX & ^win32.WS_CAPTION
 	case plat.IFormBorder_Disable_Resize:
-		newStyle |= win32.WS_OVERLAPPEDWINDOW &^ win32.WS_SIZEBOX
+		style |= win32.WS_OVERLAPPEDWINDOW
+		style &= ^win32.WS_SIZEBOX
 	}
-	if bak != newStyle {
-		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, newStyle)
+	if bak != style {
+		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, style)
 	}
 }
 
 func (_this *winForm) ShowInTaskbar(isShow bool) {
-	newStyle := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
-	bak := newStyle
+	style := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	bak := style
 	if isShow {
-		newStyle |= win32.WS_EX_APPWINDOW
+		style |= win32.WS_EX_APPWINDOW
 	} else {
-		newStyle &= ^win32.WS_EX_APPWINDOW
+		style &= ^win32.WS_EX_APPWINDOW
+		//style |= win32.WS_POPUP
 	}
-	if bak != newStyle {
-		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, newStyle)
-		win32.SetParent()
+	if bak != style {
+		if _this.hideParent == 0 {
+			_this.hideParent = win32.CreateWindowEx(
+				0,
+				sto16(_this.className),
+				sto16(""),
+				win32.WS_OVERLAPPEDWINDOW,
+				0, 0, 0, 0, 0, 0,
+				_this.provider.hInstance,
+				unsafe.Pointer(nil))
+			win32.SetParent(_this.hWnd(), _this.hideParent)
+		}
+		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, style)
 	}
 }
