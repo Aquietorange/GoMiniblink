@@ -1,7 +1,7 @@
 package Windows
 
 const (
-	CMD_Invoke = 100
+	cmd_invoke = 100
 )
 
 type InvokeContext struct {

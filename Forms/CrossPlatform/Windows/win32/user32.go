@@ -1558,9 +1558,9 @@ type CREATESTRUCT struct {
 	Cx              int32
 	Y               int32
 	X               int32
-	Style           int32
+	Style           int64
 	Name, ClassName uintptr
-	ExStyle         uint32
+	ExStyle         uint64
 }
 
 type CHANGEFILTERSTRUCT struct {
@@ -1887,6 +1887,8 @@ var (
 	windowFromDC                *windows.LazyProc
 	windowFromPoint             *windows.LazyProc
 	setWindowText               *windows.LazyProc
+	getWindowTextLength         *windows.LazyProc
+	getWindowText               *windows.LazyProc
 )
 
 func init() {
@@ -1896,7 +1898,6 @@ func init() {
 	libuser32 = windows.NewLazySystemDLL("user32.dll")
 
 	// Functions
-	setWindowText = libuser32.NewProc("SetWindowTextW")
 	addClipboardFormatListener = libuser32.NewProc("AddClipboardFormatListener")
 	adjustWindowRect = libuser32.NewProc("AdjustWindowRect")
 	attachThreadInput = libuser32.NewProc("AttachThreadInput")
@@ -2038,6 +2039,40 @@ func init() {
 	updateWindow = libuser32.NewProc("UpdateWindow")
 	windowFromDC = libuser32.NewProc("WindowFromDC")
 	windowFromPoint = libuser32.NewProc("WindowFromPoint")
+	setWindowText = libuser32.NewProc("SetWindowTextW")
+	getWindowTextLength = libuser32.NewProc("GetWindowTextLengthW")
+	getWindowText = libuser32.NewProc("GetWindowTextW")
+}
+
+func GetWindowText(hWnd HWND) string {
+	tlen := GetWindowTextLength(hWnd) + 1
+	if tlen == 1 {
+		return ""
+	}
+	data := make([]uint16, tlen, tlen)
+	ret, _, _ := syscall.Syscall(getWindowText.Addr(), 3,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(&data[0])),
+		uintptr(cap(data)))
+	if ret == 0 {
+		return ""
+	}
+	return syscall.UTF16ToString(data)
+}
+
+func GetWindowTextLength(hWnd HWND) uint {
+	ret, _, _ := syscall.Syscall(getWindowTextLength.Addr(), 1, uintptr(hWnd), 0, 0)
+	return uint(ret)
+}
+
+func SetWindowText(hWnd HWND, text string) bool {
+	lp, _ := syscall.UTF16PtrFromString(text)
+	ret, _, _ := syscall.Syscall(setWindowText.Addr(), 2,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(lp)),
+		0)
+
+	return ret != 0
 }
 
 func AddClipboardFormatListener(hwnd HWND) bool {
@@ -2208,8 +2243,8 @@ func CreatePopupMenu() HMENU {
 	return HMENU(ret)
 }
 
-func CreateWindowEx(dwExStyle uint32, lpClassName, lpWindowName *uint16, dwStyle uint32, x, y, nWidth, nHeight int32, hWndParent HWND, hMenu HMENU, hInstance HINSTANCE, lpParam unsafe.Pointer) HWND {
-	ret, _, err := syscall.Syscall12(createWindowEx.Addr(), 12,
+func CreateWindowEx(dwExStyle uint64, lpClassName, lpWindowName *uint16, dwStyle int64, x, y, nWidth, nHeight int32, hWndParent HWND, hMenu HMENU, hInstance HINSTANCE, lpParam unsafe.Pointer) HWND {
+	ret, _, _ := syscall.Syscall12(createWindowEx.Addr(), 12,
 		uintptr(dwExStyle),
 		uintptr(unsafe.Pointer(lpClassName)),
 		uintptr(unsafe.Pointer(lpWindowName)),
@@ -2222,9 +2257,6 @@ func CreateWindowEx(dwExStyle uint32, lpClassName, lpWindowName *uint16, dwStyle
 		uintptr(hMenu),
 		uintptr(hInstance),
 		uintptr(lpParam))
-	if ret == 0 {
-		println(err.Error())
-	}
 	return HWND(ret)
 }
 
@@ -3253,15 +3285,6 @@ func SetWindowPlacement(hWnd HWND, lpwndpl *WINDOWPLACEMENT) bool {
 	ret, _, _ := syscall.Syscall(setWindowPlacement.Addr(), 2,
 		uintptr(hWnd),
 		uintptr(unsafe.Pointer(lpwndpl)),
-		0)
-
-	return ret != 0
-}
-
-func SetWindowText(hWnd HWND, lpString *uint16) bool {
-	ret, _, _ := syscall.Syscall(setWindowText.Addr(), 2,
-		uintptr(hWnd),
-		uintptr(unsafe.Pointer(lpString)),
 		0)
 
 	return ret != 0

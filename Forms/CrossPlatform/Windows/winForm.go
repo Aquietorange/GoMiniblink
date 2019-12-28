@@ -14,7 +14,7 @@ type winForm struct {
 	onMove   func(int, int)
 	onClose  func() (cancel bool)
 
-	hideParent win32.HWND
+	createParams win32.CREATESTRUCT
 }
 
 func (_this *winForm) hWnd() win32.HWND {
@@ -34,7 +34,11 @@ func (_this *winForm) init(provider *Provider) *winForm {
 	_this.provider = provider
 	_this.idName = Utils.NewUUID()
 	_this.className = provider.className
-	_this.owner = _this
+	_this.createParams = win32.CREATESTRUCT{
+		Style:     win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX,
+		ClassName: uintptr(unsafe.Pointer(sto16(_this.className))),
+		Name:      uintptr(unsafe.Pointer(sto16(""))),
+	}
 	_this.evWndProc["WinformWndProc"] = _this.defWndProc
 	provider.add(_this)
 	return _this
@@ -44,7 +48,7 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 	switch msg {
 	case win32.WM_CLOSE:
 		if _this.onClose == nil || _this.onClose() == false {
-			_this.provider.remove(_this.hWnd())
+			_this.provider.remove(_this.hWnd(), true)
 			return 0
 		}
 	case win32.WM_SIZE:
@@ -76,15 +80,19 @@ func (_this *winForm) Create() {
 			_this.onCreate()
 		}
 	}
-	lp := _this.name()
 	win32.CreateWindowEx(
-		0,
-		sto16(_this.className),
-		sto16(""),
-		win32.WS_OVERLAPPEDWINDOW,
-		0, 0, 0, 0, 0, 0,
+		_this.createParams.ExStyle,
+		(*uint16)(unsafe.Pointer(_this.createParams.ClassName)),
+		(*uint16)(unsafe.Pointer(_this.createParams.Name)),
+		_this.createParams.Style,
+		_this.createParams.X,
+		_this.createParams.Y,
+		_this.createParams.Cx,
+		_this.createParams.Cy,
+		_this.createParams.Parent,
+		_this.createParams.Menu,
 		_this.provider.hInstance,
-		unsafe.Pointer(&lp))
+		unsafe.Pointer(&_this.idName))
 }
 
 func (_this *winForm) Show() {
@@ -92,16 +100,20 @@ func (_this *winForm) Show() {
 	win32.UpdateWindow(_this.hWnd())
 }
 
-func (_this *winForm) ShowDialog() {
-
-}
-
 func (_this *winForm) Hide() {
 	win32.ShowWindow(_this.hWnd(), win32.SW_HIDE)
 }
 
+func (_this *winForm) ShowDialog() {
+
+}
+
 func (_this *winForm) SetSize(w, h int) {
-	win32.SetWindowPos(_this.hWnd(), win32.HWND(0), 0, 0, int32(w), int32(h), win32.SWP_NOMOVE)
+	if _this.hWnd() == 0 {
+		_this.createParams.Cx, _this.createParams.Cy = int32(w), int32(h)
+	} else {
+		win32.SetWindowPos(_this.hWnd(), win32.HWND(0), 0, 0, int32(w), int32(h), win32.SWP_NOMOVE)
+	}
 }
 
 func (_this *winForm) SetOnResize(fn func(w, h int)) {
@@ -109,7 +121,11 @@ func (_this *winForm) SetOnResize(fn func(w, h int)) {
 }
 
 func (_this *winForm) SetLocation(x, y int) {
-	win32.SetWindowPos(_this.hWnd(), win32.HWND(0), int32(x), int32(y), 0, 0, win32.SWP_NOSIZE)
+	if _this.hWnd() == 0 {
+		_this.createParams.X, _this.createParams.Y = int32(x), int32(y)
+	} else {
+		win32.SetWindowPos(_this.hWnd(), win32.HWND(0), int32(x), int32(y), 0, 0, win32.SWP_NOSIZE)
+	}
 }
 
 func (_this *winForm) SetOnMove(fn func(x, y int)) {
@@ -117,47 +133,77 @@ func (_this *winForm) SetOnMove(fn func(x, y int)) {
 }
 
 func (_this *winForm) SetTitle(title string) {
-	win32.SetWindowText(_this.hWnd(), sto16(title))
+	if _this.hWnd() == 0 {
+		_this.createParams.Name = uintptr(unsafe.Pointer(sto16(title)))
+	} else {
+		win32.SetWindowText(_this.hWnd(), title)
+	}
 }
 
 func (_this *winForm) SetBorderStyle(border plat.IFormBorder) {
-	style := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	var style int64
+	if _this.hWnd() == 0 {
+		style = _this.createParams.Style
+	} else {
+		style = win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
+	}
 	bak := style
 	switch border {
 	case plat.IFormBorder_Default:
-		style |= win32.WS_OVERLAPPEDWINDOW
+		style |= win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX
 	case plat.IFormBorder_None:
 		style &= ^win32.WS_SIZEBOX & ^win32.WS_CAPTION
 	case plat.IFormBorder_Disable_Resize:
-		style |= win32.WS_OVERLAPPEDWINDOW
 		style &= ^win32.WS_SIZEBOX
 	}
-	if bak != style {
+	if _this.hWnd() == 0 {
+		_this.createParams.Style = style
+	} else if bak != style {
 		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, style)
 	}
 }
 
 func (_this *winForm) ShowInTaskbar(isShow bool) {
+	if _this.hWnd() == 0 {
+		if isShow {
+			_this.createParams.Style &= ^win32.WS_POPUP
+			_this.createParams.Parent = 0
+		} else {
+			_this.createParams.Style |= win32.WS_POPUP
+			_this.createParams.Parent = _this.provider.defOwner
+		}
+		return
+	}
 	style := win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE)
 	bak := style
 	if isShow {
-		style |= win32.WS_EX_APPWINDOW
+		style &= ^win32.WS_POPUP
 	} else {
-		style &= ^win32.WS_EX_APPWINDOW
-		//style |= win32.WS_POPUP
+		style |= win32.WS_POPUP
 	}
 	if bak != style {
-		if _this.hideParent == 0 {
-			_this.hideParent = win32.CreateWindowEx(
-				0,
-				sto16(_this.className),
-				sto16(""),
-				win32.WS_OVERLAPPEDWINDOW,
-				0, 0, 0, 0, 0, 0,
-				_this.provider.hInstance,
-				unsafe.Pointer(nil))
-			win32.SetParent(_this.hWnd(), _this.hideParent)
+		preHwnd := _this.hWnd()
+		visible := win32.IsWindowVisible(preHwnd)
+		var rect win32.RECT
+		win32.GetWindowRect(preHwnd, &rect)
+		title := sto16(win32.GetWindowText(preHwnd))
+		_this.createParams.Style = style
+		_this.createParams.Name = uintptr(unsafe.Pointer(title))
+		_this.createParams.X = rect.Left
+		_this.createParams.Y = rect.Top
+		_this.createParams.Cx = rect.Right - rect.Left
+		_this.createParams.Cy = rect.Bottom - rect.Top
+		if isShow {
+			_this.createParams.Parent = 0
+		} else {
+			_this.createParams.Parent = _this.provider.defOwner
 		}
-		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, style)
+		_this.isCreated = false
+		_this.Create()
+		_this.provider.remove(preHwnd, false)
+		win32.DestroyWindow(preHwnd)
+		if visible {
+			win32.ShowWindow(_this.hWnd(), win32.SW_SHOW)
+		}
 	}
 }

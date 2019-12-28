@@ -14,7 +14,6 @@ type winControl struct {
 	isCreated    bool
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 	evWndCreate  map[string]func(hWnd win32.HWND)
-	owner        *winForm
 	invokeCtxMap map[string]*InvokeContext
 }
 
@@ -54,11 +53,11 @@ func (_this *winControl) Invoke(fn func(state interface{}), state interface{}) {
 		key:   Utils.NewUUID(),
 	}
 	_this.invokeCtxMap[ctx.key] = &ctx
-	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(CMD_Invoke), uintptr(unsafe.Pointer(&ctx)))
+	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(cmd_invoke), uintptr(unsafe.Pointer(&ctx)))
 }
 
 func (_this *winControl) execInvoke(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	if msg != win32.WM_COMMAND || uint(wParam) != CMD_Invoke {
+	if msg != win32.WM_COMMAND || uint(wParam) != cmd_invoke {
 		return 0
 	}
 	ctx := *((*InvokeContext)(unsafe.Pointer(lParam)))

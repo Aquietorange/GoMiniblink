@@ -15,7 +15,6 @@ type Form struct {
 
 	impl          plat.IForm
 	isInit        bool
-	delayExec     map[string]func(form *Form)
 	x             int
 	y             int
 	weight        int
@@ -40,7 +39,6 @@ func (_this *Form) getImpl() plat.IForm {
 }
 
 func (_this *Form) Init() *Form {
-	_this.delayExec = make(map[string]func(form *Form))
 	_this.EvLoad = make(map[string]func(*Form))
 	_this.impl = Provider.NewForm()
 	_this.Controls = new(controlList).Init()
@@ -59,13 +57,6 @@ func (_this *Form) registerEvents() {
 	_this.impl.SetOnCreate(func() {
 		_this.OnLoad()
 	})
-	_this.EvLoad["__initProp"] = func(f *Form) {
-		for _, v := range _this.delayExec {
-			v(_this)
-		}
-		_this.delayExec = nil
-		delete(_this.EvLoad, "__initProp")
-	}
 	_this.impl.SetOnResize(func(w, h int) {
 		_this.weight, _this.height = w, h
 		_this.OnResize(w, h)
@@ -76,18 +67,8 @@ func (_this *Form) registerEvents() {
 	})
 }
 
-func (_this *Form) exec(key string, fn func(frm *Form)) {
-	if _this.getImpl().IsCreate() {
-		fn(_this)
-	} else {
-		_this.delayExec[key] = fn
-	}
-}
-
 func (_this *Form) Invoke(fn func(state interface{}), state interface{}) {
-	_this.exec("__invoke", func(frm *Form) {
-		frm.impl.Invoke(fn, state)
-	})
+	_this.getImpl().Invoke(fn, state)
 }
 
 func (_this *Form) Show() {
@@ -99,9 +80,7 @@ func (_this *Form) Show() {
 
 func (_this *Form) SetSize(w, h int) {
 	_this.weight, _this.height = w, h
-	_this.exec("__setSize", func(frm *Form) {
-		frm.impl.SetSize(frm.weight, frm.height)
-	})
+	_this.getImpl().SetSize(_this.weight, _this.height)
 }
 
 func (_this *Form) GetSize() (w, h int) {
@@ -110,30 +89,24 @@ func (_this *Form) GetSize() (w, h int) {
 
 func (_this *Form) SetLocation(x, y int) {
 	_this.x, _this.y = x, y
-	_this.exec("__setLocation", func(frm *Form) {
-		frm.impl.SetLocation(frm.x, frm.y)
-	})
+	_this.getImpl().SetLocation(_this.x, _this.y)
 }
 
 func (_this *Form) SetTitle(title string) {
 	_this.title = title
-	_this.exec("__setTitle", func(frm *Form) {
-		frm.impl.SetTitle(frm.title)
-	})
+	_this.getImpl().SetTitle(_this.title)
 }
 
 func (_this *Form) SetBorderStyle(style FormBorder) {
 	_this.borderStyle = style
-	_this.exec("__setBorderStyle", func(frm *Form) {
-		switch frm.borderStyle {
-		case FormBorder_Default:
-			frm.impl.SetBorderStyle(plat.IFormBorder_Default)
-		case FormBorder_Disable_Resize:
-			frm.impl.SetBorderStyle(plat.IFormBorder_Disable_Resize)
-		case FormBorder_None:
-			frm.impl.SetBorderStyle(plat.IFormBorder_None)
-		}
-	})
+	switch _this.borderStyle {
+	case FormBorder_Default:
+		_this.getImpl().SetBorderStyle(plat.IFormBorder_Default)
+	case FormBorder_Disable_Resize:
+		_this.getImpl().SetBorderStyle(plat.IFormBorder_Disable_Resize)
+	case FormBorder_None:
+		_this.getImpl().SetBorderStyle(plat.IFormBorder_None)
+	}
 }
 
 func (_this *Form) GetBorderStyle() FormBorder {
@@ -142,7 +115,5 @@ func (_this *Form) GetBorderStyle() FormBorder {
 
 func (_this *Form) ShowInTaskbar(isShow bool) {
 	_this.showInTaskbar = isShow
-	_this.exec("__showInTaskbar", func(frm *Form) {
-		frm.impl.ShowInTaskbar(frm.showInTaskbar)
-	})
+	_this.getImpl().ShowInTaskbar(_this.showInTaskbar)
 }
