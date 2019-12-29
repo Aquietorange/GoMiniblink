@@ -1,31 +1,32 @@
 package Forms
 
 import (
-	plat "GoMiniblink/Forms/CrossPlatform"
+	gm "GoMiniblink"
+	plat "GoMiniblink/CrossPlatform"
 )
 
 type Form struct {
-	Controls *controlList
-	EvLoad   map[string]func(form *Form)
-	OnLoad   func()
-	EvResize []func(f *Form, w, h int)
-	OnResize func(w, h int)
-	EvMove   []func(f *Form, x, y int)
-	OnMove   func(x, y int)
+	BaseEvents
+	onLoad   func()
+	onResize func(w, h int)
+	onMove   func(x, y int)
+
+	EvState map[string]func(target interface{}, state gm.FormState)
+	onState func(gm.FormState)
 
 	impl          plat.IForm
 	isInit        bool
-	x             int
-	y             int
-	weight        int
-	height        int
+	pos           gm.Point
+	size          gm.Rect
 	title         string
-	borderStyle   FormBorder
-	showInTaskbar bool
 	isFirstShow   bool
+	showInTaskbar bool
+	border        gm.FormBorder
+	state         gm.FormState
+	startPos      gm.FormStartPosition
 }
 
-func (_this *Form) RunMain(provider plat.IProvider) {
+func (_this *Form) runMain(provider plat.IProvider) {
 	provider.RunMain(_this.impl, func() {
 		_this.Show()
 	})
@@ -39,15 +40,18 @@ func (_this *Form) getImpl() plat.IForm {
 }
 
 func (_this *Form) Init() *Form {
-	_this.EvLoad = make(map[string]func(*Form))
+	_this.BaseEvents.init()
+	_this.EvState = make(map[string]func(interface{}, gm.FormState))
 	_this.impl = Provider.NewForm()
-	_this.Controls = new(controlList).Init()
 	_this.title = ""
-	_this.borderStyle = FormBorder_Default
+	_this.border = gm.FormBorder_Default
+	_this.state = gm.FormState_Normal
+	_this.startPos = gm.FormStartPosition_Screen_Center
 	_this.showInTaskbar = true
-	_this.OnLoad = _this.defOnLoad
-	_this.OnResize = _this.defOnResize
-	_this.OnMove = _this.defOnMove
+	_this.onLoad = _this.defOnLoad
+	_this.onResize = _this.defOnResize
+	_this.onMove = _this.defOnMove
+	_this.onState = _this.defOnState
 	_this.registerEvents()
 	_this.isInit = true
 	return _this
@@ -55,15 +59,18 @@ func (_this *Form) Init() *Form {
 
 func (_this *Form) registerEvents() {
 	_this.impl.SetOnCreate(func() {
-		_this.OnLoad()
+		_this.onLoad()
 	})
 	_this.impl.SetOnResize(func(w, h int) {
-		_this.weight, _this.height = w, h
-		_this.OnResize(w, h)
+		_this.size = gm.Rect{Wdith: w, Height: h}
+		_this.onResize(w, h)
 	})
 	_this.impl.SetOnMove(func(x, y int) {
-		_this.x, _this.y = x, y
-		_this.OnMove(x, y)
+		_this.pos = gm.Point{X: x, Y: y}
+		_this.onMove(x, y)
+	})
+	_this.impl.SetOnState(func(state gm.FormState) {
+		_this.onState(_this.state)
 	})
 }
 
@@ -75,21 +82,31 @@ func (_this *Form) Show() {
 	if _this.impl.IsCreate() == false {
 		_this.impl.Create()
 	}
-	_this.impl.Show()
+	switch _this.startPos {
+	case gm.FormStartPosition_Screen_Center:
+		scr := Provider.GetScreen()
+		x, y := scr.WorkArea.Wdith/2-_this.size.Wdith/2, scr.WorkArea.Height/2-_this.size.Height/2
+		_this.getImpl().SetLocation(x, y)
+	}
+	_this.getImpl().Show()
 }
 
-func (_this *Form) SetSize(w, h int) {
-	_this.weight, _this.height = w, h
-	_this.getImpl().SetSize(_this.weight, _this.height)
+func (_this *Form) SetSize(rect gm.Rect) {
+	_this.size = rect
+	_this.getImpl().SetSize(_this.size.Wdith, _this.size.Height)
 }
 
-func (_this *Form) GetSize() (w, h int) {
-	return _this.weight, _this.height
+func (_this *Form) GetSize() gm.Rect {
+	return _this.size
 }
 
-func (_this *Form) SetLocation(x, y int) {
-	_this.x, _this.y = x, y
-	_this.getImpl().SetLocation(_this.x, _this.y)
+func (_this *Form) SetLocation(pos gm.Point) {
+	_this.pos = pos
+	_this.getImpl().SetLocation(_this.pos.X, _this.pos.Y)
+}
+
+func (_this *Form) GetLocation() gm.Point {
+	return _this.pos
 }
 
 func (_this *Form) SetTitle(title string) {
@@ -97,23 +114,37 @@ func (_this *Form) SetTitle(title string) {
 	_this.getImpl().SetTitle(_this.title)
 }
 
-func (_this *Form) SetBorderStyle(style FormBorder) {
-	_this.borderStyle = style
-	switch _this.borderStyle {
-	case FormBorder_Default:
-		_this.getImpl().SetBorderStyle(plat.IFormBorder_Default)
-	case FormBorder_Disable_Resize:
-		_this.getImpl().SetBorderStyle(plat.IFormBorder_Disable_Resize)
-	case FormBorder_None:
-		_this.getImpl().SetBorderStyle(plat.IFormBorder_None)
-	}
+func (_this *Form) SetBorderStyle(style gm.FormBorder) {
+	_this.border = style
+	_this.getImpl().SetBorderStyle(_this.border)
 }
 
-func (_this *Form) GetBorderStyle() FormBorder {
-	return _this.borderStyle
+func (_this *Form) GetBorderStyle() gm.FormBorder {
+	return _this.border
 }
 
 func (_this *Form) ShowInTaskbar(isShow bool) {
 	_this.showInTaskbar = isShow
 	_this.getImpl().ShowInTaskbar(_this.showInTaskbar)
+}
+
+func (_this *Form) SetState(state gm.FormState) {
+	_this.state = state
+	_this.getImpl().SetState(_this.state)
+}
+
+func (_this *Form) GetState() gm.FormState {
+	return _this.state
+}
+
+func (_this *Form) SetStartPosition(startPos gm.FormStartPosition) {
+	_this.startPos = startPos
+}
+
+func (_this *Form) SetMaximizeBox(isShow bool) {
+	_this.getImpl().SetMaximizeBox(isShow)
+}
+
+func (_this *Form) SetMinimizeBox(isShow bool) {
+	_this.getImpl().SetMinimizeBox(isShow)
 }

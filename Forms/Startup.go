@@ -1,11 +1,11 @@
 package Forms
 
-import "GoMiniblink/Forms/CrossPlatform"
+import "GoMiniblink/CrossPlatform"
 
 var (
 	Provider CrossPlatform.IProvider
 )
 
 func Run(form *Form) {
-	form.RunMain(Provider)
+	form.runMain(Provider)
 }

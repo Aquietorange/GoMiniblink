@@ -1,6 +1,6 @@
 package Windows
 
-import "GoMiniblink/Forms/CrossPlatform"
+import "GoMiniblink/CrossPlatform"
 
 func (_this *Provider) NewForm() CrossPlatform.IForm {
 	return new(winForm).init(_this)

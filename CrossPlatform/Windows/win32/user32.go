@@ -7,10 +7,19 @@
 package win32
 
 import (
+	"fmt"
 	"syscall"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+)
+
+const (
+	SIZE_RESTORED  = 0
+	SIZE_MINIMIZED = 1
+	SIZE_MAXIMIZED = 2
+	SIZE_MAXSHOW   = 3
+	SIZE_MAXHIDE   = 4
 )
 
 const CW_USEDEFAULT = ^0x7fffffff
@@ -1102,6 +1111,7 @@ const (
 const (
 	SPI_GETNONCLIENTMETRICS = 0x0029
 	SPI_GETHIGHCONTRAST     = 0x0042
+	SPI_GETWORKAREA         = 0x0048
 )
 
 // Dialog styles
@@ -2843,23 +2853,27 @@ func LoadCursor(hInstance HINSTANCE, lpCursorName *uint16) HCURSOR {
 }
 
 func LoadIcon(hInstance HINSTANCE, lpIconName *uint16) HICON {
-	ret, _, _ := syscall.Syscall(loadIcon.Addr(), 2,
+	ret, _, err := syscall.Syscall(loadIcon.Addr(), 2,
 		uintptr(hInstance),
 		uintptr(unsafe.Pointer(lpIconName)),
 		0)
-
+	if ret == 0 {
+		fmt.Println(err)
+	}
 	return HICON(ret)
 }
 
 func LoadImage(hinst HINSTANCE, lpszName *uint16, uType uint32, cxDesired, cyDesired int32, fuLoad uint32) HANDLE {
-	ret, _, _ := syscall.Syscall6(loadImage.Addr(), 6,
+	ret, _, err := syscall.Syscall6(loadImage.Addr(), 6,
 		uintptr(hinst),
 		uintptr(unsafe.Pointer(lpszName)),
 		uintptr(uType),
 		uintptr(cxDesired),
 		uintptr(cyDesired),
 		uintptr(fuLoad))
-
+	if ret == 0 {
+		fmt.Println(err)
+	}
 	return HANDLE(ret)
 }
 

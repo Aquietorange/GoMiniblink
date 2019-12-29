@@ -1,7 +1,8 @@
 package Windows
 
 import (
-	"GoMiniblink/Forms/CrossPlatform/Windows/win32"
+	MB "GoMiniblink"
+	"GoMiniblink/CrossPlatform/Windows/win32"
 	"GoMiniblink/Utils"
 	"unsafe"
 )
@@ -12,15 +13,32 @@ type winControl struct {
 	idName       string
 	handle       win32.HWND
 	isCreated    bool
+	invokeCtxMap map[string]*InvokeContext
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 	evWndCreate  map[string]func(hWnd win32.HWND)
-	invokeCtxMap map[string]*InvokeContext
+	evMouseMove  map[string]func(MB.MouseEvArgs)
+	evMouseDown  map[string]func(MB.MouseEvArgs)
+	evMouseUp    map[string]func(MB.MouseEvArgs)
+	evMouseWheel map[string]func(MB.MouseEvArgs)
+	evMouseClick map[string]func(MB.MouseEvArgs)
+
+	onMouseMove  func(MB.MouseEvArgs)
+	onMouseDown  func(MB.MouseEvArgs)
+	onMouseUp    func(MB.MouseEvArgs)
+	onMouseWheel func(MB.MouseEvArgs)
+	onMouseClick func(MB.MouseEvArgs)
 }
 
 func (_this *winControl) init() {
-	_this.evWndCreate = make(map[string]func(hWnd win32.HWND))
+	_this.evWndCreate = make(map[string]func(win32.HWND))
 	_this.invokeCtxMap = make(map[string]*InvokeContext)
-	_this.evWndProc = make(map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr)
+	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
+	_this.evMouseMove = make(map[string]func(MB.MouseEvArgs))
+	_this.evMouseDown = make(map[string]func(MB.MouseEvArgs))
+	_this.evMouseUp = make(map[string]func(MB.MouseEvArgs))
+	_this.evMouseWheel = make(map[string]func(MB.MouseEvArgs))
+	_this.evMouseClick = make(map[string]func(MB.MouseEvArgs))
+
 	_this.evWndProc["__execInvoke"] = _this.execInvoke
 }
 
@@ -28,7 +46,7 @@ func (_this *winControl) IsCreate() bool {
 	return _this.isCreated
 }
 
-func (_this *winControl) onWndCreate(hWnd win32.HWND) {
+func (_this *winControl) fireWndCreate(hWnd win32.HWND) {
 	_this.isCreated = true
 	_this.handle = hWnd
 	for _, v := range _this.evWndCreate {
@@ -42,6 +60,10 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 		if ret != 0 {
 			return ret
 		}
+	}
+	switch msg {
+	case win32.WM_LBUTTONDOWN:
+
 	}
 	return 0
 }
