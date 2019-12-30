@@ -1,6 +1,12 @@
 package Forms
 
-import "GoMiniblink"
+import MB "GoMiniblink"
+
+func (_this *Form) defOnMouseMove(e MB.MouseEvArgs) {
+	for _, v := range _this.EvMouseMove {
+		v(_this, e)
+	}
+}
 
 func (_this *Form) defOnLoad() {
 	for _, v := range _this.EvLoad {
@@ -20,7 +26,7 @@ func (_this *Form) defOnMove(x, y int) {
 	}
 }
 
-func (_this *Form) defOnState(state GoMiniblink.FormState) {
+func (_this *Form) defOnState(state MB.FormState) {
 	for _, v := range _this.EvState {
 		v(_this, state)
 	}

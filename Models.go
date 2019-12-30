@@ -13,8 +13,7 @@ type Bound struct {
 	Rect
 }
 
-type MouseEvArgs struct {
-	Buttons     MouseButtons
-	X, Y, Delta int
-	IsDBClick   bool
+type Screen struct {
+	Full     Rect
+	WorkArea Rect
 }

@@ -16,7 +16,7 @@ type winControl struct {
 	invokeCtxMap map[string]*InvokeContext
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 	evWndCreate  map[string]func(hWnd win32.HWND)
-	evMouseMove  map[string]func(MB.MouseEvArgs)
+	evMouseMove  map[string]func(target interface{}, args MB.MouseEvArgs)
 	evMouseDown  map[string]func(MB.MouseEvArgs)
 	evMouseUp    map[string]func(MB.MouseEvArgs)
 	evMouseWheel map[string]func(MB.MouseEvArgs)
@@ -33,13 +33,19 @@ func (_this *winControl) init() {
 	_this.evWndCreate = make(map[string]func(win32.HWND))
 	_this.invokeCtxMap = make(map[string]*InvokeContext)
 	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
-	_this.evMouseMove = make(map[string]func(MB.MouseEvArgs))
+	_this.evMouseMove = make(map[string]func(interface{}, MB.MouseEvArgs))
+	_this.SetOnMouseMove(_this.defOnMouseMove)
+
 	_this.evMouseDown = make(map[string]func(MB.MouseEvArgs))
 	_this.evMouseUp = make(map[string]func(MB.MouseEvArgs))
 	_this.evMouseWheel = make(map[string]func(MB.MouseEvArgs))
 	_this.evMouseClick = make(map[string]func(MB.MouseEvArgs))
 
 	_this.evWndProc["__execInvoke"] = _this.execInvoke
+}
+
+func (_this *winControl) SetOnMouseMove(fn func(MB.MouseEvArgs)) {
+	_this.onMouseMove = fn
 }
 
 func (_this *winControl) IsCreate() bool {
@@ -62,8 +68,24 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 		}
 	}
 	switch msg {
-	case win32.WM_LBUTTONDOWN:
-
+	case win32.WM_MOUSEMOVE:
+		var btns MB.MouseButtons
+		wp := int(wParam)
+		if wp&win32.MK_LBUTTON != 0 {
+			btns |= MB.MouseButtons_Left
+		}
+		if wp&win32.MK_MBUTTON != 0 {
+			btns |= MB.MouseButtons_Middle
+		}
+		if wp&win32.MK_RBUTTON != 0 {
+			btns |= MB.MouseButtons_Right
+		}
+		x, y := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
+		_this.onMouseMove(MB.MouseEvArgs{
+			X:       int(x),
+			Y:       int(y),
+			Buttons: btns,
+		})
 	}
 	return 0
 }

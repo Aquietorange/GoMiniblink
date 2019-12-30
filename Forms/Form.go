@@ -7,9 +7,10 @@ import (
 
 type Form struct {
 	BaseEvents
-	onLoad   func()
-	onResize func(w, h int)
-	onMove   func(x, y int)
+	onLoad      func()
+	onResize    func(w, h int)
+	onMove      func(x, y int)
+	onMouseMove func(e gm.MouseEvArgs)
 
 	EvState map[string]func(target interface{}, state gm.FormState)
 	onState func(gm.FormState)
@@ -52,14 +53,15 @@ func (_this *Form) Init() *Form {
 	_this.onResize = _this.defOnResize
 	_this.onMove = _this.defOnMove
 	_this.onState = _this.defOnState
+	_this.onMouseMove = _this.defOnMouseMove
 	_this.registerEvents()
 	_this.isInit = true
 	return _this
 }
 
 func (_this *Form) registerEvents() {
-	_this.impl.SetOnCreate(func() {
-		_this.onLoad()
+	_this.impl.SetOnMouseMove(func(e gm.MouseEvArgs) {
+		_this.onMouseMove(e)
 	})
 	_this.impl.SetOnResize(func(w, h int) {
 		_this.size = gm.Rect{Wdith: w, Height: h}
@@ -71,6 +73,9 @@ func (_this *Form) registerEvents() {
 	})
 	_this.impl.SetOnState(func(state gm.FormState) {
 		_this.onState(_this.state)
+	})
+	_this.impl.SetOnCreate(func() {
+		_this.onLoad()
 	})
 }
 

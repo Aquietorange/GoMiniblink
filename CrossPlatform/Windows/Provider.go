@@ -1,9 +1,9 @@
 package Windows
 
 import (
-	"GoMiniblink"
+	MB "GoMiniblink"
 	"GoMiniblink/CrossPlatform"
-	win32 "GoMiniblink/CrossPlatform/Windows/win32"
+	"GoMiniblink/CrossPlatform/Windows/win32"
 	"os"
 	"syscall"
 	"unsafe"
@@ -27,13 +27,13 @@ func (_this *Provider) Init() *Provider {
 	return _this
 }
 
-func (_this *Provider) GetScreen() CrossPlatform.Screen {
-	var s = CrossPlatform.Screen{
-		Full: GoMiniblink.Rect{
+func (_this *Provider) GetScreen() MB.Screen {
+	var s = MB.Screen{
+		Full: MB.Rect{
 			Wdith:  int(win32.GetSystemMetrics(win32.SM_CXSCREEN)),
 			Height: int(win32.GetSystemMetrics(win32.SM_CYSCREEN)),
 		},
-		WorkArea: GoMiniblink.Rect{
+		WorkArea: MB.Rect{
 			Wdith:  int(win32.GetSystemMetrics(win32.SM_CXFULLSCREEN)),
 			Height: int(win32.GetSystemMetrics(win32.SM_CYFULLSCREEN)),
 		},
