@@ -55,11 +55,11 @@ func (_this *winForm) init(provider *Provider) *winForm {
 func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
 	case win32.WM_CLOSE:
-		if _this.onClose == nil || _this.onClose() == false {
-			_this.provider.remove(_this.hWnd(), true)
-		} else {
+		if _this.onClose != nil && _this.onClose() {
 			return 1
 		}
+	case win32.WM_DESTROY:
+		_this.provider.remove(_this.hWnd(), true)
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)

@@ -4,7 +4,6 @@ import (
 	"GoMiniblink"
 	"GoMiniblink/CrossPlatform/Windows"
 	"GoMiniblink/Forms"
-	"time"
 )
 
 func main() {
@@ -21,12 +20,6 @@ func main() {
 		//		frm.SetMinimizeBox(false)
 		//	}, nil)
 		//}(target.(*Forms.Form))
-	}
-	frm.EvMouseClick["show"] = func(target interface{}, e GoMiniblink.MouseEvArgs) {
-		println("click\t", time.Now().Format("20060102150405000"), e.IsDBClick)
-	}
-	frm.EvMouseUp["show"] = func(target interface{}, e GoMiniblink.MouseEvArgs) {
-		println("up\t\t", time.Now().Format("20060102150405000"))
 	}
 
 	Forms.Run(frm)

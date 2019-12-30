@@ -5,6 +5,6 @@ import "time"
 type MouseEvArgs struct {
 	Buttons     MouseButtons
 	X, Y, Delta int
-	IsDBClick   bool
+	IsDouble    bool
 	Time        time.Time
 }

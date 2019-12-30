@@ -9,21 +9,19 @@ import (
 )
 
 type winControl struct {
-	provider           *Provider
-	className          string
-	idName             string
-	handle             win32.HWND
-	isCreated          bool
-	invokeCtxMap       map[string]*InvokeContext
-	mseClickState      [2]MB.MouseEvArgs
-	mseClickStateIndex int
-	evWndProc          map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
-	evWndCreate        map[string]func(hWnd win32.HWND)
-	evMouseMove        map[string]func(target interface{}, e MB.MouseEvArgs)
-	evMouseDown        map[string]func(target interface{}, e MB.MouseEvArgs)
-	evMouseUp          map[string]func(target interface{}, e MB.MouseEvArgs)
-	evMouseWheel       map[string]func(target interface{}, e MB.MouseEvArgs)
-	evMouseClick       map[string]func(target interface{}, e MB.MouseEvArgs)
+	provider     *Provider
+	className    string
+	idName       string
+	handle       win32.HWND
+	isCreated    bool
+	invokeMap    map[string]*InvokeContext
+	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
+	evWndCreate  map[string]func(hWnd win32.HWND)
+	evMouseMove  map[string]func(target interface{}, e MB.MouseEvArgs)
+	evMouseDown  map[string]func(target interface{}, e MB.MouseEvArgs)
+	evMouseUp    map[string]func(target interface{}, e MB.MouseEvArgs)
+	evMouseWheel map[string]func(target interface{}, e MB.MouseEvArgs)
+	evMouseClick map[string]func(target interface{}, e MB.MouseEvArgs)
 
 	onMouseMove  func(MB.MouseEvArgs)
 	onMouseDown  func(MB.MouseEvArgs)
@@ -34,7 +32,7 @@ type winControl struct {
 
 func (_this *winControl) init() {
 	_this.evWndCreate = make(map[string]func(win32.HWND))
-	_this.invokeCtxMap = make(map[string]*InvokeContext)
+	_this.invokeMap = make(map[string]*InvokeContext)
 	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
 	_this.evMouseMove = make(map[string]func(interface{}, MB.MouseEvArgs))
 	_this.evMouseDown = make(map[string]func(interface{}, MB.MouseEvArgs))
@@ -46,7 +44,7 @@ func (_this *winControl) init() {
 	_this.SetOnMouseUp(_this.defOnMouseUp)
 	_this.SetOnMouseWheel(_this.defOnMouseWheel)
 	_this.SetOnMouseClick(_this.defOnMouseClick)
-	_this.evWndProc["__execInvoke"] = _this.execInvoke
+	_this.evWndProc["__exec_cmd"] = _this.execCmd
 }
 
 func (_this *winControl) IsCreate() bool {
@@ -99,19 +97,12 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 		case win32.WM_MBUTTONDOWN:
 			btns |= MB.MouseButtons_Middle
 		}
-		e := MB.MouseEvArgs{
+		_this.onMouseDown(MB.MouseEvArgs{
 			X:       x,
 			Y:       y,
 			Buttons: btns,
 			Time:    time.Now(),
-		}
-		_this.onMouseDown(e)
-		_this.mseClickState[_this.mseClickStateIndex] = e
-		if _this.mseClickStateIndex == 0 {
-			_this.mseClickStateIndex = 1
-		} else {
-			_this.mseClickStateIndex = 0
-		}
+		})
 	case win32.WM_LBUTTONUP, win32.WM_RBUTTONUP, win32.WM_MBUTTONUP:
 		x, y := int(win32.GET_X_LPARAM(lParam)), int(win32.GET_Y_LPARAM(lParam))
 		var btns MB.MouseButtons
@@ -123,20 +114,12 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 		case win32.WM_MBUTTONUP:
 			btns |= MB.MouseButtons_Middle
 		}
-		e := MB.MouseEvArgs{
+		_this.onMouseUp(MB.MouseEvArgs{
 			X:       x,
 			Y:       y,
 			Buttons: btns,
 			Time:    time.Now(),
-		}
-		_this.onMouseUp(e)
-		//if _this.fireMseDBClick {
-		//	_this.fireMseDBClick = false
-		//	e.IsDBClick = true
-		//	_this.onMouseClick(e)
-		//} else if _this.mseDownXY == int(lParam) {
-		//	_this.onMouseClick(e)
-		//}
+		})
 	case win32.WM_MOUSEWHEEL:
 		x, y := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
 		lp, hp := win32.LOWORD(int32(wParam)), win32.HIWORD(int32(wParam))
@@ -167,18 +150,24 @@ func (_this *winControl) Invoke(fn func(state interface{}), state interface{}) {
 		state: state,
 		key:   Utils.NewUUID(),
 	}
-	_this.invokeCtxMap[ctx.key] = &ctx
+	_this.invokeMap[ctx.key] = &ctx
 	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(cmd_invoke), uintptr(unsafe.Pointer(&ctx)))
 }
 
-func (_this *winControl) execInvoke(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	if msg != win32.WM_COMMAND || uint(wParam) != cmd_invoke {
+func (_this *winControl) execCmd(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	if msg != win32.WM_COMMAND {
 		return 0
 	}
-	ctx := *((*InvokeContext)(unsafe.Pointer(lParam)))
-	ctx.fn(ctx.state)
-	delete(_this.invokeCtxMap, ctx.key)
-	return 0
+	switch int(wParam) {
+	case cmd_invoke:
+		ctx := *((*InvokeContext)(unsafe.Pointer(lParam)))
+		delete(_this.invokeMap, ctx.key)
+		ctx.fn(ctx.state)
+	case cmd_mouse_click:
+		e := *((*MB.MouseEvArgs)(unsafe.Pointer(lParam)))
+		_this.onMouseClick(e)
+	}
+	return 1
 }
 
 func (_this *winControl) hWnd() win32.HWND {

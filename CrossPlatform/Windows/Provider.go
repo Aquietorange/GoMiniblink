@@ -7,6 +7,7 @@ import (
 	"GoMiniblink/Utils"
 	"os"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -18,6 +19,7 @@ type Provider struct {
 	nameWnds   map[string]baseWindow
 	defOwner   win32.HWND
 	defIcon    win32.HICON
+	msClick    *mouseClickWorker
 }
 
 func (_this *Provider) Init() *Provider {
@@ -25,6 +27,7 @@ func (_this *Provider) Init() *Provider {
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = Utils.NewUUID()
 	_this.hInstance = win32.GetModuleHandle(nil)
+	_this.msClick = new(mouseClickWorker).init()
 	return _this
 }
 
@@ -49,7 +52,7 @@ func (_this *Provider) SetIcon(file string) {
 
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
-		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW | win32.CS_DBLCLKS,
+		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
 		LpfnWndProc:   syscall.NewCallback(_this.defaultWndProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
@@ -92,8 +95,36 @@ func (_this *Provider) defaultWndProc(hWnd win32.HWND, msg uint32, wParam uintpt
 		if ret != 0 {
 			return ret
 		}
+		ret = _this.sendMouseClick(hWnd, msg, wParam, lParam)
+		if ret != 0 {
+			return ret
+		}
 	}
 	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
+}
+
+func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+	switch msg {
+	case win32.WM_LBUTTONDOWN:
+		_this.msClick.mouseDown(hWnd, MB.MouseButtons_Left, int(lParam))
+	case win32.WM_LBUTTONUP:
+		if _this.msClick.mouseUp(hWnd, MB.MouseButtons_Left, int(lParam)) {
+			return 1
+		}
+	case win32.WM_RBUTTONDOWN:
+		_this.msClick.mouseDown(hWnd, MB.MouseButtons_Right, int(lParam))
+	case win32.WM_RBUTTONUP:
+		if _this.msClick.mouseUp(hWnd, MB.MouseButtons_Right, int(lParam)) {
+			return 1
+		}
+	case win32.WM_MBUTTONDOWN:
+		_this.msClick.mouseDown(hWnd, MB.MouseButtons_Middle, int(lParam))
+	case win32.WM_MBUTTONUP:
+		if _this.msClick.mouseUp(hWnd, MB.MouseButtons_Middle, int(lParam)) {
+			return 1
+		}
+	}
+	return 0
 }
 
 func (_this *Provider) Exit(code int) {
@@ -118,4 +149,67 @@ func (_this *Provider) RunMain(form CrossPlatform.IForm, show func()) {
 		}
 	}
 	os.Exit(0)
+}
+
+type mouseClickWorker struct {
+	down_hWnd  win32.HWND
+	down_key   MB.MouseButtons
+	down_pos   int
+	click_hWnd win32.HWND
+	click_key  MB.MouseButtons
+	click_pos  int
+	time       int64
+	isDouble   bool
+}
+
+func (_this *mouseClickWorker) init() *mouseClickWorker {
+	go _this.fire()
+	return _this
+}
+
+func (_this *mouseClickWorker) fire() {
+	for {
+		time.Sleep(time.Millisecond)
+		if _this.click_hWnd != 0 && _this.time <= time.Now().UnixNano() {
+			x, y := int(win32.LOWORD(int32(_this.click_pos))), int(win32.HIWORD(int32(_this.click_pos)))
+			e := MB.MouseEvArgs{
+				Buttons:  _this.click_key,
+				X:        x,
+				Y:        y,
+				Delta:    0,
+				IsDouble: _this.isDouble,
+				Time:     time.Now(),
+			}
+			win32.PostMessage(_this.click_hWnd, uint32(win32.WM_COMMAND), uintptr(cmd_mouse_click), uintptr(unsafe.Pointer(&e)))
+			_this.click_hWnd = 0
+			_this.click_key = 0
+			_this.click_pos = 0
+		}
+	}
+}
+
+func (_this *mouseClickWorker) mouseDown(hWnd win32.HWND, key MB.MouseButtons, pos int) {
+	_this.down_hWnd = hWnd
+	_this.down_key = key
+	_this.down_pos = pos
+}
+
+func (_this *mouseClickWorker) mouseUp(hWnd win32.HWND, key MB.MouseButtons, pos int) bool {
+	if _this.down_hWnd == hWnd {
+		if _this.down_key == key && _this.down_pos == pos {
+			_this.click_key = key
+			_this.click_pos = pos
+			if _this.click_hWnd != hWnd {
+				_this.click_hWnd = hWnd
+				_this.isDouble = false
+				_this.time = time.Now().Add(time.Millisecond * 200).UnixNano()
+				return true
+			} else if _this.time > time.Now().UnixNano() {
+				_this.isDouble = true
+				return true
+			}
+		}
+	}
+	_this.click_hWnd = 0
+	return false
 }
