@@ -46,7 +46,7 @@ func FAILED(hr HRESULT) bool {
 }
 
 func MAKEWORD(lo, hi byte) uint16 {
-	return uint16(uint16(lo) | ((uint16(hi)) << 8))
+	return uint16(lo) | ((uint16(hi)) << 8)
 }
 
 func LOBYTE(w uint16) byte {
@@ -58,15 +58,15 @@ func HIBYTE(w uint16) byte {
 }
 
 func MAKELONG(lo, hi uint16) uint32 {
-	return uint32(uint32(lo) | ((uint32(hi)) << 16))
+	return uint32(lo) | ((uint32(hi)) << 16)
 }
 
-func LOWORD(dw uint32) uint16 {
-	return uint16(dw)
+func LOWORD(dw int32) int16 {
+	return int16(dw)
 }
 
-func HIWORD(dw uint32) uint16 {
-	return uint16(dw >> 16 & 0xffff)
+func HIWORD(dw int32) int16 {
+	return int16(dw >> 16 & 0xffff)
 }
 
 func UTF16PtrToString(s *uint16) string {

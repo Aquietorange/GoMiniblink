@@ -7,10 +7,14 @@ import (
 
 type Form struct {
 	BaseEvents
-	onLoad      func()
-	onResize    func(w, h int)
-	onMove      func(x, y int)
-	onMouseMove func(e gm.MouseEvArgs)
+	onLoad       func()
+	onResize     func(w, h int)
+	onMove       func(x, y int)
+	onMouseMove  func(e gm.MouseEvArgs)
+	onMouseDown  func(e gm.MouseEvArgs)
+	onMouseUp    func(e gm.MouseEvArgs)
+	onMouseWheel func(e gm.MouseEvArgs)
+	onMouseClick func(e gm.MouseEvArgs)
 
 	EvState map[string]func(target interface{}, state gm.FormState)
 	onState func(gm.FormState)
@@ -49,17 +53,34 @@ func (_this *Form) Init() *Form {
 	_this.state = gm.FormState_Normal
 	_this.startPos = gm.FormStartPosition_Screen_Center
 	_this.showInTaskbar = true
-	_this.onLoad = _this.defOnLoad
-	_this.onResize = _this.defOnResize
-	_this.onMove = _this.defOnMove
-	_this.onState = _this.defOnState
-	_this.onMouseMove = _this.defOnMouseMove
 	_this.registerEvents()
 	_this.isInit = true
 	return _this
 }
 
 func (_this *Form) registerEvents() {
+	_this.onLoad = _this.defOnLoad
+	_this.onResize = _this.defOnResize
+	_this.onMove = _this.defOnMove
+	_this.onState = _this.defOnState
+	_this.onMouseMove = _this.defOnMouseMove
+	_this.onMouseDown = _this.defOnMouseDown
+	_this.onMouseUp = _this.defOnMouseUp
+	_this.onMouseWheel = _this.defOnMouseWheel
+	_this.onMouseClick = _this.defOnMouseClick
+
+	_this.impl.SetOnMouseClick(func(e gm.MouseEvArgs) {
+		_this.onMouseClick(e)
+	})
+	_this.impl.SetOnMouseWheel(func(e gm.MouseEvArgs) {
+		_this.onMouseWheel(e)
+	})
+	_this.impl.SetOnMouseUp(func(e gm.MouseEvArgs) {
+		_this.onMouseUp(e)
+	})
+	_this.impl.SetOnMouseDown(func(e gm.MouseEvArgs) {
+		_this.onMouseDown(e)
+	})
 	_this.impl.SetOnMouseMove(func(e gm.MouseEvArgs) {
 		_this.onMouseMove(e)
 	})

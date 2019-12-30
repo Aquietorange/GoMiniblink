@@ -4,6 +4,7 @@ import (
 	MB "GoMiniblink"
 	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/Windows/win32"
+	"GoMiniblink/Utils"
 	"os"
 	"syscall"
 	"unsafe"
@@ -22,7 +23,7 @@ type Provider struct {
 func (_this *Provider) Init() *Provider {
 	_this.handleWnds = make(map[win32.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
-	_this.className = "GoMiniblinkForms"
+	_this.className = Utils.NewUUID()
 	_this.hInstance = win32.GetModuleHandle(nil)
 	return _this
 }
@@ -48,7 +49,7 @@ func (_this *Provider) SetIcon(file string) {
 
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
-		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
+		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW | win32.CS_DBLCLKS,
 		LpfnWndProc:   syscall.NewCallback(_this.defaultWndProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),

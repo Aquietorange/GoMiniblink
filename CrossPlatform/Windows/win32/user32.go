@@ -1753,11 +1753,11 @@ type HIGHCONTRAST struct {
 }
 
 func GET_X_LPARAM(lp uintptr) int32 {
-	return int32(int16(LOWORD(uint32(lp))))
+	return int32(LOWORD(int32(lp)))
 }
 
 func GET_Y_LPARAM(lp uintptr) int32 {
-	return int32(int16(HIWORD(uint32(lp))))
+	return int32(HIWORD(int32(lp)))
 }
 
 var (

@@ -35,7 +35,8 @@ const (
 type MouseButtons int
 
 const (
-	MouseButtons_Left   MouseButtons = 2
-	MouseButtons_Right  MouseButtons = 4
-	MouseButtons_Middle MouseButtons = 8
+	MouseButtons_None   MouseButtons = 2
+	MouseButtons_Left   MouseButtons = 4
+	MouseButtons_Right  MouseButtons = 8
+	MouseButtons_Middle MouseButtons = 16
 )

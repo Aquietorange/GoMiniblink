@@ -2,6 +2,30 @@ package Forms
 
 import MB "GoMiniblink"
 
+func (_this *Form) defOnMouseClick(e MB.MouseEvArgs) {
+	for _, v := range _this.EvMouseClick {
+		v(_this, e)
+	}
+}
+
+func (_this *Form) defOnMouseWheel(e MB.MouseEvArgs) {
+	for _, v := range _this.EvMouseWheel {
+		v(_this, e)
+	}
+}
+
+func (_this *Form) defOnMouseUp(e MB.MouseEvArgs) {
+	for _, v := range _this.EvMouseUp {
+		v(_this, e)
+	}
+}
+
+func (_this *Form) defOnMouseDown(e MB.MouseEvArgs) {
+	for _, v := range _this.EvMouseDown {
+		v(_this, e)
+	}
+}
+
 func (_this *Form) defOnMouseMove(e MB.MouseEvArgs) {
 	for _, v := range _this.EvMouseMove {
 		v(_this, e)
