@@ -4,6 +4,7 @@ import (
 	MB "GoMiniblink"
 	"GoMiniblink/CrossPlatform/Windows/win32"
 	"GoMiniblink/Utils"
+	"syscall"
 	"unsafe"
 )
 
@@ -92,19 +93,40 @@ func (_this *winForm) Create() {
 	if _this.IsCreate() {
 		return
 	}
-	win32.CreateWindowEx(
-		_this.createParams.ExStyle,
-		(*uint16)(unsafe.Pointer(_this.createParams.ClassName)),
-		(*uint16)(unsafe.Pointer(_this.createParams.Name)),
-		_this.createParams.Style,
-		_this.createParams.X,
-		_this.createParams.Y,
-		_this.createParams.Cx,
-		_this.createParams.Cy,
-		_this.createParams.Parent,
-		_this.createParams.Menu,
+	//win32.CreateWindowEx(
+	//	_this.createParams.ExStyle,
+	//	(*uint16)(unsafe.Pointer(_this.createParams.ClassName)),
+	//	(*uint16)(unsafe.Pointer(_this.createParams.Name)),
+	//	_this.createParams.Style,
+	//	_this.createParams.X,
+	//	_this.createParams.Y,
+	//	_this.createParams.Cx,
+	//	_this.createParams.Cy,
+	//	_this.createParams.Parent,
+	//	_this.createParams.Menu,
+	//	_this.provider.hInstance,
+	//	unsafe.Pointer(&_this.idName))
+
+	temp := win32.DLGTEMPLATE{
+		Style:           win32.WS_BORDER,
+		DwExtendedStyle: 0,
+		Cdit:            0,
+		X:               100,
+		Y:               100,
+		CX:              500,
+		CY:              500,
+	}
+	win32.CreateDialogIndirectParam(
 		_this.provider.hInstance,
+		uintptr(unsafe.Pointer(&temp)),
+		win32.HWND(0),
+		syscall.NewCallback(_this.dlgproc),
 		unsafe.Pointer(&_this.idName))
+}
+
+func (_this *winForm) dlgproc(h win32.HWND, msg uint32, w, l uintptr) uintptr {
+	println("proc = ", msg)
+	return 0
 }
 
 func (_this *winForm) Show() {

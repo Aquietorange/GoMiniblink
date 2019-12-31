@@ -1752,6 +1752,16 @@ type HIGHCONTRAST struct {
 	LpszDefaultScheme *uint16
 }
 
+type DLGTEMPLATE struct {
+	Style           uint32
+	DwExtendedStyle uint32
+	Cdit            uint16
+	X               uint32
+	Y               uint32
+	CX              uint32
+	CY              uint32
+}
+
 func GET_X_LPARAM(lp uintptr) int32 {
 	return int32(LOWORD(int32(lp)))
 }
@@ -1899,6 +1909,7 @@ var (
 	setWindowText               *windows.LazyProc
 	getWindowTextLength         *windows.LazyProc
 	getWindowText               *windows.LazyProc
+	createDialogIndirectParam   *windows.LazyProc
 )
 
 func init() {
@@ -2052,6 +2063,21 @@ func init() {
 	setWindowText = libuser32.NewProc("SetWindowTextW")
 	getWindowTextLength = libuser32.NewProc("GetWindowTextLengthW")
 	getWindowText = libuser32.NewProc("GetWindowTextW")
+	createDialogIndirectParam = libuser32.NewProc("CreateDialogIndirectParamW")
+}
+
+func CreateDialogIndirectParam(hInstance HINSTANCE, lpTemplate uintptr, hWndParent HWND, lpDialogFunc uintptr, dwInitParam unsafe.Pointer) HWND {
+	ret, _, err := syscall.Syscall6(createDialogIndirectParam.Addr(), 5,
+		uintptr(hInstance),
+		lpTemplate,
+		uintptr(hWndParent),
+		lpDialogFunc,
+		uintptr(dwInitParam),
+		0)
+	if ret == 0 {
+		fmt.Println(err)
+	}
+	return HWND(ret)
 }
 
 func GetWindowText(hWnd HWND) string {
@@ -2160,11 +2186,11 @@ func BringWindowToTop(hwnd HWND) bool {
 	return ret != 0
 }
 
-func CallWindowProc(lpPrevWndFunc uintptr, hWnd HWND, Msg uint32, wParam, lParam uintptr) uintptr {
+func CallWindowProc(lpPrevWndFunc uintptr, hWnd HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	ret, _, _ := syscall.Syscall6(callWindowProc.Addr(), 5,
 		lpPrevWndFunc,
 		uintptr(hWnd),
-		uintptr(Msg),
+		uintptr(msg),
 		wParam,
 		lParam,
 		0)
@@ -2215,14 +2241,16 @@ func CloseClipboard() bool {
 
 func CreateDialogParam(instRes HINSTANCE, name *uint16, parent HWND,
 	proc, param uintptr) HWND {
-	ret, _, _ := syscall.Syscall6(createDialogParam.Addr(), 5,
+	ret, _, err := syscall.Syscall6(createDialogParam.Addr(), 5,
 		uintptr(instRes),
 		uintptr(unsafe.Pointer(name)),
 		uintptr(parent),
 		proc,
 		param,
 		0)
-
+	if ret == 0 {
+		fmt.Println(err)
+	}
 	return HWND(ret)
 }
 
