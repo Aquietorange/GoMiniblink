@@ -1752,14 +1752,25 @@ type HIGHCONTRAST struct {
 	LpszDefaultScheme *uint16
 }
 
-type DLGTEMPLATE struct {
-	Style           uint32
-	DwExtendedStyle uint32
-	Cdit            uint16
-	X               uint32
-	Y               uint32
-	CX              uint32
-	CY              uint32
+type DLGTEMPLATEEX struct {
+	Ver         uint16
+	Sign        uint16
+	HelpID      uint32
+	ExStyle     uint32
+	Style       uint32
+	CDlgItems   uint8
+	X           int16
+	Y           int16
+	CX          int16
+	CY          int16
+	Menu        *uint16
+	WindowClass *uint16
+	Title       [0]uint16
+	FontSize    uint16
+	FontWeight  uint16
+	Italic      byte
+	Charset     byte
+	FontType    [0]uint16
 }
 
 func GET_X_LPARAM(lp uintptr) int32 {
@@ -1910,6 +1921,7 @@ var (
 	getWindowTextLength         *windows.LazyProc
 	getWindowText               *windows.LazyProc
 	createDialogIndirectParam   *windows.LazyProc
+	mapDialogRect               *windows.LazyProc
 )
 
 func init() {
@@ -2064,12 +2076,24 @@ func init() {
 	getWindowTextLength = libuser32.NewProc("GetWindowTextLengthW")
 	getWindowText = libuser32.NewProc("GetWindowTextW")
 	createDialogIndirectParam = libuser32.NewProc("CreateDialogIndirectParamW")
+	mapDialogRect = libuser32.NewProc("MapDialogRect")
 }
 
-func CreateDialogIndirectParam(hInstance HINSTANCE, lpTemplate uintptr, hWndParent HWND, lpDialogFunc uintptr, dwInitParam unsafe.Pointer) HWND {
+func MapDialogRect(hWnd HWND, rect *RECT) bool {
+	ret, _, err := syscall.Syscall(mapDialogRect.Addr(), 2,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(rect)),
+		0)
+	if ret == 0 {
+		fmt.Println(err)
+	}
+	return ret != 0
+}
+
+func CreateDialogIndirectParam(hInstance HINSTANCE, lpTemplate *DLGTEMPLATEEX, hWndParent HWND, lpDialogFunc uintptr, dwInitParam unsafe.Pointer) HWND {
 	ret, _, err := syscall.Syscall6(createDialogIndirectParam.Addr(), 5,
 		uintptr(hInstance),
-		lpTemplate,
+		uintptr(unsafe.Pointer(lpTemplate)),
 		uintptr(hWndParent),
 		lpDialogFunc,
 		uintptr(dwInitParam),

@@ -53,7 +53,7 @@ func (_this *Provider) SetIcon(file string) {
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
-		LpfnWndProc:   syscall.NewCallback(_this.defaultWndProc),
+		LpfnWndProc:   syscall.NewCallback(_this.defaultMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
 		HIcon:         _this.defIcon,
@@ -61,7 +61,8 @@ func (_this *Provider) registerWndClass() {
 	}
 	class.CbSize = uint32(unsafe.Sizeof(class))
 	win32.RegisterClassEx(&class)
-	_this.defOwner = win32.CreateWindowEx(0, sto16(_this.className), sto16(""),
+	_this.defOwner = win32.CreateWindowEx(0,
+		sto16(_this.className), sto16(""),
 		win32.WS_BORDER, 0, 0, 0, 0,
 		0, 0, _this.hInstance, unsafe.Pointer(nil))
 }
@@ -80,17 +81,27 @@ func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
 	}
 }
 
-func (_this *Provider) defaultWndProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+	isdlg := false
 	if msg == win32.WM_CREATE {
 		cp := *((*win32.CREATESTRUCT)(unsafe.Pointer(lParam)))
 		if cp.CreateParams != 0 {
 			id := *((*string)(unsafe.Pointer(cp.CreateParams)))
 			if w, ok := _this.nameWnds[id]; ok {
+				isdlg = w.isDialog()
 				_this.handleWnds[hWnd] = w
 				w.fireWndCreate(hWnd)
 			}
 		}
+	} else if msg == win32.WM_INITDIALOG && lParam != 0 {
+		id := *((*string)(unsafe.Pointer(lParam)))
+		if w, ok := _this.nameWnds[id]; ok {
+			isdlg = true
+			_this.handleWnds[hWnd] = w
+			w.fireWndCreate(hWnd)
+		}
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
+		isdlg = w.isDialog()
 		ret := w.fireWndProc(hWnd, msg, wParam, lParam)
 		if ret != 0 {
 			return ret
@@ -100,7 +111,11 @@ func (_this *Provider) defaultWndProc(hWnd win32.HWND, msg uint32, wParam uintpt
 			return ret
 		}
 	}
-	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
+	if isdlg && msg != win32.WM_CLOSE {
+		return 0
+	} else {
+		return win32.DefWindowProc(hWnd, msg, wParam, lParam)
+	}
 }
 
 func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
@@ -142,8 +157,10 @@ func (_this *Provider) RunMain(form CrossPlatform.IForm, show func()) {
 	var message win32.MSG
 	for {
 		if win32.GetMessage(&message, 0, 0, 0) {
-			win32.TranslateMessage(&message)
-			win32.DispatchMessage(&message)
+			if win32.IsDialogMessage(message.HWnd, &message) == false {
+				win32.TranslateMessage(&message)
+				win32.DispatchMessage(&message)
+			}
 		} else {
 			break
 		}

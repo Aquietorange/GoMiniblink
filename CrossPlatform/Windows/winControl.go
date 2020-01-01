@@ -14,6 +14,7 @@ type winControl struct {
 	idName       string
 	handle       win32.HWND
 	isCreated    bool
+	thisIsDialog bool
 	invokeMap    map[string]*InvokeContext
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 	evWndCreate  map[string]func(hWnd win32.HWND)
@@ -45,6 +46,10 @@ func (_this *winControl) init() {
 	_this.SetOnMouseWheel(_this.defOnMouseWheel)
 	_this.SetOnMouseClick(_this.defOnMouseClick)
 	_this.evWndProc["__exec_cmd"] = _this.execCmd
+}
+
+func (_this *winControl) isDialog() bool {
+	return _this.thisIsDialog
 }
 
 func (_this *winControl) IsCreate() bool {

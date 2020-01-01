@@ -8,6 +8,7 @@ type baseWindow interface {
 	class() string
 	name() string
 	hWnd() win322.HWND
+	isDialog() bool
 	fireWndCreate(hWnd win322.HWND)
 	fireWndProc(hWnd win322.HWND, msg uint32, wParam, lParam uintptr) uintptr
 }
