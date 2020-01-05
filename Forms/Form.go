@@ -6,18 +6,10 @@ import (
 )
 
 type Form struct {
-	BaseEvents
-	onLoad       func()
-	onResize     func(w, h int)
-	onMove       func(x, y int)
-	onMouseMove  func(e MB.MouseEvArgs)
-	onMouseDown  func(e MB.MouseEvArgs)
-	onMouseUp    func(e MB.MouseEvArgs)
-	onMouseWheel func(e MB.MouseEvArgs)
-	onMouseClick func(e MB.MouseEvArgs)
+	BaseUI
 
 	EvState map[string]func(target interface{}, state MB.FormState)
-	onState func(MB.FormState)
+	OnState func(MB.FormState)
 
 	impl          plat.IForm
 	isInit        bool
@@ -45,9 +37,9 @@ func (_this *Form) getImpl() plat.IForm {
 }
 
 func (_this *Form) Init() *Form {
-	_this.BaseEvents.init()
-	_this.EvState = make(map[string]func(interface{}, MB.FormState))
 	_this.impl = Provider.NewForm()
+	_this.BaseUI.init(_this.impl)
+	_this.EvState = make(map[string]func(interface{}, MB.FormState))
 	_this.title = ""
 	_this.border = MB.FormBorder_Default
 	_this.state = MB.FormState_Normal
@@ -59,50 +51,17 @@ func (_this *Form) Init() *Form {
 }
 
 func (_this *Form) registerEvents() {
-	_this.onLoad = _this.defOnLoad
-	_this.onResize = _this.defOnResize
-	_this.onMove = _this.defOnMove
-	_this.onState = _this.defOnState
-	_this.onMouseMove = _this.defOnMouseMove
-	_this.onMouseDown = _this.defOnMouseDown
-	_this.onMouseUp = _this.defOnMouseUp
-	_this.onMouseWheel = _this.defOnMouseWheel
-	_this.onMouseClick = _this.defOnMouseClick
-
-	_this.impl.SetOnMouseClick(func(e MB.MouseEvArgs) {
-		_this.onMouseClick(e)
-	})
-	_this.impl.SetOnMouseWheel(func(e MB.MouseEvArgs) {
-		_this.onMouseWheel(e)
-	})
-	_this.impl.SetOnMouseUp(func(e MB.MouseEvArgs) {
-		_this.onMouseUp(e)
-	})
-	_this.impl.SetOnMouseDown(func(e MB.MouseEvArgs) {
-		_this.onMouseDown(e)
-	})
-	_this.impl.SetOnMouseMove(func(e MB.MouseEvArgs) {
-		_this.onMouseMove(e)
-	})
-	_this.impl.SetOnResize(func(w, h int) {
-		_this.size = MB.Rect{Wdith: w, Height: h}
-		_this.onResize(w, h)
-	})
-	_this.impl.SetOnMove(func(x, y int) {
-		_this.pos = MB.Point{X: x, Y: y}
-		_this.onMove(x, y)
-	})
+	_this.OnState = _this.defOnState
 	_this.impl.SetOnState(func(state MB.FormState) {
 		_this.state = state
-		_this.onState(state)
-	})
-	_this.impl.SetOnCreate(func() {
-		_this.onLoad()
+		_this.OnState(state)
 	})
 }
 
-func (_this *Form) Invoke(fn func(state interface{}), state interface{}) {
-	_this.getImpl().Invoke(fn, state)
+func (_this *Form) defOnState(state MB.FormState) {
+	for _, v := range _this.EvState {
+		v(_this, state)
+	}
 }
 
 func (_this *Form) Show() {

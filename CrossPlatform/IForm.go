@@ -11,14 +11,10 @@ type IForm interface {
 	ShowToMax()
 	ShowToMin()
 
-	SetSize(w int, h int)
-	SetLocation(x int, y int)
 	SetMaximizeBox(isShow bool)
 	SetMinimizeBox(isShow bool)
 	SetIcon(iconFile string)
 	SetIconVisable(isShow bool)
 
-	SetOnResize(func(w int, h int))
-	SetOnMove(func(x int, y int))
 	SetOnState(func(MB.FormState))
 }

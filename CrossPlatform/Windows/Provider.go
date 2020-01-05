@@ -20,9 +20,11 @@ type Provider struct {
 	defOwner   win32.HWND
 	defIcon    win32.HICON
 	msClick    *mouseClickWorker
+	keysIsDown map[MB.Keys]bool
 }
 
 func (_this *Provider) Init() *Provider {
+	_this.keysIsDown = make(map[MB.Keys]bool)
 	_this.handleWnds = make(map[win32.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = Utils.NewUUID()
@@ -103,10 +105,11 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
 		isdlg = w.isDialog()
 		ret := w.fireWndProc(hWnd, msg, wParam, lParam)
+		_this.logKeyDown(msg, wParam)
 		if ret != 0 {
 			return ret
 		}
-		ret = _this.sendMouseClick(hWnd, msg, wParam, lParam)
+		ret = _this.sendMouseClick(hWnd, msg, lParam)
 		if ret != 0 {
 			return ret
 		}
@@ -118,7 +121,7 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 	}
 }
 
-func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, lParam uintptr) uintptr {
 	switch msg {
 	case win32.WM_LBUTTONDOWN:
 		_this.msClick.mouseDown(hWnd, MB.MouseButtons_Left, int(lParam))
@@ -140,6 +143,17 @@ func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, wParam uintpt
 		}
 	}
 	return 0
+}
+
+func (_this *Provider) logKeyDown(msg uint32, wParam uintptr) {
+	switch msg {
+	case win32.WM_KEYDOWN, win32.WM_SYSKEYDOWN:
+		key := vkToKey(int(wParam))
+		_this.keysIsDown[key] = true
+	case win32.WM_KEYUP, win32.WM_SYSKEYUP:
+		key := vkToKey(int(wParam))
+		delete(_this.keysIsDown, key)
+	}
 }
 
 func (_this *Provider) Exit(code int) {
@@ -190,13 +204,14 @@ func (_this *mouseClickWorker) fire() {
 		if _this.click_hWnd != 0 && _this.time <= time.Now().UnixNano() {
 			x, y := int(win32.LOWORD(int32(_this.click_pos))), int(win32.HIWORD(int32(_this.click_pos)))
 			e := MB.MouseEvArgs{
-				Buttons:  _this.click_key,
-				X:        x,
-				Y:        y,
-				Delta:    0,
-				IsDouble: _this.isDouble,
-				Time:     time.Now(),
+				X:            x,
+				Y:            y,
+				Delta:        0,
+				IsDouble:     _this.isDouble,
+				Time:         time.Now(),
+				ButtonIsDown: make(map[MB.MouseButtons]bool),
 			}
+			e.ButtonIsDown[_this.click_key] = true
 			win32.PostMessage(_this.click_hWnd, uint32(win32.WM_COMMAND), uintptr(cmd_mouse_click), uintptr(unsafe.Pointer(&e)))
 			_this.click_hWnd = 0
 			_this.click_key = 0

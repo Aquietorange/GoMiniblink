@@ -11,8 +11,6 @@ import (
 type winForm struct {
 	winControl
 	onCreate func()
-	onResize func(int, int)
-	onMove   func(int, int)
 	onClose  func() (cancel bool)
 	onState  func(state MB.FormState)
 
@@ -70,7 +68,10 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
-			_this.onResize(int(w), int(h))
+			_this.onResize(MB.Rect{
+				Wdith:  int(w),
+				Height: int(h),
+			})
 		}
 		if _this.onState != nil {
 			switch int(wParam) {
@@ -85,7 +86,10 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 	case win32.WM_MOVE:
 		if _this.onMove != nil {
 			x, y := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
-			_this.onMove(int(x), int(y))
+			_this.onMove(MB.Point{
+				X: int(x),
+				Y: int(y),
+			})
 		}
 	}
 	return 0
@@ -188,20 +192,12 @@ func (_this *winForm) SetSize(w, h int) {
 	}
 }
 
-func (_this *winForm) SetOnResize(fn func(w, h int)) {
-	_this.onResize = fn
-}
-
 func (_this *winForm) SetLocation(x, y int) {
 	if _this.IsCreate() {
 		win32.SetWindowPos(_this.hWnd(), 0, int32(x), int32(y), 0, 0, win32.SWP_NOSIZE)
 	} else {
 		_this.createParams.X, _this.createParams.Y = int16(x), int16(y)
 	}
-}
-
-func (_this *winForm) SetOnMove(fn func(x, y int)) {
-	_this.onMove = fn
 }
 
 func (_this *winForm) SetTitle(title string) {
