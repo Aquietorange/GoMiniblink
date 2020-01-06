@@ -2,6 +2,12 @@ package Forms
 
 import "GoMiniblink/CrossPlatform"
 
-type EmptyControl struct {
+type Control struct {
+	BaseUI
+
 	impl CrossPlatform.IWindow
+}
+
+func (_this *Control) Init() *Control {
+
 }

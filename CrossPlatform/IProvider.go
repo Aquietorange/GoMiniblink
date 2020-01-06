@@ -9,4 +9,5 @@ type IProvider interface {
 	GetScreen() MB.Screen
 
 	NewForm() IForm
+	NewControl() IControl
 }

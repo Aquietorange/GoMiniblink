@@ -9,12 +9,10 @@ import (
 )
 
 type winForm struct {
-	winControl
-	onCreate func()
-	onClose  func() (cancel bool)
-	onState  func(state MB.FormState)
+	winBase
+	onClose func() (cancel bool)
+	onState func(state MB.FormState)
 
-	defStyle     uint32
 	createParams *win32.DLGTEMPLATEEX
 	initTitle    string
 	initIcon     string
@@ -25,7 +23,7 @@ func (_this *winForm) hWnd() win32.HWND {
 }
 
 func (_this *winForm) class() string {
-	return _this.className
+	return win32.UTF16PtrToString(_this.createParams.WindowClass)
 }
 
 func (_this *winForm) name() string {
@@ -33,26 +31,17 @@ func (_this *winForm) name() string {
 }
 
 func (_this *winForm) init(provider *Provider) *winForm {
-	_this.winControl.init()
+	_this.winBase.init(provider, Utils.NewUUID())
 	_this.thisIsDialog = true
-	_this.provider = provider
-	_this.idName = Utils.NewUUID()
-	_this.className = provider.className
-	_this.defStyle = win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN
 	_this.createParams = &win32.DLGTEMPLATEEX{
 		Ver:         1,
 		Sign:        0xFFFF,
-		WindowClass: sto16(_this.className),
+		WindowClass: sto16(provider.className),
 		ExStyle:     win32.WS_EX_APPWINDOW,
-		Style:       _this.defStyle,
+		Style:       win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN,
 	}
 	_this.initTitle = ""
 	_this.evWndProc["__wndProc"] = _this.defWndProc
-	_this.evWndCreate["__onCreate"] = func(hWnd win32.HWND) {
-		if _this.onCreate != nil {
-			_this.onCreate()
-		}
-	}
 	provider.add(_this)
 	return _this
 }
@@ -63,8 +52,6 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 		if _this.onClose != nil && _this.onClose() {
 			return 1
 		}
-	case win32.WM_DESTROY:
-		_this.provider.remove(_this.hWnd(), true)
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
@@ -93,10 +80,6 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 		}
 	}
 	return 0
-}
-
-func (_this *winForm) SetOnCreate(fn func()) {
-	_this.onCreate = fn
 }
 
 func (_this *winForm) Create() {
@@ -218,16 +201,16 @@ func (_this *winForm) SetBorderStyle(border MB.FormBorder) {
 	bak := style
 	switch border {
 	case MB.FormBorder_Default:
-		style |= int64(_this.defStyle)
+		style |= win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN
 	case MB.FormBorder_None:
 		style &= ^win32.WS_SIZEBOX & ^win32.WS_CAPTION
 	case MB.FormBorder_Disable_Resize:
 		style &= ^win32.WS_SIZEBOX
 	}
 	if _this.IsCreate() {
-		_this.createParams.Style = uint32(style)
-	} else if bak != style {
 		win32.SetWindowLong(_this.hWnd(), win32.GWL_STYLE, style)
+	} else if bak != style {
+		_this.createParams.Style = uint32(style)
 	}
 }
 
