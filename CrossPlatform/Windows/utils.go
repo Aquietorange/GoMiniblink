@@ -220,7 +220,6 @@ func vkToKey(vk int) MB.Keys {
 	case win32.VK_NUMPAD9:
 		return MB.Keys_Num_9
 	default:
-		println("未映射的按键:", vk)
 		return MB.Keys_Error
 	}
 }

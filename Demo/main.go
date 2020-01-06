@@ -1,7 +1,6 @@
 package main
 
 import (
-	"GoMiniblink"
 	"GoMiniblink/CrossPlatform/Windows"
 	"GoMiniblink/Forms"
 )
@@ -13,7 +12,7 @@ func main() {
 
 	var frm = new(Forms.Form).Init()
 	frm.SetTitle("miniblink窗口")
-	frm.SetSize(GoMiniblink.Rect{Wdith: 300, Height: 500})
+	frm.SetSize(300, 500)
 
 	frm.EvLoad["load"] = func(target interface{}) {
 		//go func(f *Forms.Form) {

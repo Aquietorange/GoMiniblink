@@ -77,8 +77,11 @@ func (_this *Form) Show() {
 	_this.getImpl().Show()
 }
 
-func (_this *Form) SetSize(rect MB.Rect) {
-	_this.size = rect
+func (_this *Form) SetSize(width, height int) {
+	_this.size = MB.Rect{
+		Wdith:  width,
+		Height: height,
+	}
 	_this.getImpl().SetSize(_this.size.Wdith, _this.size.Height)
 }
 
@@ -86,8 +89,11 @@ func (_this *Form) GetSize() MB.Rect {
 	return _this.size
 }
 
-func (_this *Form) SetLocation(pos MB.Point) {
-	_this.pos = pos
+func (_this *Form) SetLocation(x, y int) {
+	_this.pos = MB.Point{
+		X: x,
+		Y: y,
+	}
 	_this.getImpl().SetLocation(_this.pos.X, _this.pos.Y)
 }
 

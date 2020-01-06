@@ -6,6 +6,15 @@ import (
 )
 
 type BaseUI struct {
+	EvKeyDown map[string]func(target interface{}, e *MB.KeyEvArgs)
+	OnKeyDown func(e *MB.KeyEvArgs)
+
+	EvKeyUp map[string]func(target interface{}, e *MB.KeyEvArgs)
+	OnKeyUp func(e *MB.KeyEvArgs)
+
+	EvKeyPress map[string]func(target interface{}, e *MB.KeyPressEvArgs)
+	OnKeyPress func(e *MB.KeyPressEvArgs)
+
 	EvLoad map[string]func(target interface{})
 	OnLoad func()
 
@@ -37,6 +46,11 @@ type BaseUI struct {
 }
 
 func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
+	_this.impl = impl
+
+	_this.EvKeyPress = make(map[string]func(target interface{}, e *MB.KeyPressEvArgs))
+	_this.EvKeyDown = make(map[string]func(target interface{}, e *MB.KeyEvArgs))
+	_this.EvKeyUp = make(map[string]func(target interface{}, e *MB.KeyEvArgs))
 	_this.EvPaint = make(map[string]func(target interface{}, e MB.PaintEvArgs))
 	_this.EvLoad = make(map[string]func(target interface{}))
 	_this.EvResize = make(map[string]func(target interface{}, e MB.Rect))
@@ -46,8 +60,10 @@ func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
 	_this.EvMouseUp = make(map[string]func(target interface{}, args MB.MouseEvArgs))
 	_this.EvMouseWheel = make(map[string]func(target interface{}, args MB.MouseEvArgs))
 	_this.EvMouseClick = make(map[string]func(target interface{}, args MB.MouseEvArgs))
-	_this.impl = impl
 
+	_this.OnKeyPress = _this.defOnKeyPress
+	_this.OnKeyUp = _this.defOnKeyUp
+	_this.OnKeyDown = _this.defOnKeyDown
 	_this.OnPaint = _this.defOnPaint
 	_this.OnLoad = _this.defOnLoad
 	_this.OnResize = _this.defOnResize
@@ -58,6 +74,15 @@ func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
 	_this.OnMouseWheel = _this.defOnMouseWheel
 	_this.OnMouseClick = _this.defOnMouseClick
 
+	_this.impl.SetOnKeyPress(func(e *MB.KeyPressEvArgs) {
+		_this.OnKeyPress(e)
+	})
+	_this.impl.SetOnKeyUp(func(e *MB.KeyEvArgs) {
+		_this.OnKeyUp(e)
+	})
+	_this.impl.SetOnKeyDown(func(e *MB.KeyEvArgs) {
+		_this.OnKeyDown(e)
+	})
 	_this.impl.SetOnPaint(func(e MB.PaintEvArgs) {
 		_this.OnPaint(e)
 	})

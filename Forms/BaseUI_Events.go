@@ -2,6 +2,24 @@ package Forms
 
 import MB "GoMiniblink"
 
+func (_this *BaseUI) defOnKeyPress(e *MB.KeyPressEvArgs) {
+	for _, v := range _this.EvKeyPress {
+		v(_this, e)
+	}
+}
+
+func (_this *BaseUI) defOnKeyUp(e *MB.KeyEvArgs) {
+	for _, v := range _this.EvKeyUp {
+		v(_this, e)
+	}
+}
+
+func (_this *BaseUI) defOnKeyDown(e *MB.KeyEvArgs) {
+	for _, v := range _this.EvKeyDown {
+		v(_this, e)
+	}
+}
+
 func (_this *BaseUI) defOnPaint(e MB.PaintEvArgs) {
 	for _, v := range _this.EvPaint {
 		v(_this, e)

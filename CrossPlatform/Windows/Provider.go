@@ -171,10 +171,8 @@ func (_this *Provider) RunMain(form CrossPlatform.IForm, show func()) {
 	var message win32.MSG
 	for {
 		if win32.GetMessage(&message, 0, 0, 0) {
-			if win32.IsDialogMessage(message.HWnd, &message) == false {
-				win32.TranslateMessage(&message)
-				win32.DispatchMessage(&message)
-			}
+			win32.TranslateMessage(&message)
+			win32.DispatchMessage(&message)
 		} else {
 			break
 		}

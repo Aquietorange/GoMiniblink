@@ -64,8 +64,8 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 	}
 	switch msg {
 	case win32.WM_SYSKEYDOWN, win32.WM_KEYDOWN:
-		if _this.onKeyDown != nil {
-			key := vkToKey(int(wParam))
+		key := vkToKey(int(wParam))
+		if _this.onKeyDown != nil && key != MB.Keys_Error {
 			e := MB.KeyEvArgs{
 				Key:        key,
 				KeysIsDown: _this.provider.keysIsDown,
@@ -77,8 +77,8 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 		}
 		return 0
 	case win32.WM_SYSKEYUP, win32.WM_KEYUP:
-		if _this.onKeyUp != nil {
-			key := vkToKey(int(wParam))
+		key := vkToKey(int(wParam))
+		if _this.onKeyUp != nil && key != MB.Keys_Error {
 			e := MB.KeyEvArgs{
 				Key:        key,
 				KeysIsDown: _this.provider.keysIsDown,
@@ -89,7 +89,7 @@ func (_this *winControl) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam
 			}
 		}
 		return 0
-	case win32.WM_CHAR:
+	case win32.WM_SYSCHAR, win32.WM_CHAR:
 		if _this.onKeyPress != nil {
 			e := MB.KeyPressEvArgs{
 				KeyChar:    string(wParam),
