@@ -16,7 +16,6 @@ type Form struct {
 	pos           MB.Point
 	size          MB.Rect
 	title         string
-	isFirstShow   bool
 	showInTaskbar bool
 	border        MB.FormBorder
 	state         MB.FormState
