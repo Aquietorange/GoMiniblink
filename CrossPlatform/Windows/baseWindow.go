@@ -5,8 +5,8 @@ import (
 )
 
 type baseWindow interface {
+	id() string
 	class() string
-	name() string
 	hWnd() win322.HWND
 	isDialog() bool
 	fireWndCreate(hWnd win322.HWND)

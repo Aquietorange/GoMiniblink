@@ -70,14 +70,14 @@ func (_this *Provider) registerWndClass() {
 }
 
 func (_this *Provider) add(wnd baseWindow) {
-	_this.nameWnds[wnd.name()] = wnd
+	_this.nameWnds[wnd.id()] = wnd
 }
 
 func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
 	if w, ok := _this.handleWnds[hWnd]; ok {
-		delete(_this.nameWnds, w.name())
+		delete(_this.nameWnds, w.id())
 		delete(_this.handleWnds, hWnd)
-		if isExit && w.name() == _this.main {
+		if isExit && w.id() == _this.main {
 			_this.Exit(0)
 		}
 	}
@@ -166,7 +166,7 @@ func (_this *Provider) RunMain(form CrossPlatform.IForm, show func()) {
 		panic("类型不正确")
 	}
 	_this.registerWndClass()
-	_this.main = frm.name()
+	_this.main = frm.id()
 	show()
 	var message win32.MSG
 	for {

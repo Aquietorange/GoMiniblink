@@ -3,6 +3,7 @@ package CrossPlatform
 import MB "GoMiniblink"
 
 type IWindow interface {
+	Id() string
 	Create()
 	IsCreate() bool
 	SetOnCreate(fn func())

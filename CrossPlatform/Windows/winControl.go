@@ -18,7 +18,7 @@ func (_this *winControl) init(provider *Provider) *winControl {
 		Instance:  provider.hInstance,
 		ClassName: uintptr(unsafe.Pointer(sto16(provider.className))),
 		Name:      uintptr(unsafe.Pointer(sto16(""))),
-		Style:     win32.WS_CHILD | win32.WS_VISIBLE,
+		Style:     win32.WS_CHILD,
 		ExStyle:   0,
 	}
 	_this.provider.add(_this)

@@ -2,6 +2,7 @@ package Windows
 
 import (
 	MB "GoMiniblink"
+	plat "GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/Windows/win32"
 	"GoMiniblink/Utils"
 	"syscall"
@@ -16,6 +17,7 @@ type winForm struct {
 	createParams *win32.DLGTEMPLATEEX
 	initTitle    string
 	initIcon     string
+	ctrls        map[string]*winControl
 }
 
 func (_this *winForm) hWnd() win32.HWND {
@@ -26,7 +28,7 @@ func (_this *winForm) class() string {
 	return win32.UTF16PtrToString(_this.createParams.WindowClass)
 }
 
-func (_this *winForm) name() string {
+func (_this *winForm) id() string {
 	return _this.idName
 }
 
@@ -44,6 +46,25 @@ func (_this *winForm) init(provider *Provider) *winForm {
 	_this.evWndProc["__wndProc"] = _this.defWndProc
 	provider.add(_this)
 	return _this
+}
+
+func (_this *winForm) AddControl(control plat.IControl) {
+	if ctrl, ok := control.(*winControl); ok {
+		_this.ctrls[control.Id()] = ctrl
+		if _this.IsCreate() {
+			ctrl.createParams.Parent = _this.hWnd()
+			ctrl.Create()
+		}
+	}
+}
+
+func (_this *winForm) RemoveControl(control plat.IControl) {
+	if ctrl, ok := control.(*winControl); ok {
+		if ctrl.IsCreate() {
+
+		}
+		delete(_this.ctrls, ctrl.id())
+	}
 }
 
 func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
@@ -103,6 +124,12 @@ func (_this *winForm) Create() {
 			} else if _this.provider.defIcon != 0 {
 				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 1, uintptr(_this.provider.defIcon))
 				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 0, uintptr(_this.provider.defIcon))
+			}
+		}
+		for _, v := range _this.ctrls {
+			if v.IsCreate() == false {
+				v.createParams.Parent = _this.hWnd()
+				v.Create()
 			}
 		}
 	}

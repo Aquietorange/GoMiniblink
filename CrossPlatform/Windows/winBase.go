@@ -238,6 +238,10 @@ func (_this *winBase) hWnd() win32.HWND {
 	return _this.handle
 }
 
-func (_this *winBase) name() string {
+func (_this *winBase) Id() string {
 	return _this.idName
+}
+
+func (_this *winBase) id() string {
+	return _this.Id()
 }

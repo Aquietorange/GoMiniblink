@@ -4,6 +4,8 @@ import MB "GoMiniblink"
 
 type IForm interface {
 	IWindow
+	IControls
+
 	ShowDialog()
 	SetTitle(title string)
 	SetBorderStyle(style MB.FormBorder)

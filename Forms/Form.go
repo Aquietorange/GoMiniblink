@@ -30,7 +30,7 @@ func (_this *Form) runMain(provider plat.IProvider) {
 
 func (_this *Form) getImpl() plat.IForm {
 	if _this.isInit == false {
-		panic("窗体在使用前必须先调用 Init() ")
+		panic("必须使用Init()初始化 ")
 	}
 	return _this.impl
 }
@@ -61,6 +61,14 @@ func (_this *Form) defOnState(state MB.FormState) {
 	for _, v := range _this.EvState {
 		v(_this, state)
 	}
+}
+
+func (_this *Form) AddControl(control Control) {
+	_this.getImpl().AddControl(control.impl)
+}
+
+func (_this *Form) RemoveControl(control Control) {
+	_this.getImpl().RemoveControl(control.impl)
 }
 
 func (_this *Form) Show() {
