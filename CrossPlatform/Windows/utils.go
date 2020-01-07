@@ -54,7 +54,7 @@ func vkToKey(vk int) MB.Keys {
 	case win32.VK_MENU:
 		return MB.Keys_Alt
 	case win32.VK_LWIN:
-		return MB.Keys_Func
+		return MB.Keys_Win
 	case win32.VK_RSHIFT:
 		return MB.Keys_Right_Shift
 	case win32.VK_RCONTROL:
@@ -62,9 +62,11 @@ func vkToKey(vk int) MB.Keys {
 	case win32.VK_RMENU:
 		return MB.Keys_Right_Alt
 	case win32.VK_RWIN:
-		return MB.Keys_Right_Func
+		return MB.Keys_Right_Win
 	case win32.VK_RETURN:
 		return MB.Keys_Enter
+	case win32.VK_APPS:
+		return MB.Keys_Apps
 	case 0x30:
 		return MB.Keys_0
 	case 0x31:

@@ -63,12 +63,13 @@ const (
 	Keys_Shift
 	Keys_Ctrl
 	Keys_Alt
-	Keys_Func
+	Keys_Win
+	Keys_Enter
 	Keys_Right_Shift
 	Keys_Right_Ctrl
 	Keys_Right_Alt
-	Keys_Right_Func
-	Keys_Enter
+	Keys_Right_Win
+	Keys_Apps
 	Keys_0
 	Keys_1
 	Keys_2

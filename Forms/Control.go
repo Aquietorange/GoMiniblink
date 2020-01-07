@@ -5,9 +5,10 @@ import "GoMiniblink/CrossPlatform"
 type Control struct {
 	BaseUI
 
-	impl CrossPlatform.IWindow
+	impl CrossPlatform.IControl
 }
 
 func (_this *Control) Init() *Control {
-
+	_this.impl = Provider.NewControl()
+	return _this
 }

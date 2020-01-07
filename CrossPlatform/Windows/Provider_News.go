@@ -7,5 +7,5 @@ func (_this *Provider) NewForm() CrossPlatform.IForm {
 }
 
 func (_this *Provider) NewControl() CrossPlatform.IControl {
-	return new(winControl).init()
+	return new(winControl).init(_this)
 }
