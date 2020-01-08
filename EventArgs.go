@@ -10,8 +10,8 @@ type MouseEvArgs struct {
 }
 
 type PaintEvArgs struct {
-	Update Bound
-	State  uintptr
+	Update  Bound
+	Context uintptr
 }
 
 type KeyEvArgs struct {

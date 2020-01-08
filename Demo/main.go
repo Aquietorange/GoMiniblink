@@ -13,7 +13,6 @@ func main() {
 	var frm = new(Forms.Form).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(300, 500)
-
 	frm.EvLoad["load"] = func(target interface{}) {
 		//go func(f *Forms.Form) {
 		//	time.Sleep(3 * time.Second)
@@ -22,6 +21,11 @@ func main() {
 		//		//f.SetIconVisable(false)
 		//	}, nil)
 		//}(target.(*Forms.Form))
+		ctrl := new(Forms.Control).Init()
+		ctrl.SetSize(100, 100)
+		ctrl.SetLocation(20, 20)
+		ctrl.SetBgColor(0xCCCCCC)
+		frm.AddControl(ctrl)
 	}
 
 	Forms.Run(frm)

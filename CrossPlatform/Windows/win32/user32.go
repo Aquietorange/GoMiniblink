@@ -1922,6 +1922,7 @@ var (
 	getWindowText               *windows.LazyProc
 	createDialogIndirectParam   *windows.LazyProc
 	mapDialogRect               *windows.LazyProc
+	fillRect                    *windows.LazyProc
 )
 
 func init() {
@@ -2077,6 +2078,18 @@ func init() {
 	getWindowText = libuser32.NewProc("GetWindowTextW")
 	createDialogIndirectParam = libuser32.NewProc("CreateDialogIndirectParamW")
 	mapDialogRect = libuser32.NewProc("MapDialogRect")
+	fillRect = libuser32.NewProc("FillRect")
+}
+
+func FillRect(hdc HDC, rect *RECT, hbrush HBRUSH) bool {
+	ret, _, err := syscall.Syscall(fillRect.Addr(), 3,
+		uintptr(hdc),
+		uintptr(unsafe.Pointer(rect)),
+		uintptr(hbrush))
+	if ret == 0 {
+		fmt.Println(err)
+	}
+	return ret != 0
 }
 
 func MapDialogRect(hWnd HWND, rect *RECT) bool {

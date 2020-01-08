@@ -10,6 +10,7 @@ type winControl struct {
 	winBase
 
 	createParams *win32.CREATESTRUCT
+	bgColor      win32.HBRUSH
 }
 
 func (_this *winControl) init(provider *Provider) *winControl {

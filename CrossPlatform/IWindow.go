@@ -24,4 +24,5 @@ type IWindow interface {
 	SetLocation(x int, y int)
 	Show()
 	Hide()
+	SetBgColor(color int)
 }

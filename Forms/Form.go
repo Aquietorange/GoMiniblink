@@ -13,8 +13,6 @@ type Form struct {
 
 	impl          plat.IForm
 	isInit        bool
-	pos           MB.Point
-	size          MB.Rect
 	title         string
 	showInTaskbar bool
 	border        MB.FormBorder
@@ -63,11 +61,11 @@ func (_this *Form) defOnState(state MB.FormState) {
 	}
 }
 
-func (_this *Form) AddControl(control Control) {
+func (_this *Form) AddControl(control *Control) {
 	_this.getImpl().AddControl(control.impl)
 }
 
-func (_this *Form) RemoveControl(control Control) {
+func (_this *Form) RemoveControl(control *Control) {
 	_this.getImpl().RemoveControl(control.impl)
 }
 
@@ -82,30 +80,6 @@ func (_this *Form) Show() {
 		_this.impl.Create()
 	}
 	_this.getImpl().Show()
-}
-
-func (_this *Form) SetSize(width, height int) {
-	_this.size = MB.Rect{
-		Wdith:  width,
-		Height: height,
-	}
-	_this.getImpl().SetSize(_this.size.Wdith, _this.size.Height)
-}
-
-func (_this *Form) GetSize() MB.Rect {
-	return _this.size
-}
-
-func (_this *Form) SetLocation(x, y int) {
-	_this.pos = MB.Point{
-		X: x,
-		Y: y,
-	}
-	_this.getImpl().SetLocation(_this.pos.X, _this.pos.Y)
-}
-
-func (_this *Form) GetLocation() MB.Point {
-	return _this.pos
 }
 
 func (_this *Form) SetTitle(title string) {

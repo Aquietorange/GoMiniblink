@@ -17,6 +17,7 @@ type winBase struct {
 	invokeMap    map[string]*InvokeContext
 	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 	evWndCreate  map[string]func(hWnd win32.HWND)
+	evWndDestroy map[string]func()
 
 	onCreate     func()
 	onDestroy    func()
@@ -31,6 +32,8 @@ type winBase struct {
 	onKeyDown    func(e *MB.KeyEvArgs)
 	onKeyUp      func(e *MB.KeyEvArgs)
 	onKeyPress   func(e *MB.KeyPressEvArgs)
+
+	bgColor win32.HBRUSH
 }
 
 func (_this *winBase) init(provider *Provider, idName string) *winBase {
@@ -39,8 +42,20 @@ func (_this *winBase) init(provider *Provider, idName string) *winBase {
 	_this.evWndCreate = make(map[string]func(win32.HWND))
 	_this.invokeMap = make(map[string]*InvokeContext)
 	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
+	_this.evWndDestroy = make(map[string]func())
 	_this.evWndProc["__exec_cmd"] = _this.execCmd
 	return _this
+}
+
+func (_this *winBase) SetBgColor(color int) {
+	if _this.bgColor != 0 {
+		win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
+	}
+	lbp := win32.LOGBRUSH{
+		LbStyle: win32.BS_SOLID,
+		LbColor: win32.COLORREF(color),
+	}
+	_this.bgColor = win32.CreateBrushIndirect(&lbp)
 }
 
 func (_this *winBase) isDialog() bool {
@@ -73,6 +88,12 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 	case win32.WM_DESTROY:
 		if _this.onDestroy != nil {
 			_this.onDestroy()
+		}
+		if _this.bgColor != 0 {
+			win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
+		}
+		for _, v := range _this.evWndDestroy {
+			v()
 		}
 		_this.provider.remove(_this.hWnd(), true)
 	case win32.WM_SYSKEYDOWN, win32.WM_KEYDOWN:
@@ -116,92 +137,103 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 	case win32.WM_PAINT:
 		pt := win32.PAINTSTRUCT{}
 		win32.BeginPaint(hWnd, &pt)
-		if _this.onPaint != nil {
-			e := MB.PaintEvArgs{
-				Update: MB.Bound{
-					Point: MB.Point{
-						X: int(pt.RcPaint.Left),
-						Y: int(pt.RcPaint.Top),
-					},
-					Rect: MB.Rect{
-						Wdith:  int(pt.RcPaint.Right - pt.RcPaint.Left),
-						Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
-					},
+		e := MB.PaintEvArgs{
+			Update: MB.Bound{
+				Point: MB.Point{
+					X: int(pt.RcPaint.Left),
+					Y: int(pt.RcPaint.Top),
 				},
-				State: uintptr(pt.Hdc),
-			}
+				Rect: MB.Rect{
+					Wdith:  int(pt.RcPaint.Right - pt.RcPaint.Left),
+					Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
+				},
+			},
+			Context: uintptr(pt.Hdc),
+		}
+		if _this.bgColor != 0 {
+			win32.FillRect(pt.Hdc, &pt.RcPaint, _this.bgColor)
+		}
+		if _this.onPaint != nil {
 			_this.onPaint(e)
 		}
 		win32.EndPaint(hWnd, &pt)
 	case win32.WM_MOUSEMOVE:
-		e := MB.MouseEvArgs{
-			X:            int(win32.GET_X_LPARAM(lParam)),
-			Y:            int(win32.GET_Y_LPARAM(lParam)),
-			ButtonIsDown: make(map[MB.MouseButtons]bool),
-			Time:         time.Now(),
+		if _this.onMouseMove != nil {
+			e := MB.MouseEvArgs{
+				X:            int(win32.GET_X_LPARAM(lParam)),
+				Y:            int(win32.GET_Y_LPARAM(lParam)),
+				ButtonIsDown: make(map[MB.MouseButtons]bool),
+				Time:         time.Now(),
+			}
+			wp := int(wParam)
+			if wp&win32.MK_LBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Left] = true
+			}
+			if wp&win32.MK_MBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Middle] = true
+			}
+			if wp&win32.MK_RBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Right] = true
+			}
+			_this.onMouseMove(e)
 		}
-		wp := int(wParam)
-		if wp&win32.MK_LBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Left] = true
-		}
-		if wp&win32.MK_MBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Middle] = true
-		}
-		if wp&win32.MK_RBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Right] = true
-		}
-		_this.onMouseMove(e)
 	case win32.WM_LBUTTONDOWN, win32.WM_RBUTTONDOWN, win32.WM_MBUTTONDOWN:
-		e := MB.MouseEvArgs{
-			X:            int(win32.GET_X_LPARAM(lParam)),
-			Y:            int(win32.GET_Y_LPARAM(lParam)),
-			ButtonIsDown: make(map[MB.MouseButtons]bool),
-			Time:         time.Now(),
+		if _this.onMouseDown != nil {
+			e := MB.MouseEvArgs{
+				X:            int(win32.GET_X_LPARAM(lParam)),
+				Y:            int(win32.GET_Y_LPARAM(lParam)),
+				ButtonIsDown: make(map[MB.MouseButtons]bool),
+				Time:         time.Now(),
+			}
+			switch msg {
+			case win32.WM_LBUTTONDOWN:
+				e.ButtonIsDown[MB.MouseButtons_Left] = true
+			case win32.WM_RBUTTONDOWN:
+				e.ButtonIsDown[MB.MouseButtons_Right] = true
+			case win32.WM_MBUTTONDOWN:
+				e.ButtonIsDown[MB.MouseButtons_Middle] = true
+			}
+			_this.onMouseDown(e)
 		}
-		switch msg {
-		case win32.WM_LBUTTONDOWN:
-			e.ButtonIsDown[MB.MouseButtons_Left] = true
-		case win32.WM_RBUTTONDOWN:
-			e.ButtonIsDown[MB.MouseButtons_Right] = true
-		case win32.WM_MBUTTONDOWN:
-			e.ButtonIsDown[MB.MouseButtons_Middle] = true
-		}
-		_this.onMouseDown(e)
 	case win32.WM_LBUTTONUP, win32.WM_RBUTTONUP, win32.WM_MBUTTONUP:
-		e := MB.MouseEvArgs{
-			X:            int(win32.GET_X_LPARAM(lParam)),
-			Y:            int(win32.GET_Y_LPARAM(lParam)),
-			ButtonIsDown: make(map[MB.MouseButtons]bool),
-			Time:         time.Now(),
+		if _this.onMouseUp != nil {
+			e := MB.MouseEvArgs{
+				X:            int(win32.GET_X_LPARAM(lParam)),
+				Y:            int(win32.GET_Y_LPARAM(lParam)),
+				ButtonIsDown: make(map[MB.MouseButtons]bool),
+				Time:         time.Now(),
+			}
+			switch msg {
+			case win32.WM_LBUTTONUP:
+				e.ButtonIsDown[MB.MouseButtons_Left] = true
+			case win32.WM_RBUTTONUP:
+				e.ButtonIsDown[MB.MouseButtons_Right] = true
+			case win32.WM_MBUTTONUP:
+				e.ButtonIsDown[MB.MouseButtons_Middle] = true
+			}
+			_this.onMouseUp(e)
 		}
-		switch msg {
-		case win32.WM_LBUTTONUP:
-			e.ButtonIsDown[MB.MouseButtons_Left] = true
-		case win32.WM_RBUTTONUP:
-			e.ButtonIsDown[MB.MouseButtons_Right] = true
-		case win32.WM_MBUTTONUP:
-			e.ButtonIsDown[MB.MouseButtons_Middle] = true
-		}
-		_this.onMouseUp(e)
 	case win32.WM_MOUSEWHEEL:
-		lp, hp := win32.LOWORD(int32(wParam)), win32.HIWORD(int32(wParam))
-		e := MB.MouseEvArgs{
-			X:            int(win32.GET_X_LPARAM(lParam)),
-			Y:            int(win32.GET_Y_LPARAM(lParam)),
-			Delta:        int(hp),
-			ButtonIsDown: make(map[MB.MouseButtons]bool),
-			Time:         time.Now(),
+		if _this.onMouseWheel != nil {
+			lp, hp := win32.LOWORD(int32(wParam)), win32.HIWORD(int32(wParam))
+			e := MB.MouseEvArgs{
+				X:            int(win32.GET_X_LPARAM(lParam)),
+				Y:            int(win32.GET_Y_LPARAM(lParam)),
+				Delta:        int(hp),
+				ButtonIsDown: make(map[MB.MouseButtons]bool),
+				Time:         time.Now(),
+			}
+			if lp&win32.MK_LBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Left] = true
+			}
+			if lp&win32.MK_MBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Middle] = true
+			}
+			if lp&win32.MK_RBUTTON != 0 {
+				e.ButtonIsDown[MB.MouseButtons_Right] = true
+			}
+			_this.onMouseWheel(e)
 		}
-		if lp&win32.MK_LBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Left] = true
-		}
-		if lp&win32.MK_MBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Middle] = true
-		}
-		if lp&win32.MK_RBUTTON != 0 {
-			e.ButtonIsDown[MB.MouseButtons_Right] = true
-		}
-		_this.onMouseWheel(e)
 	default:
 		return 0
 	}

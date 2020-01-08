@@ -34,6 +34,7 @@ func (_this *winForm) id() string {
 
 func (_this *winForm) init(provider *Provider) *winForm {
 	_this.winBase.init(provider, Utils.NewUUID())
+	_this.ctrls = make(map[string]*winControl)
 	_this.thisIsDialog = true
 	_this.createParams = &win32.DLGTEMPLATEEX{
 		Ver:         1,
@@ -54,6 +55,7 @@ func (_this *winForm) AddControl(control plat.IControl) {
 		if _this.IsCreate() {
 			ctrl.createParams.Parent = _this.hWnd()
 			ctrl.Create()
+			ctrl.Show()
 		}
 	}
 }
@@ -130,6 +132,7 @@ func (_this *winForm) Create() {
 			if v.IsCreate() == false {
 				v.createParams.Parent = _this.hWnd()
 				v.Create()
+				v.Show()
 			}
 		}
 	}

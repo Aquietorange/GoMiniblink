@@ -65,7 +65,7 @@ func (_this *Provider) registerWndClass() {
 	win32.RegisterClassEx(&class)
 	_this.defOwner = win32.CreateWindowEx(0,
 		sto16(_this.className), sto16(""),
-		win32.WS_BORDER, 0, 0, 0, 0,
+		win32.WS_OVERLAPPED, 0, 0, 0, 0,
 		0, 0, _this.hInstance, unsafe.Pointer(nil))
 }
 

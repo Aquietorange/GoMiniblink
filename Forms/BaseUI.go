@@ -43,6 +43,8 @@ type BaseUI struct {
 	OnPaint func(e MB.PaintEvArgs)
 
 	impl plat.IWindow
+	size MB.Rect
+	pos  MB.Point
 }
 
 func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
@@ -102,15 +104,45 @@ func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
 		_this.OnMouseMove(e)
 	})
 	_this.impl.SetOnResize(func(e MB.Rect) {
+		_this.size = e
 		_this.OnResize(e)
 	})
 	_this.impl.SetOnMove(func(e MB.Point) {
+		_this.pos = e
 		_this.OnMove(e)
 	})
 	_this.impl.SetOnCreate(func() {
 		_this.OnLoad()
 	})
 	return _this
+}
+
+func (_this *BaseUI) SetLocation(x, y int) {
+	_this.pos = MB.Point{
+		X: x,
+		Y: y,
+	}
+	_this.impl.SetLocation(x, y)
+}
+
+func (_this *Form) GetLocation() MB.Point {
+	return _this.pos
+}
+
+func (_this *Form) GetSize() MB.Rect {
+	return _this.size
+}
+
+func (_this *BaseUI) SetSize(width, height int) {
+	_this.size = MB.Rect{
+		Wdith:  width,
+		Height: height,
+	}
+	_this.impl.SetSize(width, height)
+}
+
+func (_this *BaseUI) SetBgColor(color int) {
+	_this.impl.SetBgColor(color)
 }
 
 func (_this *BaseUI) Invoke(fn func(state interface{}), state interface{}) {
