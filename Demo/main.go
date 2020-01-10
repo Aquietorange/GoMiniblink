@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GoMiniblink/Core"
 	"GoMiniblink/CrossPlatform/Windows"
 	"GoMiniblink/Forms"
 )
@@ -14,6 +15,9 @@ func main() {
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(300, 500)
 	frm.EvLoad["load"] = func(target interface{}) {
+		if f, ok := target.(*Forms.Form); ok {
+			f.SetBgColor(0x000000)
+		}
 		//go func(f *Forms.Form) {
 		//	time.Sleep(3 * time.Second)
 		//	f.Invoke(func(state interface{}) {
@@ -21,11 +25,11 @@ func main() {
 		//		//f.SetIconVisable(false)
 		//	}, nil)
 		//}(target.(*Forms.Form))
-		ctrl := new(Forms.Control).Init()
+		ctrl := new(Core.MiniblinkBrowser).Init()
 		ctrl.SetSize(100, 100)
 		ctrl.SetLocation(20, 20)
 		ctrl.SetBgColor(0xCCCCCC)
-		frm.AddControl(ctrl)
+		frm.AddChild(ctrl)
 	}
 
 	Forms.Run(frm)

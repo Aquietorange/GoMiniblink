@@ -42,12 +42,16 @@ type BaseUI struct {
 	EvPaint map[string]func(target interface{}, e MB.PaintEvArgs)
 	OnPaint func(e MB.PaintEvArgs)
 
+	Handle uintptr
+
+	real interface{}
 	impl plat.IWindow
 	size MB.Rect
 	pos  MB.Point
 }
 
-func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
+func (_this *BaseUI) init(instance interface{}, impl plat.IWindow) *BaseUI {
+	_this.real = instance
 	_this.impl = impl
 
 	_this.EvKeyPress = make(map[string]func(target interface{}, e *MB.KeyPressEvArgs))
@@ -111,10 +115,15 @@ func (_this *BaseUI) init(impl plat.IWindow) *BaseUI {
 		_this.pos = e
 		_this.OnMove(e)
 	})
-	_this.impl.SetOnCreate(func() {
+	_this.impl.SetOnCreate(func(handle uintptr) {
+		_this.Handle = handle
 		_this.OnLoad()
 	})
 	return _this
+}
+
+func (_this *BaseUI) GetHandle() uintptr {
+	return _this.Handle
 }
 
 func (_this *BaseUI) SetLocation(x, y int) {
@@ -125,11 +134,11 @@ func (_this *BaseUI) SetLocation(x, y int) {
 	_this.impl.SetLocation(x, y)
 }
 
-func (_this *Form) GetLocation() MB.Point {
+func (_this *BaseUI) GetLocation() MB.Point {
 	return _this.pos
 }
 
-func (_this *Form) GetSize() MB.Rect {
+func (_this *BaseUI) GetSize() MB.Rect {
 	return _this.size
 }
 

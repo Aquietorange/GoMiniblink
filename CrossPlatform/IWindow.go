@@ -6,7 +6,8 @@ type IWindow interface {
 	Id() string
 	Create()
 	IsCreate() bool
-	SetOnCreate(fn func())
+	GetHandle() uintptr
+	SetOnCreate(fn func(handle uintptr))
 	SetOnResize(func(e MB.Rect))
 	SetOnMove(func(e MB.Point))
 	SetOnMouseMove(func(e MB.MouseEvArgs))

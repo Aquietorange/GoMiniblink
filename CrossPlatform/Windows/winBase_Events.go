@@ -2,7 +2,7 @@ package Windows
 
 import MB "GoMiniblink"
 
-func (_this *winBase) SetOnCreate(fn func()) {
+func (_this *winBase) SetOnCreate(fn func(handle uintptr)) {
 	_this.onCreate = fn
 }
 
@@ -41,6 +41,7 @@ func (_this *winBase) SetOnMouseDown(fn func(MB.MouseEvArgs)) {
 func (_this *winBase) SetOnMouseUp(fn func(MB.MouseEvArgs)) {
 	_this.onMouseUp = fn
 }
+
 func (_this *winBase) SetOnMouseWheel(fn func(MB.MouseEvArgs)) {
 	_this.onMouseWheel = fn
 }

@@ -17,7 +17,7 @@ type winForm struct {
 	createParams *win32.DLGTEMPLATEEX
 	initTitle    string
 	initIcon     string
-	ctrls        map[string]*winControl
+	ctrls        map[string]plat.IControl
 }
 
 func (_this *winForm) hWnd() win32.HWND {
@@ -34,7 +34,7 @@ func (_this *winForm) id() string {
 
 func (_this *winForm) init(provider *Provider) *winForm {
 	_this.winBase.init(provider, Utils.NewUUID())
-	_this.ctrls = make(map[string]*winControl)
+	_this.ctrls = make(map[string]plat.IControl)
 	_this.thisIsDialog = true
 	_this.createParams = &win32.DLGTEMPLATEEX{
 		Ver:         1,
@@ -49,24 +49,26 @@ func (_this *winForm) init(provider *Provider) *winForm {
 	return _this
 }
 
+func (_this *winForm) GetHandle() uintptr {
+	return uintptr(_this.handle)
+}
+
 func (_this *winForm) AddControl(control plat.IControl) {
-	if ctrl, ok := control.(*winControl); ok {
-		_this.ctrls[control.Id()] = ctrl
-		if _this.IsCreate() {
-			ctrl.createParams.Parent = _this.hWnd()
-			ctrl.Create()
-			ctrl.Show()
-		}
+	_this.ctrls[control.Id()] = control
+	if _this.IsCreate() {
+		control.SetParent(_this)
+		control.Create()
+		control.Show()
 	}
 }
 
 func (_this *winForm) RemoveControl(control plat.IControl) {
-	if ctrl, ok := control.(*winControl); ok {
-		if ctrl.IsCreate() {
-
-		}
-		delete(_this.ctrls, ctrl.id())
-	}
+	//if ctrl, ok := control.(*winControl); ok {
+	//	if ctrl.IsCreate() {
+	//
+	//	}
+	//	delete(_this.ctrls, ctrl.id())
+	//}
 }
 
 func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
@@ -130,7 +132,7 @@ func (_this *winForm) Create() {
 		}
 		for _, v := range _this.ctrls {
 			if v.IsCreate() == false {
-				v.createParams.Parent = _this.hWnd()
+				v.SetParent(_this)
 				v.Create()
 				v.Show()
 			}

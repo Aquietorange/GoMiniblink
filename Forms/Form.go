@@ -7,6 +7,7 @@ import (
 
 type Form struct {
 	BaseUI
+	ChildContainer
 
 	EvState map[string]func(target interface{}, state MB.FormState)
 	OnState func(MB.FormState)
@@ -35,7 +36,8 @@ func (_this *Form) getImpl() plat.IForm {
 
 func (_this *Form) Init() *Form {
 	_this.impl = Provider.NewForm()
-	_this.BaseUI.init(_this.impl)
+	_this.BaseUI.init(_this, _this.impl)
+	_this.ChildContainer.init(_this.impl)
 	_this.EvState = make(map[string]func(interface{}, MB.FormState))
 	_this.title = ""
 	_this.border = MB.FormBorder_Default
@@ -59,14 +61,6 @@ func (_this *Form) defOnState(state MB.FormState) {
 	for _, v := range _this.EvState {
 		v(_this, state)
 	}
-}
-
-func (_this *Form) AddControl(control *Control) {
-	_this.getImpl().AddControl(control.impl)
-}
-
-func (_this *Form) RemoveControl(control *Control) {
-	_this.getImpl().RemoveControl(control.impl)
 }
 
 func (_this *Form) Show() {

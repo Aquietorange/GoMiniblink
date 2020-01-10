@@ -11,7 +11,7 @@ type Control struct {
 
 func (_this *Control) Init() *Control {
 	_this.impl = Provider.NewControl()
-	_this.BaseUI.init(_this.impl)
+	_this.BaseUI.init(_this, _this.impl)
 	_this.isInit = true
 	return _this
 }
@@ -23,12 +23,8 @@ func (_this *Control) getImpl() plat.IControl {
 	return _this.impl
 }
 
-func (_this *Control) SetLocation(x, y int) {
-	_this.getImpl().SetLocation(x, y)
-}
-
-func (_this *Control) SetSize(width, height int) {
-	_this.getImpl().SetSize(width, height)
+func (_this *Control) toChild() plat.IControl {
+	return _this.impl
 }
 
 func (_this *Control) Show() {

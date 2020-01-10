@@ -197,6 +197,9 @@ func (_this *mouseClickWorker) init() *mouseClickWorker {
 }
 
 func (_this *mouseClickWorker) fire() {
+	defer func() {
+		recover()
+	}()
 	for {
 		time.Sleep(time.Millisecond)
 		if _this.click_hWnd != 0 && _this.time <= time.Now().UnixNano() {

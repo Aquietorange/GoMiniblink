@@ -19,7 +19,7 @@ type winBase struct {
 	evWndCreate  map[string]func(hWnd win32.HWND)
 	evWndDestroy map[string]func()
 
-	onCreate     func()
+	onCreate     func(handle uintptr)
 	onDestroy    func()
 	onResize     func(e MB.Rect)
 	onMove       func(e MB.Point)
@@ -73,7 +73,7 @@ func (_this *winBase) fireWndCreate(hWnd win32.HWND) {
 		v(hWnd)
 	}
 	if _this.onCreate != nil {
-		_this.onCreate()
+		_this.onCreate(uintptr(hWnd))
 	}
 }
 

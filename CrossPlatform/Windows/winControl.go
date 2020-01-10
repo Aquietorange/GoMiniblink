@@ -1,6 +1,7 @@
 package Windows
 
 import (
+	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/Windows/win32"
 	"GoMiniblink/Utils"
 	"unsafe"
@@ -26,8 +27,12 @@ func (_this *winControl) init(provider *Provider) *winControl {
 	return _this
 }
 
-func (_this *winControl) setParent(hWnd win32.HWND) {
-	_this.createParams.Parent = hWnd
+func (_this *winControl) GetHandle() uintptr {
+	return uintptr(_this.handle)
+}
+
+func (_this *winControl) SetParent(window CrossPlatform.IWindow) {
+	_this.createParams.Parent = win32.HWND(window.GetHandle())
 }
 
 func (_this *winControl) Hide() {
