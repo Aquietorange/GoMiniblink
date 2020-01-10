@@ -18,7 +18,7 @@ type (
 var (
 	lib *windows.LazyDLL
 
-	_wkeIsInitialize      *windows.LazyProc
+	_wkeInitialize        *windows.LazyProc
 	_wkeCreateWebView     *windows.LazyProc
 	_wkeSetHandle         *windows.LazyProc
 	_wkeOnPaintBitUpdated *windows.LazyProc
@@ -32,7 +32,7 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(free_x86_dll)
 	}
-	_wkeIsInitialize = lib.NewProc("wkeIsInitialize")
+	_wkeInitialize = lib.NewProc("wkeInitialize")
 	_wkeCreateWebView = lib.NewProc("wkeCreateWebView")
 	_wkeSetHandle = lib.NewProc("wkeSetHandle")
 	_wkeOnPaintBitUpdated = lib.NewProc("wkeOnPaintBitUpdated")
@@ -64,16 +64,14 @@ func wkeCreateWebView() WKE {
 	r, _, err := _wkeCreateWebView.Call()
 	if r == 0 {
 		println("wkeCreateWebView", err)
-	} else {
-		println("success")
 	}
 	return WKE(r)
 }
 
-func wkeIsInitialize() bool {
-	r, _, err := _wkeIsInitialize.Call()
+func wkeInitialize() bool {
+	r, _, err := _wkeInitialize.Call()
 	if r == 0 {
-		println("wkeIsInitialize", err)
+		println("wkeInitialize", err)
 	}
 	return r != 0
 }

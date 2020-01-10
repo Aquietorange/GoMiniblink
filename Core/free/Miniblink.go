@@ -6,7 +6,7 @@ type Miniblink struct {
 }
 
 func (_this *Miniblink) Init(view uintptr) *Miniblink {
-	if wkeIsInitialize() == false {
+	if wkeInitialize() == false {
 		panic("初始化失败")
 	}
 	_this.wke = wkeCreateWebView()

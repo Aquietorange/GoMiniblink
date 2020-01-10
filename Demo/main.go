@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	Forms.Provider = new(Windows.Provider).Init()
 	Forms.Provider.SetIcon("app.ico")
 
