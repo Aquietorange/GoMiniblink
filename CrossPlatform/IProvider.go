@@ -1,6 +1,8 @@
 package CrossPlatform
 
-import MB "GoMiniblink"
+import (
+	MB "GoMiniblink"
+)
 
 type IProvider interface {
 	RunMain(form IForm, show func())
@@ -10,4 +12,5 @@ type IProvider interface {
 
 	NewForm() IForm
 	NewControl() IControl
+	NewMiniblink() IMiniblink
 }

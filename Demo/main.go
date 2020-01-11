@@ -1,7 +1,6 @@
 package main
 
 import (
-	"GoMiniblink/Core"
 	"GoMiniblink/CrossPlatform/Windows"
 	"GoMiniblink/Forms"
 )
@@ -24,12 +23,11 @@ func main() {
 		//		//f.SetIconVisable(false)
 		//	}, nil)
 		//}(target.(*Forms.Form))
-		ctrl := new(Core.MiniblinkBrowser).Init()
+		ctrl := new(Forms.MiniblinkBrowser).Init()
 		ctrl.SetSize(100, 100)
 		ctrl.SetLocation(20, 20)
 		ctrl.SetBgColor(0xCCCCCC)
 		frm.AddChild(ctrl)
 	}
-
 	Forms.Run(frm)
 }
