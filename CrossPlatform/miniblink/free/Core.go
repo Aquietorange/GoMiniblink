@@ -1,8 +1,10 @@
 package free
 
 import (
+	"GoMiniblink"
 	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/miniblink"
+	"unsafe"
 )
 
 type Core struct {
@@ -22,7 +24,35 @@ func (_this *Core) Init(window CrossPlatform.IWindow) *Core {
 	}
 	_this.view = window
 	wkeSetHandle(_this.wke, _this.view.GetHandle())
+	wkeOnPaintBitUpdated(_this.wke, _this.onPaint, 0)
 	return _this
+}
+
+func (_this *Core) onPaint(wke wkeHandle, param, bufPtr uintptr, rect wkeRect, width, height int) {
+	stride := width*4 + width*4%4
+	len := stride * height
+	buf := (*[]byte)(unsafe.Pointer(bufPtr))
+	bits := (*buf)[:len]
+	args := miniblink.PaintArgs{
+		Wke: uintptr(wke),
+		Update: GoMiniblink.Bound{
+			Point: GoMiniblink.Point{
+				X: rect.x,
+				Y: rect.y,
+			},
+			Rect: GoMiniblink.Rect{
+				Wdith:  rect.w,
+				Height: rect.h,
+			},
+		},
+		Size: GoMiniblink.Rect{
+			Wdith:  width,
+			Height: height,
+		},
+		Bits:  bits,
+		Param: param,
+	}
+	_this.paintCallback(args)
 }
 
 func (_this *Core) SetOnPaint(callback miniblink.PaintCallback) {

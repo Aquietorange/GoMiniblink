@@ -1,6 +1,6 @@
 package vip
 
-func CanLoad() bool {
+func Exists() bool {
 	return false
 }
 

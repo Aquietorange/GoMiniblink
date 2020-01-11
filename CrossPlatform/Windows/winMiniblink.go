@@ -20,11 +20,16 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 }
 
 func (_this *winMiniblink) initWke(hWnd win32.HWND) {
-	if vip.CanLoad() {
+	if vip.Exists() {
 
 	} else {
 		_this.wke = new(free.Core).Init(_this)
 	}
+	_this.wke.SetOnPaint(_this.paint)
+}
+
+func (_this *winMiniblink) paint(args miniblink.PaintArgs) {
+
 }
 
 func (_this *winMiniblink) LoadUri(uri string) {
