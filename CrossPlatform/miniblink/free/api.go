@@ -24,7 +24,6 @@ var (
 	_wkeSetHandle         *windows.LazyProc
 	_wkeOnPaintBitUpdated *windows.LazyProc
 	_wkeLoadURL           *windows.LazyProc
-	_wkeCreateWebWindow   *windows.LazyProc
 	_wkeResize            *windows.LazyProc
 )
 
@@ -39,8 +38,7 @@ func init() {
 	_wkeCreateWebView = lib.NewProc("wkeCreateWebView")
 	_wkeSetHandle = lib.NewProc("wkeSetHandle")
 	_wkeOnPaintBitUpdated = lib.NewProc("wkeOnPaintBitUpdated")
-	_wkeLoadURL = lib.NewProc("wkeLoadURLW")
-	_wkeCreateWebWindow = lib.NewProc("wkeCreateWebWindow")
+	_wkeLoadURL = lib.NewProc("wkeLoadURL")
 	_wkeResize = lib.NewProc("wkeResize")
 }
 
@@ -51,17 +49,8 @@ func wkeResize(wke wkeHandle, w, h int32) {
 	}
 }
 
-func wkeCreateWebWindow() wkeHandle {
-	r, _, err := _wkeCreateWebWindow.Call(0, 0, 100, 100, 500, 500)
-	if r == 0 {
-		fmt.Println("wkeCreateWebWindow", err)
-	}
-	return wkeHandle(r)
-}
-
 func wkeLoadURL(wke wkeHandle, url string) {
-	ptr, _ := syscall.UTF16PtrFromString(url)
-	//ptr := []rune(url)
+	ptr := []rune(url)
 	r, _, err := _wkeLoadURL.Call(uintptr(wke), uintptr(unsafe.Pointer(&ptr)))
 	if r == 0 {
 		fmt.Println("wkeLoadURL", err)
