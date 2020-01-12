@@ -3,7 +3,10 @@ package free
 import (
 	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/miniblink"
+	"bytes"
 	"encoding/binary"
+	"os"
+	"unsafe"
 )
 
 type Core struct {
@@ -23,20 +26,29 @@ func (_this *Core) Init(window CrossPlatform.IWindow) *Core {
 	}
 	_this.view = window
 	wkeSetHandle(_this.wke, _this.view.GetHandle())
-	wkeOnPaintBitUpdated(_this.wke, _this.firePaint, 0)
+	wkeOnPaintBitUpdated(_this.wke, _this.paintBitUpdate, 0)
 	wkeResize(_this.wke, 500, 500)
 	return _this
 }
 
-func (_this *Core) firePaint(wke wkeHandle, param, buf uintptr, rect *wkeRect, width, height int32) uintptr {
-	stride := width*4 + width*4%4
-	dataLen := stride * height
+func (_this *Core) paintBitUpdate(wke wkeHandle, param, buf uintptr, rect *wkeRect, width, height int32) uintptr {
+	dataLen := width * height
 	if dataLen == 0 {
 		return 0
 	}
-	data := make([]byte, dataLen)
-	binary.LittleEndian.PutUint32(data, uint32(buf))
-	println(len(data))
+	data := make([]uint32, dataLen)
+	size := unsafe.Sizeof(uint32(1))
+	for i := 0; i < int(dataLen); i++ {
+		b := *((*uint32)(unsafe.Pointer(buf)))
+		buf = buf + size
+		data = append(data, b)
+	}
+	file := make([]byte, int(dataLen)*int(size))
+	buffer := bytes.NewBuffer(file)
+	binary.Write(buffer, binary.LittleEndian, data)
+	f, _ := os.Create("111.png")
+	defer f.Close()
+	f.Write(file)
 	//args := miniblink.PaintArgs{
 	//	Wke: uintptr(wke),
 	//	Clip: GoMiniblink.Bound{
