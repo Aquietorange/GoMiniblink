@@ -3,7 +3,7 @@ package free
 import (
 	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/miniblink"
-	"fmt"
+	"encoding/binary"
 )
 
 type Core struct {
@@ -29,10 +29,14 @@ func (_this *Core) Init(window CrossPlatform.IWindow) *Core {
 }
 
 func (_this *Core) firePaint(wke wkeHandle, param, buf uintptr, rect *wkeRect, width, height int32) uintptr {
-	fmt.Println(rect)
-	//stride := width*4 + width*4%4
-	//data := make([]byte, stride*height)
-	//binary.LittleEndian.PutUint32(data, uint32(buf))
+	stride := width*4 + width*4%4
+	dataLen := stride * height
+	if dataLen == 0 {
+		return 0
+	}
+	data := make([]byte, dataLen)
+	binary.LittleEndian.PutUint32(data, uint32(buf))
+	println(len(data))
 	//args := miniblink.PaintArgs{
 	//	Wke: uintptr(wke),
 	//	Clip: GoMiniblink.Bound{

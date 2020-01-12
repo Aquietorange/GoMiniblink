@@ -28,7 +28,7 @@ func main() {
 		ctrl.SetLocation(20, 20)
 		ctrl.SetBgColor(0xCCCCCC)
 		ctrl.EvLoad["loadUri"] = func(target interface{}) {
-			ctrl.LoadUri("https://www.baidu.com")
+			ctrl.LoadUri("https://www.acfun.cn")
 		}
 		frm.AddChild(ctrl)
 	}
