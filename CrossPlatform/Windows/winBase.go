@@ -85,6 +85,22 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 		}
 	}
 	switch msg {
+	case win32.WM_SIZE:
+		if _this.onResize != nil {
+			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
+			_this.onResize(MB.Rect{
+				Wdith:  int(w),
+				Height: int(h),
+			})
+		}
+	case win32.WM_MOVE:
+		if _this.onMove != nil {
+			x, y := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
+			_this.onMove(MB.Point{
+				X: int(x),
+				Y: int(y),
+			})
+		}
 	case win32.WM_DESTROY:
 		if _this.onDestroy != nil {
 			_this.onDestroy()

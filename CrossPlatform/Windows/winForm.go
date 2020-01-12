@@ -78,13 +78,6 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 			return 1
 		}
 	case win32.WM_SIZE:
-		if _this.onResize != nil {
-			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
-			_this.onResize(MB.Rect{
-				Wdith:  int(w),
-				Height: int(h),
-			})
-		}
 		if _this.onState != nil {
 			switch int(wParam) {
 			case win32.SIZE_RESTORED:
@@ -94,14 +87,6 @@ func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uin
 			case win32.SIZE_MINIMIZED:
 				_this.onState(MB.FormState_Min)
 			}
-		}
-	case win32.WM_MOVE:
-		if _this.onMove != nil {
-			x, y := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
-			_this.onMove(MB.Point{
-				X: int(x),
-				Y: int(y),
-			})
 		}
 	}
 	return 0

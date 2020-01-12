@@ -1,17 +1,16 @@
 package free
 
 import (
-	"GoMiniblink"
 	"GoMiniblink/CrossPlatform"
 	"GoMiniblink/CrossPlatform/miniblink"
-	"unsafe"
+	"fmt"
 )
 
 type Core struct {
 	view CrossPlatform.IWindow
 	wke  wkeHandle
 
-	paintCallback miniblink.PaintCallback
+	onPaint miniblink.PaintCallback
 }
 
 func (_this *Core) Init(window CrossPlatform.IWindow) *Core {
@@ -24,39 +23,45 @@ func (_this *Core) Init(window CrossPlatform.IWindow) *Core {
 	}
 	_this.view = window
 	wkeSetHandle(_this.wke, _this.view.GetHandle())
-	wkeOnPaintBitUpdated(_this.wke, _this.onPaint, 0)
+	wkeOnPaintBitUpdated(_this.wke, _this.firePaint, 0)
+	wkeResize(_this.wke, 500, 500)
 	return _this
 }
 
-func (_this *Core) onPaint(wke wkeHandle, param, bufPtr uintptr, rect wkeRect, width, height int) {
-	stride := width*4 + width*4%4
-	len := stride * height
-	buf := (*[]byte)(unsafe.Pointer(bufPtr))
-	bits := (*buf)[:len]
-	args := miniblink.PaintArgs{
-		Wke: uintptr(wke),
-		Update: GoMiniblink.Bound{
-			Point: GoMiniblink.Point{
-				X: rect.x,
-				Y: rect.y,
-			},
-			Rect: GoMiniblink.Rect{
-				Wdith:  rect.w,
-				Height: rect.h,
-			},
-		},
-		Size: GoMiniblink.Rect{
-			Wdith:  width,
-			Height: height,
-		},
-		Bits:  bits,
-		Param: param,
-	}
-	_this.paintCallback(args)
+func (_this *Core) firePaint(wke wkeHandle, param, buf uintptr, rect *wkeRect, width, height int32) uintptr {
+	fmt.Println(rect)
+	//stride := width*4 + width*4%4
+	//data := make([]byte, stride*height)
+	//binary.LittleEndian.PutUint32(data, uint32(buf))
+	//args := miniblink.PaintArgs{
+	//	Wke: uintptr(wke),
+	//	Clip: GoMiniblink.Bound{
+	//		Point: GoMiniblink.Point{
+	//			X: rect.x,
+	//			Y: rect.y,
+	//		},
+	//		Rect: GoMiniblink.Rect{
+	//			Wdith:  rect.w,
+	//			Height: rect.h,
+	//		},
+	//	},
+	//	Size: GoMiniblink.Rect{
+	//		Wdith:  width,
+	//		Height: height,
+	//	},
+	//	Bits:  data,
+	//	Param: param,
+	//}
+	//_this.onPaint(args)
+	return 0
+}
+
+func (_this *Core) Resize(width, height int) {
+	wkeResize(_this.wke, int32(width), int32(height))
 }
 
 func (_this *Core) SetOnPaint(callback miniblink.PaintCallback) {
-	_this.paintCallback = callback
+	_this.onPaint = callback
 }
 
 func (_this *Core) LoadUri(uri string) {

@@ -1,5 +1,5 @@
 package free
 
 type wkeRect struct {
-	x, y, w, h int
+	x, y, w, h int32
 }
