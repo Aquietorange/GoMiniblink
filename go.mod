@@ -1,4 +1,4 @@
-module GoMiniblink
+module qq.2564874169/miniblink
 
 go 1.13
 

@@ -1,4 +1,4 @@
-package GoMiniblink
+package miniblink
 
 type Point struct {
 	X, Y int

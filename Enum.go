@@ -1,4 +1,4 @@
-package GoMiniblink
+package miniblink
 
 //窗体的边框类型
 type FormBorder int

@@ -1,4 +1,4 @@
-package GoMiniblink
+package miniblink
 
 import "time"
 
