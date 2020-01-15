@@ -89,7 +89,6 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 		if cp.CreateParams != 0 {
 			id := *((*string)(unsafe.Pointer(cp.CreateParams)))
 			if w, ok := _this.nameWnds[id]; ok {
-				isdlg = w.isDialog()
 				_this.handleWnds[hWnd] = w
 				w.fireWndCreate(hWnd)
 			}
@@ -191,7 +190,7 @@ type mouseClickWorker struct {
 }
 
 func (_this *mouseClickWorker) init() *mouseClickWorker {
-	go _this.fire()
+	//go _this.fire()
 	return _this
 }
 

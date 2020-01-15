@@ -44,14 +44,14 @@ type BaseUI struct {
 
 	Handle uintptr
 
-	real interface{}
-	impl plat.IWindow
-	size mb.Rect
-	pos  mb.Point
+	instance interface{}
+	impl     plat.IWindow
+	size     mb.Rect
+	pos      mb.Point
 }
 
 func (_this *BaseUI) init(instance interface{}, impl plat.IWindow) *BaseUI {
-	_this.real = instance
+	_this.instance = instance
 	_this.impl = impl
 
 	_this.EvKeyPress = make(map[string]func(target interface{}, e *mb.KeyPressEvArgs))

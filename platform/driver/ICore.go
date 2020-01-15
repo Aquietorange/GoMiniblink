@@ -1,6 +1,9 @@
-package miniblinkc_core
+package driver
 
-import mb "qq.2564874169/miniblink"
+import (
+	"image"
+	mb "qq.2564874169/miniblink"
+)
 
 type ICore interface {
 	LoadUri(uri string)
@@ -13,7 +16,7 @@ type PaintArgs struct {
 	Wke   uintptr
 	Clip  mb.Bound
 	Size  mb.Rect
-	Bits  []byte
+	Image image.Image
 	Param uintptr
 }
 type PaintCallback func(args PaintArgs)
