@@ -8,14 +8,12 @@ import (
 func main() {
 	forms.Provider = new(windows.Provider).Init()
 	forms.Provider.SetIcon("app.ico")
+	forms.Provider.SetBgColor(0xFF0000)
 
 	var frm = new(forms.Form).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 	frm.EvLoad["add_child"] = func(target interface{}) {
-		if f, ok := target.(*forms.Form); ok {
-			f.SetBgColor(0x000000)
-		}
 		//go func(f *forms.Form) {
 		//	time.Sleep(3 * time.Second)
 		//	f.Invoke(func(state interface{}) {

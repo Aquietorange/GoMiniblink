@@ -1,6 +1,9 @@
 package miniblink
 
-import "time"
+import (
+	"image"
+	"time"
+)
 
 type MouseEvArgs struct {
 	ButtonIsDown map[MouseButtons]bool
@@ -10,8 +13,8 @@ type MouseEvArgs struct {
 }
 
 type PaintEvArgs struct {
-	Update  Bound
-	Context uintptr
+	Clip Bound
+	View image.Image
 }
 
 type KeyEvArgs struct {

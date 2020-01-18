@@ -1,6 +1,8 @@
 package windows
 
 import (
+	"fmt"
+	"image"
 	mb "qq.2564874169/miniblink"
 	"qq.2564874169/miniblink/platform/windows/win32"
 	"time"
@@ -38,6 +40,7 @@ type winBase struct {
 func (_this *winBase) init(provider *Provider, idName string) *winBase {
 	_this.provider = provider
 	_this.idName = idName
+	_this.SetBgColor(provider.defBgColor)
 	_this.evWndCreate = make(map[string]func(win32.HWND))
 	_this.invokeMap = make(map[string]*InvokeContext)
 	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
@@ -47,9 +50,6 @@ func (_this *winBase) init(provider *Provider, idName string) *winBase {
 }
 
 func (_this *winBase) SetBgColor(color int) {
-	if _this.bgColor != 0 {
-		win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
-	}
 	lbp := win32.LOGBRUSH{
 		LbStyle: win32.BS_SOLID,
 		LbColor: win32.COLORREF(color),
@@ -104,12 +104,10 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 		if _this.onDestroy != nil {
 			_this.onDestroy()
 		}
-		if _this.bgColor != 0 {
-			win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
-		}
 		for _, v := range _this.evWndDestroy {
 			v()
 		}
+		win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
 		_this.provider.remove(_this.hWnd(), true)
 	case win32.WM_SYSKEYDOWN, win32.WM_KEYDOWN:
 		key := vkToKey(int(wParam))
@@ -149,11 +147,18 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 			}
 		}
 		return 0
+	case win32.WM_ERASEBKGND:
+		hdc := win32.HDC(wParam)
+		rect := new(win32.RECT)
+		win32.GetClientRect(hWnd, rect)
+		win32.FillRect(hdc, rect, _this.bgColor)
+		return 1
 	case win32.WM_PAINT:
 		pt := win32.PAINTSTRUCT{}
-		win32.BeginPaint(hWnd, &pt)
+		hdc := win32.BeginPaint(hWnd, &pt)
+		defer win32.EndPaint(hWnd, &pt)
 		e := mb.PaintEvArgs{
-			Update: mb.Bound{
+			Clip: mb.Bound{
 				Point: mb.Point{
 					X: int(pt.RcPaint.Left),
 					Y: int(pt.RcPaint.Top),
@@ -163,15 +168,22 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 					Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
 				},
 			},
-			Context: uintptr(pt.Hdc),
 		}
-		if _this.bgColor != 0 {
-			win32.FillRect(pt.Hdc, &pt.RcPaint, _this.bgColor)
-		}
+		fmt.Println(e.Clip)
+		view := image.NewAlpha(image.Rect(0, 0, e.Clip.Wdith, e.Clip.Height))
+		e.View = view
 		if _this.onPaint != nil {
 			_this.onPaint(e)
 		}
-		win32.EndPaint(hWnd, &pt)
+		memDc := win32.CreateCompatibleDC(hdc)
+		memBmp := win32.CreateBitmap(int32(e.Clip.Wdith), int32(e.Clip.Height), 1, 32, unsafe.Pointer(&view.Pix[0]))
+		oldBmp := win32.SelectObject(memDc, win32.HGDIOBJ(memBmp))
+		defer func() {
+			win32.SelectObject(memDc, oldBmp)
+			win32.DeleteDC(memDc)
+			win32.DeleteObject(win32.HGDIOBJ(memBmp))
+		}()
+		//win32.BitBlt(hdc, int32(e.Clip.X), int32(e.Clip.Y), int32(e.Clip.Wdith), int32(e.Clip.Height), memDc, 0, 0, win32.SRCCOPY)
 	case win32.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {
 			e := mb.MouseEvArgs{

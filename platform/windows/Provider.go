@@ -20,6 +20,7 @@ type Provider struct {
 	defIcon    win32.HICON
 	msClick    *mouseClickWorker
 	keysIsDown map[mb.Keys]bool
+	defBgColor int
 }
 
 func (_this *Provider) Init() *Provider {
@@ -30,6 +31,10 @@ func (_this *Provider) Init() *Provider {
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.msClick = new(mouseClickWorker).init()
 	return _this
+}
+
+func (_this *Provider) SetBgColor(color int) {
+	_this.defBgColor = color
 }
 
 func (_this *Provider) GetScreen() mb.Screen {
