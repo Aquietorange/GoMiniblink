@@ -29,6 +29,9 @@ var (
 	_wkeResize            *windows.LazyProc
 	_wkeNetOnResponse     *windows.LazyProc
 	_wkeOnLoadUrlBegin    *windows.LazyProc
+	_wkePaint             *windows.LazyProc
+	_wkeGetWidth          *windows.LazyProc
+	_wkeGetHeight         *windows.LazyProc
 )
 
 func init() {
@@ -40,6 +43,9 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_wkeGetHeight = lib.NewProc("wkeGetHeight")
+	_wkeGetWidth = lib.NewProc("wkeGetWidth")
+	_wkePaint = lib.NewProc("wkePaint")
 	_wkeOnLoadUrlBegin = lib.NewProc("wkeOnLoadUrlBegin")
 	_wkeNetOnResponse = lib.NewProc("wkeNetOnResponse")
 	_wkeLoadURL = lib.NewProc("wkeLoadURL")
@@ -53,6 +59,29 @@ func init() {
 	ret, _, err := _wkeInitialize.Call()
 	if ret == 0 && showError {
 		fmt.Println(err)
+	}
+}
+
+func wkeGetHeight(wke wkeHandle) uint32 {
+	r, _, err := _wkeGetHeight.Call(uintptr(wke))
+	if r == 0 && showError {
+		fmt.Println("wkeGetHeight", err)
+	}
+	return uint32(r)
+}
+
+func wkeGetWidth(wke wkeHandle) uint32 {
+	r, _, err := _wkeGetWidth.Call(uintptr(wke))
+	if r == 0 && showError {
+		fmt.Println("wkeGetWidth", err)
+	}
+	return uint32(r)
+}
+
+func wkePaint(wke wkeHandle, bits unsafe.Pointer, pitch uint32) {
+	r, _, err := _wkePaint.Call(uintptr(wke), uintptr(bits), uintptr(pitch))
+	if r == 0 && showError {
+		fmt.Println("wkePaint", err)
 	}
 }
 

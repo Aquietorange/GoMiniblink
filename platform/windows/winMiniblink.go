@@ -28,7 +28,8 @@ func (_this *winMiniblink) initWke(hWnd win32.HWND) {
 	} else {
 		_this.wke = new(free.Core).Init(_this)
 	}
-	_this.wke.SetOnPaint(_this.paint)
+	_this.onPaint = _this.defOnPaint
+	_this.wke.SetOnPaint(_this.updatePaint)
 	if _this.initSize.Wdith > 0 && _this.initSize.Height > 0 {
 		_this.SetSize(_this.initSize.Wdith, _this.initSize.Height)
 	}
@@ -37,7 +38,12 @@ func (_this *winMiniblink) initWke(hWnd win32.HWND) {
 	}
 }
 
-func (_this *winMiniblink) paint(args core.PaintArgs) {
+func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) {
+	//bmp := _this.wke.GetView(e.Clip)
+	//draw.Draw(e.View, e.View.Bounds(), bmp, bmp.Bounds().Min, draw.Src)
+}
+
+func (_this *winMiniblink) updatePaint(args core.PaintArgs) {
 
 }
 

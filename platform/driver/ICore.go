@@ -8,6 +8,7 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
+	GetView(bound mb.Bound) image.Image
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
 }

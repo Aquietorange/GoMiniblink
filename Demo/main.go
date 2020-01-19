@@ -8,7 +8,7 @@ import (
 func main() {
 	forms.Provider = new(windows.Provider).Init()
 	forms.Provider.SetIcon("app.ico")
-	forms.Provider.SetBgColor(0xFF0000)
+	forms.Provider.SetBgColor(0x00FF)
 
 	var frm = new(forms.Form).Init()
 	frm.SetTitle("miniblink窗口")
@@ -24,10 +24,10 @@ func main() {
 		ctrl := new(forms.MiniblinkBrowser).Init()
 		ctrl.SetSize(740, 420)
 		ctrl.SetLocation(20, 20)
-		ctrl.SetBgColor(0xCCCCCC)
-		ctrl.EvLoad["loadUri"] = func(target interface{}) {
-			ctrl.LoadUri("https://www.baidu.com")
-		}
+		ctrl.SetBgColor(0xFF0000)
+		//ctrl.EvLoad["loadUri"] = func(target interface{}) {
+		//	ctrl.LoadUri("https://www.baidu.com")
+		//}
 		frm.AddChild(ctrl)
 	}
 	forms.Run(frm)

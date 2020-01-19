@@ -10,7 +10,7 @@ func NewUUID() string {
 	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }
 
-func IntToColor(rgba int) color.Color {
+func IntToRGBA(rgba int) color.RGBA {
 	return color.RGBA{
 		R: uint8(rgba),
 		G: uint8(rgba >> 8),

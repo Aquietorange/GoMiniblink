@@ -1,7 +1,7 @@
 package miniblink
 
 import (
-	"image"
+	"image/draw"
 	"time"
 )
 
@@ -14,7 +14,7 @@ type MouseEvArgs struct {
 
 type PaintEvArgs struct {
 	Clip Bound
-	View image.Image
+	View draw.Image
 }
 
 type KeyEvArgs struct {
