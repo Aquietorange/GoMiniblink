@@ -32,8 +32,8 @@ type winBase struct {
 	onKeyUp      func(e *mb.KeyEvArgs)
 	onKeyPress   func(e *mb.KeyPressEvArgs)
 
-	bgColor    win32.HBRUSH
-	bgIntColor int
+	bgColor win32.HBRUSH
+	memView win32.HBITMAP
 }
 
 func (_this *winBase) init(provider *Provider, idName string) *winBase {
@@ -54,7 +54,6 @@ func (_this *winBase) SetBgColor(color int) {
 		LbColor: win32.COLORREF(color),
 	}
 	_this.bgColor = win32.CreateBrushIndirect(&lbp)
-	_this.bgIntColor = color
 }
 
 func (_this *winBase) isDialog() bool {
@@ -87,6 +86,10 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
+			if _this.memView != 0 {
+				win32.DeleteObject(win32.HGDIOBJ(_this.memView))
+			}
+			_this.memView = win32.CreateCompatibleBitmap(win32.GetDC(hWnd), w, h)
 			_this.onResize(mb.Rect{
 				Wdith:  int(w),
 				Height: int(h),
@@ -148,44 +151,32 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 		}
 		return 0
 	case win32.WM_ERASEBKGND:
-		//hdc := win32.HDC(wParam)
-		//rect := new(win32.RECT)
-		//win32.GetClientRect(hWnd, rect)
-		//win32.FillRect(hdc, rect, _this.bgColor)
+		hdc := win32.HDC(wParam)
+		rect := new(win32.RECT)
+		win32.GetClientRect(hWnd, rect)
+		win32.FillRect(hdc, rect, _this.bgColor)
 		return 1
 	case win32.WM_PAINT:
-		pt := win32.PAINTSTRUCT{}
-		hdc := win32.BeginPaint(hWnd, &pt)
-		win32.FillRect(hdc, &pt.RcPaint, _this.bgColor)
-		//e := mb.PaintEvArgs{
-		//	Clip: mb.Bound{
-		//		Point: mb.Point{
-		//			X: int(pt.RcPaint.Left),
-		//			Y: int(pt.RcPaint.Top),
-		//		},
-		//		Rect: mb.Rect{
-		//			Wdith:  int(pt.RcPaint.Right - pt.RcPaint.Left),
-		//			Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
-		//		},
-		//	},
-		//}
-		//rect := new(win32.RECT)
-		//win32.GetClientRect(hWnd, rect)
-		//
-		//view := image.NewRGBA(image.Rect(0, 0, int(rect.Right-rect.Left), int(rect.Bottom-rect.Top)))
-		//draw.Draw(view, view.Bounds(), image.NewUniform(mb.IntToRGBA(_this.bgIntColor)), image.Pt(0, 0), draw.Src)
-		//e.View = view
-		//if _this.onPaint != nil {
-		//	_this.onPaint(e)
-		//}
-		//memDc := win32.CreateCompatibleDC(0)
-		//memBmp := win32.CreateBitmap(int32(view.Bounds().Dx()), int32(view.Bounds().Dy()), 1, 32, unsafe.Pointer(&view.Pix[0]))
-		//oldBmp := win32.SelectObject(memDc, win32.HGDIOBJ(memBmp))
-		//win32.BitBlt(hdc, 0, 0, int32(view.Bounds().Dx()), int32(view.Bounds().Dy()), memDc, 0, 0, win32.SRCCOPY)
-		//win32.SelectObject(memDc, oldBmp)
-		//win32.DeleteDC(memDc)
-		//win32.DeleteObject(win32.HGDIOBJ(memBmp))
-		win32.EndPaint(hWnd, &pt)
+		pt := new(win32.PAINTSTRUCT)
+		hdc := win32.BeginPaint(hWnd, pt)
+		e := mb.PaintEvArgs{
+			Clip: mb.Bound{
+				Point: mb.Point{
+					X: int(pt.RcPaint.Left),
+					Y: int(pt.RcPaint.Top),
+				},
+				Rect: mb.Rect{
+					Wdith:  int(pt.RcPaint.Right - pt.RcPaint.Left),
+					Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
+				},
+			},
+		}
+		gdi := new(winGraphics).init(hdc)
+		gdi.memBmp = _this.memView
+		if _this.onPaint != nil {
+			_this.onPaint(e)
+		}
+		win32.EndPaint(hWnd, pt)
 	case win32.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {
 			e := mb.MouseEvArgs{
@@ -267,6 +258,15 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 		return 0
 	}
 	return 1
+}
+
+func (_this *winBase) CreateGraphics() mb.Graphics {
+	dc := win32.GetDC(_this.hWnd())
+	gdi := new(winGraphics).init(dc)
+	gdi.onClose = func() {
+		win32.ReleaseDC(_this.hWnd(), dc)
+	}
+	return gdi
 }
 
 func (_this *winBase) Invoke(fn func(state interface{}), state interface{}) {

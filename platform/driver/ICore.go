@@ -8,16 +8,16 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
-	GetView(bound mb.Bound) image.Image
+	GetView(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
 }
 
-type PaintArgs struct {
+type PaintUpdateArgs struct {
 	Wke   uintptr
 	Clip  mb.Bound
 	Size  mb.Rect
-	Image image.Image
+	Image *image.RGBA
 	Param uintptr
 }
-type PaintCallback func(args PaintArgs)
+type PaintCallback func(args PaintUpdateArgs)

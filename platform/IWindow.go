@@ -26,4 +26,5 @@ type IWindow interface {
 	Show()
 	Hide()
 	SetBgColor(color int)
+	CreateGraphics() mb.Graphics
 }

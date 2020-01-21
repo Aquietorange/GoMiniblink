@@ -7,6 +7,7 @@
 package win32
 
 import (
+	"fmt"
 	"syscall"
 	"unsafe"
 
@@ -1111,6 +1112,7 @@ var (
 	swapBuffers             *windows.LazyProc
 	textOut                 *windows.LazyProc
 	transparentBlt          *windows.LazyProc
+	setBitmapBits           *windows.LazyProc
 )
 
 func init() {
@@ -1119,6 +1121,7 @@ func init() {
 	libmsimg32 = windows.NewLazySystemDLL("msimg32.dll")
 
 	// Functions
+	setBitmapBits = libgdi32.NewProc("SetBitmapBits")
 	abortDoc = libgdi32.NewProc("AbortDoc")
 	addFontResourceEx = libgdi32.NewProc("AddFontResourceExW")
 	addFontMemResourceEx = libgdi32.NewProc("AddFontMemResourceEx")
@@ -1193,6 +1196,14 @@ func init() {
 	alphaBlend = libmsimg32.NewProc("AlphaBlend")
 	gradientFill = libmsimg32.NewProc("GradientFill")
 	transparentBlt = libmsimg32.NewProc("TransparentBlt")
+}
+
+func SetBitmapBits(hBmp HBITMAP, len uint32, pvBits unsafe.Pointer) int32 {
+	ret, _, err := setBitmapBits.Call(uintptr(hBmp), uintptr(len), uintptr(pvBits))
+	if ret == 0 {
+		fmt.Println(err)
+	}
+	return int32(ret)
 }
 
 func AbortDoc(hdc HDC) int32 {
@@ -1348,15 +1359,17 @@ func CreateDC(lpszDriver, lpszDevice, lpszOutput *uint16, lpInitData *DEVMODE) H
 	return HDC(ret)
 }
 
-func CreateDIBSection(hdc HDC, pbmih *BITMAPINFOHEADER, iUsage uint32, ppvBits *unsafe.Pointer, hSection HANDLE, dwOffset uint32) HBITMAP {
-	ret, _, _ := syscall.Syscall6(createDIBSection.Addr(), 6,
+func CreateDIBSection(hdc HDC, pbmih *BITMAPINFO, iUsage uint32, ppvBits *unsafe.Pointer, hSection HANDLE, dwOffset uint32) HBITMAP {
+	ret, _, err := syscall.Syscall6(createDIBSection.Addr(), 6,
 		uintptr(hdc),
 		uintptr(unsafe.Pointer(pbmih)),
 		uintptr(iUsage),
 		uintptr(unsafe.Pointer(ppvBits)),
 		uintptr(hSection),
 		uintptr(dwOffset))
-
+	if ret == 0 {
+		fmt.Println("CreateDIBSection", err)
+	}
 	return HBITMAP(ret)
 }
 
@@ -1825,8 +1838,8 @@ func SetBrushOrgEx(hdc HDC, nXOrg, nYOrg int32, lppt *POINT) bool {
 	return ret != 0
 }
 
-func SetDIBits(hdc HDC, hbmp HBITMAP, uStartScan, cScanLines uint32, lpvBits *byte, lpbmi *BITMAPINFO, fuColorUse uint32) int32 {
-	ret, _, _ := syscall.Syscall9(setDIBits.Addr(), 7,
+func SetDIBits(hdc HDC, hbmp HBITMAP, uStartScan, cScanLines uint32, lpvBits *uint8, lpbmi *BITMAPINFO, fuColorUse uint32) int32 {
+	ret, _, err := syscall.Syscall9(setDIBits.Addr(), 7,
 		uintptr(hdc),
 		uintptr(hbmp),
 		uintptr(uStartScan),
@@ -1836,19 +1849,23 @@ func SetDIBits(hdc HDC, hbmp HBITMAP, uStartScan, cScanLines uint32, lpvBits *by
 		uintptr(fuColorUse),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("SetDIBits", err)
+	}
 	return int32(ret)
 }
 
 func SetPixel(hdc HDC, X, Y int32, crColor COLORREF) COLORREF {
-	ret, _, _ := syscall.Syscall6(setPixel.Addr(), 4,
+	ret, _, err := syscall.Syscall6(setPixel.Addr(), 4,
 		uintptr(hdc),
 		uintptr(X),
 		uintptr(Y),
 		uintptr(crColor),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("SetPixel", err)
+	}
 	return COLORREF(ret)
 }
 

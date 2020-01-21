@@ -1,5 +1,7 @@
 package miniblink
 
+import "image"
+
 type Point struct {
 	X, Y int
 }
@@ -28,4 +30,9 @@ type Bound struct {
 type Screen struct {
 	Full     Rect
 	WorkArea Rect
+}
+
+type Graphics interface {
+	DrawImage(src *image.RGBA, srcXY Point, rect Rect, toXY Point)
+	Close()
 }

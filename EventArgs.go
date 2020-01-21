@@ -1,10 +1,10 @@
 package miniblink
 
 import (
-	"image/draw"
 	"time"
 )
 
+//todo 应该全是接口
 type MouseEvArgs struct {
 	ButtonIsDown map[MouseButtons]bool
 	X, Y, Delta  int
@@ -13,8 +13,8 @@ type MouseEvArgs struct {
 }
 
 type PaintEvArgs struct {
-	Clip Bound
-	View draw.Image
+	Clip     Bound
+	Graphics Graphics
 }
 
 type KeyEvArgs struct {

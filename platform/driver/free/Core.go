@@ -2,7 +2,8 @@ package free
 
 import (
 	"image"
-	"qq.2564874169/miniblink"
+	"image/draw"
+	mb "qq.2564874169/miniblink"
 	"qq.2564874169/miniblink/platform"
 	"qq.2564874169/miniblink/platform/driver"
 	"unsafe"
@@ -42,12 +43,14 @@ func (_this *Core) onNetResponse(wke wkeHandle, param, utf8Url uintptr, job wkeN
 	return 0
 }
 
-func (_this *Core) GetView(bound miniblink.Bound) image.Image {
+func (_this *Core) GetView(bound mb.Bound) *image.RGBA {
 	w := int(wkeGetWidth(_this.wke))
 	h := int(wkeGetHeight(_this.wke))
 	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
 	wkePaint(_this.wke, unsafe.Pointer(&bmp.Pix[0]), 0)
-	return bmp.SubImage(image.Rect(bound.X, bound.Y, bound.Wdith, bound.Height))
+	img := image.NewRGBA(image.Rect(0, 0, bound.Wdith, bound.Height))
+	draw.Draw(img, img.Bounds(), bmp, image.Pt(bound.X, bound.Y), draw.Src)
+	return img
 }
 
 func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
@@ -58,33 +61,32 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 	size := unsafe.Sizeof(uint32(1))
 	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
 	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
+		for x := 0; x < w; x, bits = x+1, bits+size {
 			rgba := *((*uint32)(unsafe.Pointer(bits)))
-			bits += size
-			pix := miniblink.IntToRGBA(int(rgba))
+			pix := mb.IntToRGBA(int(rgba))
 			bmp.SetRGBA(x, y, pix)
 		}
 	}
-	args := driver.PaintArgs{
+	e := driver.PaintUpdateArgs{
 		Wke: uintptr(wke),
-		Clip: miniblink.Bound{
-			Point: miniblink.Point{
+		Clip: mb.Bound{
+			Point: mb.Point{
 				X: int(rect.x),
 				Y: int(rect.y),
 			},
-			Rect: miniblink.Rect{
+			Rect: mb.Rect{
 				Wdith:  int(rect.w),
 				Height: int(rect.h),
 			},
 		},
-		Size: miniblink.Rect{
+		Size: mb.Rect{
 			Wdith:  w,
 			Height: h,
 		},
 		Image: bmp,
 		Param: param,
 	}
-	_this.onPaint(args)
+	_this.onPaint(e)
 	return 0
 }
 
