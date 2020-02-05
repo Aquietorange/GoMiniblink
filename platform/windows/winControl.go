@@ -1,8 +1,8 @@
 package windows
 
 import (
-	"qq.2564874169/miniblink"
-	"qq.2564874169/miniblink/platform"
+	mb "qq.2564874169/miniblink"
+	p "qq.2564874169/miniblink/platform"
 	"qq.2564874169/miniblink/platform/windows/win32"
 	"unsafe"
 )
@@ -11,11 +11,10 @@ type winControl struct {
 	winBase
 
 	createParams *win32.CREATESTRUCT
-	bgColor      win32.HBRUSH
 }
 
 func (_this *winControl) init(provider *Provider) *winControl {
-	_this.winBase.init(provider, miniblink.NewUUID())
+	_this.winBase.init(provider, mb.NewUUID())
 	_this.createParams = &win32.CREATESTRUCT{
 		Instance:  provider.hInstance,
 		ClassName: uintptr(unsafe.Pointer(sto16(provider.className))),
@@ -27,12 +26,12 @@ func (_this *winControl) init(provider *Provider) *winControl {
 	return _this
 }
 
-func (_this *winControl) GetHandle() uintptr {
-	return uintptr(_this.handle)
+func (_this *winControl) SetParent(window p.IWindow) {
+	_this.createParams.Parent = win32.HWND(window.GetHandle())
 }
 
-func (_this *winControl) SetParent(window platform.IWindow) {
-	_this.createParams.Parent = win32.HWND(window.GetHandle())
+func (_this *winControl) GetHandle() uintptr {
+	return uintptr(_this.handle)
 }
 
 func (_this *winControl) Hide() {

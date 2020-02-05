@@ -1,4 +1,4 @@
-package driver
+package miniblink_core
 
 import (
 	"image"

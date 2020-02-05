@@ -27,6 +27,13 @@ type Bound struct {
 	Rect
 }
 
+type Bound2 struct {
+	Left   int
+	Top    int
+	Right  int
+	Bottom int
+}
+
 type Screen struct {
 	Full     Rect
 	WorkArea Rect

@@ -43,7 +43,14 @@ func (_this *winForm) init(provider *Provider) *winForm {
 		Style:       win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN,
 	}
 	_this.initTitle = ""
-	_this.evWndProc["__wndProc"] = _this.defWndProc
+	bakWndProc := _this.onWndProc
+	_this.onWndProc = func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+		ret := _this.formWndProc(hWnd, msg, wParam, lParam)
+		if ret == 0 {
+			ret = bakWndProc(hWnd, msg, wParam, lParam)
+		}
+		return ret
+	}
 	provider.add(_this)
 	return _this
 }
@@ -70,7 +77,7 @@ func (_this *winForm) RemoveControl(control platform.IControl) {
 	//}
 }
 
-func (_this *winForm) defWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+func (_this *winForm) formWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	switch msg {
 	case win32.WM_CLOSE:
 		if _this.onClose != nil && _this.onClose() {
@@ -115,7 +122,7 @@ func (_this *winForm) Create() {
 			}
 		}
 		for _, v := range _this.ctrls {
-			if v.IsCreate() == false {
+			if v.GetHandle() == 0 {
 				v.SetParent(_this)
 				v.Create()
 				v.Show()
@@ -124,35 +131,35 @@ func (_this *winForm) Create() {
 	}
 }
 
-func (_this *winForm) reCreate() {
-	preHwnd := _this.hWnd()
-	var rect win32.RECT
-	win32.GetWindowRect(preHwnd, &rect)
-	isVisible := win32.IsWindowVisible(preHwnd)
-	isMax := win32.IsZoomed(preHwnd)
-	isMin := win32.IsIconic(preHwnd)
-	_this.initTitle = win32.GetWindowText(preHwnd)
-	_this.createParams.X = int16(rect.Left)
-	_this.createParams.Y = int16(rect.Top)
-	_this.createParams.CX = int16(rect.Right - rect.Left)
-	_this.createParams.CY = int16(rect.Bottom - rect.Top)
-	_this.isCreated = false
-	bakEvCreate := _this.evWndCreate
-	_this.evWndCreate = nil
-	_this.Create()
-	_this.evWndCreate = bakEvCreate
-	_this.provider.remove(preHwnd, false)
-	win32.DestroyWindow(preHwnd)
-	if isVisible {
-		if isMax {
-			win32.ShowWindow(_this.hWnd(), win32.SW_MAXIMIZE)
-		} else if isMin {
-			win32.ShowWindow(_this.hWnd(), win32.SW_MINIMIZE)
-		} else {
-			win32.ShowWindow(_this.hWnd(), win32.SW_SHOW)
-		}
-	}
-}
+//func (_this *winForm) reCreate() {
+//	preHwnd := _this.hWnd()
+//	var rect win32.RECT
+//	win32.GetWindowRect(preHwnd, &rect)
+//	isVisible := win32.IsWindowVisible(preHwnd)
+//	isMax := win32.IsZoomed(preHwnd)
+//	isMin := win32.IsIconic(preHwnd)
+//	_this.initTitle = win32.GetWindowText(preHwnd)
+//	_this.createParams.X = int16(rect.Left)
+//	_this.createParams.Y = int16(rect.Top)
+//	_this.createParams.CX = int16(rect.Right - rect.Left)
+//	_this.createParams.CY = int16(rect.Bottom - rect.Top)
+//	_this.isCreated = false
+//	bakEvCreate := _this.evWndCreate
+//	_this.evWndCreate = nil
+//	_this.Create()
+//	_this.evWndCreate = bakEvCreate
+//	_this.provider.remove(preHwnd, false)
+//	win32.DestroyWindow(preHwnd)
+//	if isVisible {
+//		if isMax {
+//			win32.ShowWindow(_this.hWnd(), win32.SW_MAXIMIZE)
+//		} else if isMin {
+//			win32.ShowWindow(_this.hWnd(), win32.SW_MINIMIZE)
+//		} else {
+//			win32.ShowWindow(_this.hWnd(), win32.SW_SHOW)
+//		}
+//	}
+//}
 
 func (_this *winForm) Show() {
 	isMax := win32.IsZoomed(_this.hWnd())
@@ -239,18 +246,18 @@ func (_this *winForm) ShowInTaskbar(isShow bool) {
 		}
 		return
 	}
-	exStyle := uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_EXSTYLE))
-	bak := exStyle
-	if isShow {
-		exStyle |= win32.WS_EX_APPWINDOW
-	} else {
-		exStyle &= ^uint32(win32.WS_EX_APPWINDOW)
-	}
-	if bak != exStyle {
-		_this.createParams.Style = uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE))
-		_this.createParams.ExStyle = exStyle
-		_this.reCreate()
-	}
+	//exStyle := uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_EXSTYLE))
+	//bak := exStyle
+	//if isShow {
+	//	exStyle |= win32.WS_EX_APPWINDOW
+	//} else {
+	//	exStyle &= ^uint32(win32.WS_EX_APPWINDOW)
+	//}
+	//if bak != exStyle {
+	//	_this.createParams.Style = uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE))
+	//	_this.createParams.ExStyle = exStyle
+	//	_this.reCreate()
+	//}
 }
 
 func (_this *winForm) SetOnState(fn func(state mb.FormState)) {
@@ -315,7 +322,7 @@ func (_this *winForm) SetIcon(iconFile string) {
 func (_this *winForm) SetIconVisable(isShow bool) {
 	var style uint32
 	if _this.IsCreate() {
-		style = uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE))
+		//style = uint32(win32.GetWindowLong(_this.hWnd(), win32.GWL_STYLE))
 	} else {
 		style = _this.createParams.Style
 	}
@@ -327,8 +334,8 @@ func (_this *winForm) SetIconVisable(isShow bool) {
 	}
 	if bak != style {
 		_this.createParams.Style = style
-		if _this.IsCreate() {
-			_this.reCreate()
-		}
+		//if _this.IsCreate() {
+		//	_this.reCreate()
+		//}
 	}
 }

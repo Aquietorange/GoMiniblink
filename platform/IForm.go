@@ -3,7 +3,6 @@ package platform
 import mb "qq.2564874169/miniblink"
 
 type IForm interface {
-	IWindow
 	IControls
 
 	ShowDialog()

@@ -2,7 +2,7 @@ package forms
 
 import (
 	mb "qq.2564874169/miniblink"
-	plat "qq.2564874169/miniblink/platform"
+	p "qq.2564874169/miniblink/platform"
 )
 
 type BaseUI struct {
@@ -45,12 +45,12 @@ type BaseUI struct {
 	Handle uintptr
 
 	instance interface{}
-	impl     plat.IWindow
+	impl     p.IWindow
 	size     mb.Rect
 	pos      mb.Point
 }
 
-func (_this *BaseUI) init(instance interface{}, impl plat.IWindow) *BaseUI {
+func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.instance = instance
 	_this.impl = impl
 
@@ -80,42 +80,101 @@ func (_this *BaseUI) init(instance interface{}, impl plat.IWindow) *BaseUI {
 	_this.OnMouseWheel = _this.defOnMouseWheel
 	_this.OnMouseClick = _this.defOnMouseClick
 
-	_this.impl.SetOnKeyPress(func(e *mb.KeyPressEvArgs) {
+	var bakKeyPress p.WindowKeyPressProc
+	bakKeyPress = _this.impl.SetOnKeyPress(func(e *mb.KeyPressEvArgs) {
+		if bakKeyPress != nil {
+			bakKeyPress(e)
+		}
 		_this.OnKeyPress(e)
 	})
-	_this.impl.SetOnKeyUp(func(e *mb.KeyEvArgs) {
+
+	var bakKeyUp p.WindowKeyUpProc
+	bakKeyUp = _this.impl.SetOnKeyUp(func(e *mb.KeyEvArgs) {
+		if bakKeyUp != nil {
+			bakKeyUp(e)
+		}
 		_this.OnKeyUp(e)
 	})
-	_this.impl.SetOnKeyDown(func(e *mb.KeyEvArgs) {
+
+	var bakKeyDown p.WindowKeyDownProc
+	bakKeyDown = _this.impl.SetOnKeyDown(func(e *mb.KeyEvArgs) {
+		if bakKeyDown != nil {
+			bakKeyDown(e)
+		}
 		_this.OnKeyDown(e)
 	})
-	_this.impl.SetOnPaint(func(e mb.PaintEvArgs) {
+
+	var bakPaint p.WindowPaintProc
+	bakPaint = _this.impl.SetOnPaint(func(e mb.PaintEvArgs) {
+		if bakPaint != nil {
+			bakPaint(e)
+		}
 		_this.OnPaint(e)
 	})
-	_this.impl.SetOnMouseClick(func(e mb.MouseEvArgs) {
+
+	var bakMouseClick p.WindowMouseClickProc
+	bakMouseClick = _this.impl.SetOnMouseClick(func(e mb.MouseEvArgs) {
+		if bakMouseClick != nil {
+			bakMouseClick(e)
+		}
 		_this.OnMouseClick(e)
 	})
-	_this.impl.SetOnMouseWheel(func(e mb.MouseEvArgs) {
+
+	var bakMouseWheel p.WindowMouseWheelProc
+	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e mb.MouseEvArgs) {
+		if bakMouseWheel != nil {
+			bakMouseWheel(e)
+		}
 		_this.OnMouseWheel(e)
 	})
-	_this.impl.SetOnMouseUp(func(e mb.MouseEvArgs) {
+
+	var bakMouseUp p.WindowMouseUpProc
+	bakMouseUp = _this.impl.SetOnMouseUp(func(e mb.MouseEvArgs) {
+		if bakMouseUp != nil {
+			bakMouseUp(e)
+		}
 		_this.OnMouseUp(e)
 	})
+
+	var bakMouseDown p.WindowMouseDownProc
 	_this.impl.SetOnMouseDown(func(e mb.MouseEvArgs) {
+		if bakMouseDown != nil {
+			bakMouseDown(e)
+		}
 		_this.OnMouseDown(e)
 	})
-	_this.impl.SetOnMouseMove(func(e mb.MouseEvArgs) {
+
+	var bakMouseMove p.WindowMouseMoveProc
+	bakMouseMove = _this.impl.SetOnMouseMove(func(e mb.MouseEvArgs) {
+		if bakMouseMove != nil {
+			bakMouseMove(e)
+		}
 		_this.OnMouseMove(e)
 	})
-	_this.impl.SetOnResize(func(e mb.Rect) {
+
+	var bakResize p.WindowResizeProc
+	bakResize = _this.impl.SetOnResize(func(e mb.Rect) {
+		if bakResize != nil {
+			bakResize(e)
+		}
 		_this.size = e
 		_this.OnResize(e)
 	})
-	_this.impl.SetOnMove(func(e mb.Point) {
+
+	var bakMove p.WindowMoveProc
+	bakMove = _this.impl.SetOnMove(func(e mb.Point) {
+		if bakMove != nil {
+			bakMove(e)
+		}
 		_this.pos = e
 		_this.OnMove(e)
 	})
-	_this.impl.SetOnCreate(func(handle uintptr) {
+
+	var bakCreate p.WindowCreateProc
+	bakCreate = _this.impl.SetOnCreate(func(handle uintptr) {
+		if bakCreate != nil {
+			bakCreate(handle)
+		}
 		_this.Handle = handle
 		_this.OnLoad()
 	})

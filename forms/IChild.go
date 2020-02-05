@@ -1,9 +1,13 @@
 package forms
 
-import "qq.2564874169/miniblink/platform"
+import (
+	mb "qq.2564874169/miniblink"
+	p "qq.2564874169/miniblink/platform"
+)
 
 type IChild interface {
 	IBaseUI
 
-	toChild() platform.IControl
+	toControl() p.IControl
+	getAnchor() mb.AnchorStyle
 }

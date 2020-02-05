@@ -37,7 +37,7 @@ func (_this *Form) getImpl() plat.IForm {
 func (_this *Form) Init() *Form {
 	_this.impl = Provider.NewForm()
 	_this.BaseUI.init(_this, _this.impl)
-	_this.ChildContainer.init(_this.impl)
+	_this.ChildContainer.init(_this)
 	_this.EvState = make(map[string]func(interface{}, mb.FormState))
 	_this.title = ""
 	_this.border = mb.FormBorder_Default
@@ -47,6 +47,10 @@ func (_this *Form) Init() *Form {
 	_this.registerEvents()
 	_this.isInit = true
 	return _this
+}
+
+func (_this *Form) toControls() plat.IControls {
+	return _this.impl
 }
 
 func (_this *Form) registerEvents() {
@@ -64,7 +68,7 @@ func (_this *Form) defOnState(state mb.FormState) {
 }
 
 func (_this *Form) Show() {
-	if _this.impl.IsCreate() == false {
+	if _this.Handle == 0 {
 		switch _this.startPos {
 		case mb.FormStartPosition_Screen_Center:
 			scr := Provider.GetScreen()
@@ -73,7 +77,7 @@ func (_this *Form) Show() {
 		}
 		_this.impl.Create()
 	}
-	_this.getImpl().Show()
+	_this.impl.Show()
 }
 
 func (_this *Form) SetTitle(title string) {

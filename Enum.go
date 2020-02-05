@@ -39,6 +39,16 @@ const (
 	MouseButtons_Middle MouseButtons = 16
 )
 
+//控件停靠方式
+type AnchorStyle int
+
+const (
+	AnchorStyle_Left   AnchorStyle = 2
+	AnchorStyle_Right  AnchorStyle = 4
+	AnchorStyle_Top    AnchorStyle = 8
+	AnchorStyle_Bottom AnchorStyle = 16
+)
+
 type Keys int
 
 //键盘按键

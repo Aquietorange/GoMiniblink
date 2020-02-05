@@ -1,27 +1,85 @@
 package forms
 
-import "qq.2564874169/miniblink/platform"
+import (
+	mb "qq.2564874169/miniblink"
+	p "qq.2564874169/miniblink/platform"
+)
 
-type ChildContainer struct {
-	container platform.IControls
-	Childs    []IChild
+type IChildContainer interface {
+	IBaseUI
+
+	toControls() p.IControls
 }
 
-func (_this *ChildContainer) init(controls platform.IControls) *ChildContainer {
-	_this.container = controls
+type ChildContainer struct {
+	Childs map[uintptr]IChild
+
+	container IChildContainer
+	logAnchor map[uintptr]mb.Bound2
+}
+
+func (_this *ChildContainer) init(container IChildContainer) *ChildContainer {
+	_this.Childs = make(map[uintptr]IChild)
+	_this.logAnchor = make(map[uintptr]mb.Bound2)
+	_this.container = container
+	var bakResize p.WindowResizeProc
+	bakResize = container.toControls().SetOnResize(func(e mb.Rect) {
+		if bakResize != nil {
+			bakResize(e)
+		}
+		_this.onAnchor(e)
+	})
 	return _this
 }
 
+func (_this *ChildContainer) onAnchor(rect mb.Rect) {
+	def := mb.AnchorStyle_Left | mb.AnchorStyle_Top
+	for _, n := range _this.Childs {
+		anc := n.getAnchor()
+		if anc == def {
+			continue
+		}
+		b := _this.logAnchor[n.GetHandle()]
+		p := n.GetLocation()
+		s := n.GetSize()
+		if anc&mb.AnchorStyle_Left != 0 && anc&mb.AnchorStyle_Right != 0 {
+			s.Wdith = rect.Wdith - b.Left - b.Right
+			p.X = b.Left
+		} else if anc&mb.AnchorStyle_Right != 0 {
+			p.X = rect.Wdith - b.Right - s.Wdith
+		}
+		if anc&mb.AnchorStyle_Top != 0 && anc&mb.AnchorStyle_Bottom != 0 {
+			s.Height = rect.Height - b.Top - b.Bottom
+			p.Y = b.Top
+		} else if anc&mb.AnchorStyle_Bottom != 0 {
+			p.Y = rect.Height - b.Bottom - s.Height
+		}
+		n.SetSize(s.Wdith, s.Height)
+		n.SetLocation(p.X, p.Y)
+	}
+}
+
 func (_this *ChildContainer) AddChild(child IChild) {
-	_this.container.AddControl(child.toChild())
-	_this.Childs = append(_this.Childs, child)
+	if _, ok := _this.Childs[child.GetHandle()]; ok == false {
+		_this.container.toControls().AddControl(child.toControl())
+		_this.Childs[child.GetHandle()] = child
+		ps := _this.container.GetSize()
+		cp := child.GetLocation()
+		cs := child.GetSize()
+		rect := mb.Bound2{
+			Left:   cp.X,
+			Top:    cp.Y,
+			Right:  ps.Wdith - cs.Wdith - cp.X,
+			Bottom: ps.Height - cs.Height - cp.Y,
+		}
+		_this.logAnchor[child.GetHandle()] = rect
+	}
 }
 
 func (_this *ChildContainer) RemoveChild(child IChild) {
-	_this.container.RemoveControl(child.toChild())
-	for i, n := range _this.Childs {
-		if n.GetHandle() == child.GetHandle() {
-			_this.Childs = append(_this.Childs[:i], _this.Childs[i+1:]...)
-		}
+	if _, ok := _this.Childs[child.GetHandle()]; ok {
+		_this.container.toControls().RemoveControl(child.toControl())
+		delete(_this.Childs, child.GetHandle())
+		delete(_this.logAnchor, child.GetHandle())
 	}
 }

@@ -2,6 +2,7 @@ package windows
 
 import (
 	mb "qq.2564874169/miniblink"
+	"qq.2564874169/miniblink/platform"
 	"qq.2564874169/miniblink/platform/windows/win32"
 	"time"
 	"unsafe"
@@ -14,37 +15,31 @@ type winBase struct {
 	isCreated    bool
 	thisIsDialog bool
 	invokeMap    map[string]*InvokeContext
-	evWndProc    map[string]func(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
-	evWndCreate  map[string]func(hWnd win32.HWND)
-	evWndDestroy map[string]func()
+	onWndProc    windowsMsgProc
 
-	onCreate     func(handle uintptr)
-	onDestroy    func()
-	onResize     func(e mb.Rect)
-	onMove       func(e mb.Point)
-	onMouseMove  func(e mb.MouseEvArgs)
-	onMouseDown  func(e mb.MouseEvArgs)
-	onMouseUp    func(e mb.MouseEvArgs)
-	onMouseWheel func(e mb.MouseEvArgs)
-	onMouseClick func(e mb.MouseEvArgs)
-	onPaint      func(e mb.PaintEvArgs)
-	onKeyDown    func(e *mb.KeyEvArgs)
-	onKeyUp      func(e *mb.KeyEvArgs)
-	onKeyPress   func(e *mb.KeyPressEvArgs)
+	onCreate     platform.WindowCreateProc
+	onDestroy    platform.WindowDestroyProc
+	onResize     platform.WindowResizeProc
+	onMove       platform.WindowMoveProc
+	onMouseMove  platform.WindowMouseMoveProc
+	onMouseDown  platform.WindowMouseDownProc
+	onMouseUp    platform.WindowMouseUpProc
+	onMouseWheel platform.WindowMouseWheelProc
+	onMouseClick platform.WindowMouseClickProc
+	onPaint      platform.WindowPaintProc
+	onKeyDown    platform.WindowKeyDownProc
+	onKeyUp      platform.WindowKeyUpProc
+	onKeyPress   platform.WindowKeyPressProc
 
 	bgColor win32.HBRUSH
 	memView win32.HBITMAP
 }
 
-func (_this *winBase) init(provider *Provider, idName string) *winBase {
+func (_this *winBase) init(provider *Provider, id string) *winBase {
 	_this.provider = provider
-	_this.idName = idName
+	_this.idName = id
 	_this.SetBgColor(provider.defBgColor)
-	_this.evWndCreate = make(map[string]func(win32.HWND))
 	_this.invokeMap = make(map[string]*InvokeContext)
-	_this.evWndProc = make(map[string]func(win32.HWND, uint32, uintptr, uintptr) uintptr)
-	_this.evWndDestroy = make(map[string]func())
-	_this.evWndProc["__exec_cmd"] = _this.execCmd
 	return _this
 }
 
@@ -64,23 +59,26 @@ func (_this *winBase) IsCreate() bool {
 	return _this.isCreated
 }
 
-func (_this *winBase) fireWndCreate(hWnd win32.HWND) {
+func (_this *winBase) getCreateProc() windowsCreateProc {
+	return _this.createProc
+}
+
+func (_this *winBase) createProc(hWnd win32.HWND) {
 	_this.isCreated = true
 	_this.handle = hWnd
-	for _, v := range _this.evWndCreate {
-		v(hWnd)
-	}
 	if _this.onCreate != nil {
 		_this.onCreate(uintptr(hWnd))
 	}
 }
 
-func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	for _, v := range _this.evWndProc {
-		ret := v(hWnd, msg, wParam, lParam)
-		if ret != 0 {
-			return ret
-		}
+func (_this *winBase) getWindowMsgProc() windowsMsgProc {
+	return _this.msgProc
+}
+
+func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	ret := _this.execCmd(hWnd, msg, wParam, lParam)
+	if ret != 0 {
+		return ret
 	}
 	switch msg {
 	case win32.WM_SIZE:
@@ -106,9 +104,6 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 	case win32.WM_DESTROY:
 		if _this.onDestroy != nil {
 			_this.onDestroy()
-		}
-		for _, v := range _this.evWndDestroy {
-			v()
 		}
 		win32.DeleteObject(win32.HGDIOBJ(_this.bgColor))
 		_this.provider.remove(_this.hWnd(), true)
@@ -173,9 +168,11 @@ func (_this *winBase) fireWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 		}
 		gdi := new(winGraphics).init(hdc)
 		gdi.memBmp = _this.memView
+		e.Graphics = gdi
 		if _this.onPaint != nil {
 			_this.onPaint(e)
 		}
+		gdi.Close()
 		win32.EndPaint(hWnd, pt)
 	case win32.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {

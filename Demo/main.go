@@ -1,6 +1,7 @@
 package main
 
 import (
+	"qq.2564874169/miniblink"
 	"qq.2564874169/miniblink/forms"
 	"qq.2564874169/miniblink/platform/windows"
 )
@@ -32,6 +33,7 @@ func main() {
 		ctrl.SetSize(740, 420)
 		ctrl.SetLocation(20, 20)
 		ctrl.SetBgColor(0xFF0000)
+		ctrl.SetAnchor(miniblink.AnchorStyle_Right | miniblink.AnchorStyle_Bottom)
 		ctrl.EvLoad["loadUri"] = func(target interface{}) {
 			ctrl.LoadUri("https://www.baidu.com")
 		}

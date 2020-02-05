@@ -5,7 +5,7 @@ import (
 	"image/draw"
 	mb "qq.2564874169/miniblink"
 	"qq.2564874169/miniblink/platform"
-	"qq.2564874169/miniblink/platform/driver"
+	"qq.2564874169/miniblink/platform/miniblink_core"
 	"unsafe"
 )
 
@@ -13,7 +13,7 @@ type Core struct {
 	owner platform.IWindow
 	wke   wkeHandle
 
-	onPaint driver.PaintCallback
+	onPaint miniblink_core.PaintCallback
 }
 
 func (_this *Core) Init(window platform.IWindow) *Core {
@@ -67,7 +67,7 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 			bmp.SetRGBA(x, y, pix)
 		}
 	}
-	e := driver.PaintUpdateArgs{
+	e := miniblink_core.PaintUpdateArgs{
 		Wke: uintptr(wke),
 		Clip: mb.Bound{
 			Point: mb.Point{
@@ -94,7 +94,7 @@ func (_this *Core) Resize(width, height int) {
 	wkeResize(_this.wke, uint32(width), uint32(height))
 }
 
-func (_this *Core) SetOnPaint(callback driver.PaintCallback) {
+func (_this *Core) SetOnPaint(callback miniblink_core.PaintCallback) {
 	_this.onPaint = callback
 }
 

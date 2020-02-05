@@ -10,6 +10,9 @@ import (
 	"unsafe"
 )
 
+type windowsMsgProc func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
+type windowsCreateProc func(hWnd win32.HWND)
+
 type Provider struct {
 	hInstance  win32.HINSTANCE
 	className  string
@@ -95,7 +98,9 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 			id := *((*string)(unsafe.Pointer(cp.CreateParams)))
 			if w, ok := _this.nameWnds[id]; ok {
 				_this.handleWnds[hWnd] = w
-				w.fireWndCreate(hWnd)
+				if w.getCreateProc() != nil {
+					w.getCreateProc()(hWnd)
+				}
 			}
 		}
 	} else if msg == win32.WM_INITDIALOG && lParam != 0 {
@@ -103,11 +108,13 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 		if w, ok := _this.nameWnds[id]; ok {
 			isdlg = true
 			_this.handleWnds[hWnd] = w
-			w.fireWndCreate(hWnd)
+			if w.getCreateProc() != nil {
+				w.getCreateProc()(hWnd)
+			}
 		}
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
 		isdlg = w.isDialog()
-		ret := w.fireWndProc(hWnd, msg, wParam, lParam)
+		ret := w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
 		_this.logKeyDown(msg, wParam)
 		if ret != 0 {
 			return ret
