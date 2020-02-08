@@ -1,4 +1,4 @@
-package miniblink
+package goMiniblink
 
 import (
 	uuid "github.com/satori/go.uuid"

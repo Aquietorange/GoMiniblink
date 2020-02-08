@@ -1,7 +1,7 @@
 package platform
 
 import (
-	mb "qq.2564874169/miniblink"
+	mb "qq.2564874169/goMiniblink"
 )
 
 type IProvider interface {

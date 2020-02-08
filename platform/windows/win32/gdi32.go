@@ -1112,7 +1112,8 @@ var (
 	swapBuffers             *windows.LazyProc
 	textOut                 *windows.LazyProc
 	transparentBlt          *windows.LazyProc
-	setBitmapBits           *windows.LazyProc
+	createDIBitmap          *windows.LazyProc
+	getCurrentObject        *windows.LazyProc
 )
 
 func init() {
@@ -1121,7 +1122,8 @@ func init() {
 	libmsimg32 = windows.NewLazySystemDLL("msimg32.dll")
 
 	// Functions
-	setBitmapBits = libgdi32.NewProc("SetBitmapBits")
+	getCurrentObject = libgdi32.NewProc("GetCurrentObject")
+	createDIBitmap = libgdi32.NewProc("CreateDIBitmap")
 	abortDoc = libgdi32.NewProc("AbortDoc")
 	addFontResourceEx = libgdi32.NewProc("AddFontResourceExW")
 	addFontMemResourceEx = libgdi32.NewProc("AddFontMemResourceEx")
@@ -1198,12 +1200,26 @@ func init() {
 	transparentBlt = libmsimg32.NewProc("TransparentBlt")
 }
 
-func SetBitmapBits(hBmp HBITMAP, len uint32, pvBits unsafe.Pointer) int32 {
-	ret, _, err := setBitmapBits.Call(uintptr(hBmp), uintptr(len), uintptr(pvBits))
+func GetCurrentObject(hdc HDC, objType uint32) HGDIOBJ {
+	ret, _, err := getCurrentObject.Call(uintptr(hdc), uintptr(objType))
 	if ret == 0 {
-		fmt.Println(err)
+		fmt.Println("GetCurrentObject", err)
 	}
-	return int32(ret)
+	return HGDIOBJ(ret)
+}
+
+func CreateDIBitmap(hdc HDC, pbmih *BITMAPV5HEADER, flInit uint32, pjBits *uint8, pbmi *BITMAPINFO, iUsage uint32) HBITMAP {
+	ret, _, err := createDIBitmap.Call(
+		uintptr(hdc),
+		uintptr(unsafe.Pointer(pbmih)),
+		uintptr(flInit),
+		uintptr(unsafe.Pointer(pjBits)),
+		uintptr(unsafe.Pointer(pbmi)),
+		uintptr(iUsage))
+	if ret == 0 {
+		fmt.Println("CreateDIBitmap", err)
+	}
+	return HBITMAP(ret)
 }
 
 func AbortDoc(hdc HDC) int32 {

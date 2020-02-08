@@ -1,7 +1,7 @@
 package windows
 
 import (
-	"qq.2564874169/miniblink/platform/windows/win32"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 )
 
 type baseWindow interface {

@@ -1,4 +1,4 @@
-package miniblink
+package goMiniblink
 
 import "image"
 
@@ -11,15 +11,15 @@ func (_this Point) IsEqual(point Point) bool {
 }
 
 type Rect struct {
-	Wdith, Height int
+	Width, Height int
 }
 
 func (_this Rect) IsEqual(rect Rect) bool {
-	return _this.Wdith == rect.Wdith && _this.Height == rect.Height
+	return _this.Width == rect.Width && _this.Height == rect.Height
 }
 
 func (_this Rect) IsEmpty() bool {
-	return _this.Wdith == 0 || _this.Height == 0
+	return _this.Width == 0 || _this.Height == 0
 }
 
 type Bound struct {
@@ -40,6 +40,6 @@ type Screen struct {
 }
 
 type Graphics interface {
-	DrawImage(src *image.RGBA, srcXY Point, rect Rect, toXY Point)
+	DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int)
 	Close()
 }

@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/miniblink"
-	p "qq.2564874169/miniblink/platform"
+	mb "qq.2564874169/goMiniblink"
+	p "qq.2564874169/goMiniblink/platform"
 )
 
 type BaseUI struct {
@@ -203,7 +203,7 @@ func (_this *BaseUI) GetSize() mb.Rect {
 
 func (_this *BaseUI) SetSize(width, height int) {
 	_this.size = mb.Rect{
-		Wdith:  width,
+		Width:  width,
 		Height: height,
 	}
 	_this.impl.SetSize(width, height)

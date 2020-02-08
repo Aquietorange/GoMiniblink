@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/miniblink"
-	plat "qq.2564874169/miniblink/platform"
+	mb "qq.2564874169/goMiniblink"
+	plat "qq.2564874169/goMiniblink/platform"
 )
 
 type Form struct {
@@ -72,7 +72,7 @@ func (_this *Form) Show() {
 		switch _this.startPos {
 		case mb.FormStartPosition_Screen_Center:
 			scr := Provider.GetScreen()
-			x, y := scr.WorkArea.Wdith/2-_this.size.Wdith/2, scr.WorkArea.Height/2-_this.size.Height/2
+			x, y := scr.WorkArea.Width/2-_this.size.Width/2, scr.WorkArea.Height/2-_this.size.Height/2
 			_this.impl.SetLocation(x, y)
 		}
 		_this.impl.Create()

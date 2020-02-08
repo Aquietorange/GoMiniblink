@@ -1,9 +1,9 @@
 package windows
 
 import (
-	mb "qq.2564874169/miniblink"
-	p "qq.2564874169/miniblink/platform"
-	"qq.2564874169/miniblink/platform/windows/win32"
+	mb "qq.2564874169/goMiniblink"
+	p "qq.2564874169/goMiniblink/platform"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 	"unsafe"
 )
 

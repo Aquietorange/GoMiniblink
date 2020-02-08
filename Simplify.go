@@ -1,4 +1,4 @@
-package miniblink
+package goMiniblink
 
 import "reflect"
 

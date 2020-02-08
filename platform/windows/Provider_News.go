@@ -1,7 +1,7 @@
 package windows
 
 import (
-	"qq.2564874169/miniblink/platform"
+	"qq.2564874169/goMiniblink/platform"
 )
 
 func (_this *Provider) NewForm() platform.IForm {

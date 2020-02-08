@@ -2406,7 +2406,6 @@ func DispatchMessage(msg *MSG) uintptr {
 		uintptr(unsafe.Pointer(msg)),
 		0,
 		0)
-
 	return ret
 }
 

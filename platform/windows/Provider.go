@@ -2,9 +2,9 @@ package windows
 
 import (
 	"os"
-	mb "qq.2564874169/miniblink"
-	"qq.2564874169/miniblink/platform"
-	"qq.2564874169/miniblink/platform/windows/win32"
+	mb "qq.2564874169/goMiniblink"
+	"qq.2564874169/goMiniblink/platform"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 	"syscall"
 	"time"
 	"unsafe"
@@ -43,11 +43,11 @@ func (_this *Provider) SetBgColor(color int) {
 func (_this *Provider) GetScreen() mb.Screen {
 	var s = mb.Screen{
 		Full: mb.Rect{
-			Wdith:  int(win32.GetSystemMetrics(win32.SM_CXSCREEN)),
+			Width:  int(win32.GetSystemMetrics(win32.SM_CXSCREEN)),
 			Height: int(win32.GetSystemMetrics(win32.SM_CYSCREEN)),
 		},
 		WorkArea: mb.Rect{
-			Wdith:  int(win32.GetSystemMetrics(win32.SM_CXFULLSCREEN)),
+			Width:  int(win32.GetSystemMetrics(win32.SM_CXFULLSCREEN)),
 			Height: int(win32.GetSystemMetrics(win32.SM_CYFULLSCREEN)),
 		},
 	}
@@ -202,7 +202,6 @@ type mouseClickWorker struct {
 }
 
 func (_this *mouseClickWorker) init() *mouseClickWorker {
-	//go _this.fire()
 	return _this
 }
 

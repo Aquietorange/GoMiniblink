@@ -1,16 +1,18 @@
-package miniblink_core
+package miniblink
 
 import (
 	"image"
-	mb "qq.2564874169/miniblink"
+	mb "qq.2564874169/goMiniblink"
 )
 
 type ICore interface {
 	LoadUri(uri string)
 
-	GetView(bound mb.Bound) *image.RGBA
+	GetImage(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
+
+	FillImage(bmp *image.RGBA)
 }
 
 type PaintUpdateArgs struct {

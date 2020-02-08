@@ -1,11 +1,11 @@
 package forms
 
-import "qq.2564874169/miniblink"
+import "qq.2564874169/goMiniblink"
 
 type IBaseUI interface {
 	GetHandle() uintptr
-	GetSize() miniblink.Rect
-	GetLocation() miniblink.Point
+	GetSize() goMiniblink.Rect
+	GetLocation() goMiniblink.Point
 	SetSize(width, height int)
 	SetLocation(x, y int)
 	SetBgColor(color int)

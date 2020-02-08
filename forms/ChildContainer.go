@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/miniblink"
-	p "qq.2564874169/miniblink/platform"
+	mb "qq.2564874169/goMiniblink"
+	p "qq.2564874169/goMiniblink/platform"
 )
 
 type IChildContainer interface {
@@ -43,10 +43,10 @@ func (_this *ChildContainer) onAnchor(rect mb.Rect) {
 		p := n.GetLocation()
 		s := n.GetSize()
 		if anc&mb.AnchorStyle_Left != 0 && anc&mb.AnchorStyle_Right != 0 {
-			s.Wdith = rect.Wdith - b.Left - b.Right
+			s.Width = rect.Width - b.Left - b.Right
 			p.X = b.Left
 		} else if anc&mb.AnchorStyle_Right != 0 {
-			p.X = rect.Wdith - b.Right - s.Wdith
+			p.X = rect.Width - b.Right - s.Width
 		}
 		if anc&mb.AnchorStyle_Top != 0 && anc&mb.AnchorStyle_Bottom != 0 {
 			s.Height = rect.Height - b.Top - b.Bottom
@@ -54,7 +54,7 @@ func (_this *ChildContainer) onAnchor(rect mb.Rect) {
 		} else if anc&mb.AnchorStyle_Bottom != 0 {
 			p.Y = rect.Height - b.Bottom - s.Height
 		}
-		n.SetSize(s.Wdith, s.Height)
+		n.SetSize(s.Width, s.Height)
 		n.SetLocation(p.X, p.Y)
 	}
 }
@@ -69,7 +69,7 @@ func (_this *ChildContainer) AddChild(child IChild) {
 		rect := mb.Bound2{
 			Left:   cp.X,
 			Top:    cp.Y,
-			Right:  ps.Wdith - cs.Wdith - cp.X,
+			Right:  ps.Width - cs.Width - cp.X,
 			Bottom: ps.Height - cs.Height - cp.Y,
 		}
 		_this.logAnchor[child.GetHandle()] = rect

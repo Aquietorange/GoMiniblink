@@ -1,6 +1,6 @@
 package forms
 
-import "qq.2564874169/miniblink/platform"
+import "qq.2564874169/goMiniblink/platform"
 
 var (
 	Provider platform.IProvider

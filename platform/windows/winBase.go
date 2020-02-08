@@ -1,9 +1,11 @@
 package windows
 
 import (
-	mb "qq.2564874169/miniblink"
-	"qq.2564874169/miniblink/platform"
-	"qq.2564874169/miniblink/platform/windows/win32"
+	"image"
+	"image/draw"
+	mb "qq.2564874169/goMiniblink"
+	"qq.2564874169/goMiniblink/platform"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 	"time"
 	"unsafe"
 )
@@ -31,8 +33,7 @@ type winBase struct {
 	onKeyUp      platform.WindowKeyUpProc
 	onKeyPress   platform.WindowKeyPressProc
 
-	bgColor win32.HBRUSH
-	memView win32.HBITMAP
+	bgColor int
 }
 
 func (_this *winBase) init(provider *Provider, id string) *winBase {
@@ -44,11 +45,12 @@ func (_this *winBase) init(provider *Provider, id string) *winBase {
 }
 
 func (_this *winBase) SetBgColor(color int) {
-	lbp := win32.LOGBRUSH{
-		LbStyle: win32.BS_SOLID,
-		LbColor: win32.COLORREF(color),
-	}
-	_this.bgColor = win32.CreateBrushIndirect(&lbp)
+	_this.bgColor = color
+	//lbp := win32.LOGBRUSH{
+	//	LbStyle: win32.BS_SOLID,
+	//	LbColor: win32.COLORREF(color),
+	//}
+	//_this.bgColor = win32.CreateBrushIndirect(&lbp)
 }
 
 func (_this *winBase) isDialog() bool {
@@ -84,12 +86,8 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)
-			if _this.memView != 0 {
-				win32.DeleteObject(win32.HGDIOBJ(_this.memView))
-			}
-			_this.memView = win32.CreateCompatibleBitmap(win32.GetDC(hWnd), w, h)
 			_this.onResize(mb.Rect{
-				Wdith:  int(w),
+				Width:  int(w),
 				Height: int(h),
 			})
 		}
@@ -146,14 +144,14 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 		}
 		return 0
 	case win32.WM_ERASEBKGND:
-		hdc := win32.HDC(wParam)
-		rect := new(win32.RECT)
-		win32.GetClientRect(hWnd, rect)
-		win32.FillRect(hdc, rect, _this.bgColor)
+		//hdc := win32.HDC(wParam)
+		//rect := new(win32.RECT)
+		//win32.GetClientRect(hWnd, rect)
+		//win32.FillRect(hdc, rect, _this.bgColor)
 		return 1
 	case win32.WM_PAINT:
-		pt := new(win32.PAINTSTRUCT)
-		hdc := win32.BeginPaint(hWnd, pt)
+		pt := win32.PAINTSTRUCT{}
+		hdc := win32.BeginPaint(hWnd, &pt)
 		e := mb.PaintEvArgs{
 			Clip: mb.Bound{
 				Point: mb.Point{
@@ -161,19 +159,22 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 					Y: int(pt.RcPaint.Top),
 				},
 				Rect: mb.Rect{
-					Wdith:  int(pt.RcPaint.Right - pt.RcPaint.Left),
+					Width:  int(pt.RcPaint.Right - pt.RcPaint.Left),
 					Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
 				},
 			},
+			Graphics: new(winGraphics).init(hdc),
 		}
-		gdi := new(winGraphics).init(hdc)
-		gdi.memBmp = _this.memView
-		e.Graphics = gdi
-		if _this.onPaint != nil {
-			_this.onPaint(e)
+		if e.Clip.IsEmpty() == false {
+			w := e.Clip.Width + (4 - e.Clip.Width%4)
+			bg := image.NewRGBA(image.Rect(0, 0, w, e.Clip.Height))
+			draw.Draw(bg, bg.Rect, image.NewUniform(mb.IntToRGBA(_this.bgColor)), image.Pt(0, 0), draw.Src)
+			e.Graphics.DrawImage(bg, 0, 0, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
+			//if _this.onPaint != nil {
+			//	_this.onPaint(e)
+			//}
 		}
-		gdi.Close()
-		win32.EndPaint(hWnd, pt)
+		win32.EndPaint(hWnd, &pt)
 	case win32.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {
 			e := mb.MouseEvArgs{

@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/miniblink"
-	"qq.2564874169/miniblink/platform"
+	mb "qq.2564874169/goMiniblink"
+	"qq.2564874169/goMiniblink/platform"
 )
 
 type MiniblinkBrowser struct {
@@ -22,7 +22,7 @@ func (_this *MiniblinkBrowser) mbOnResize(target interface{}, e mb.Rect) {
 	if _this.GetSize().IsEmpty() || _this.GetSize().IsEqual(e) {
 		return
 	}
-	_this.impl.SetSize(e.Wdith, e.Height)
+	_this.impl.SetSize(e.Width, e.Height)
 }
 
 func (_this *MiniblinkBrowser) LoadUri(uri string) {
