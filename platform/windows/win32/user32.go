@@ -2319,7 +2319,7 @@ func CreatePopupMenu() HMENU {
 }
 
 func CreateWindowEx(dwExStyle uint64, lpClassName, lpWindowName *uint16, dwStyle int64, x, y, nWidth, nHeight int32, hWndParent HWND, hMenu HMENU, hInstance HINSTANCE, lpParam unsafe.Pointer) HWND {
-	ret, _, _ := syscall.Syscall12(createWindowEx.Addr(), 12,
+	ret, _, err := syscall.Syscall12(createWindowEx.Addr(), 12,
 		uintptr(dwExStyle),
 		uintptr(unsafe.Pointer(lpClassName)),
 		uintptr(unsafe.Pointer(lpWindowName)),
@@ -2332,6 +2332,9 @@ func CreateWindowEx(dwExStyle uint64, lpClassName, lpWindowName *uint16, dwStyle
 		uintptr(hMenu),
 		uintptr(hInstance),
 		uintptr(lpParam))
+	if ret == 0 {
+		fmt.Println("CreateWindowEx", err)
+	}
 	return HWND(ret)
 }
 
@@ -2402,10 +2405,7 @@ func DialogBoxParam(instRes HINSTANCE, name *uint16, parent HWND, proc, param ui
 }
 
 func DispatchMessage(msg *MSG) uintptr {
-	ret, _, _ := syscall.Syscall(dispatchMessage.Addr(), 1,
-		uintptr(unsafe.Pointer(msg)),
-		0,
-		0)
+	ret, _, _ := dispatchMessage.Call(uintptr(unsafe.Pointer(msg)))
 	return ret
 }
 
@@ -3078,11 +3078,13 @@ func PostQuitMessage(exitCode int32) {
 }
 
 func RegisterClassEx(windowClass *WNDCLASSEX) ATOM {
-	ret, _, _ := syscall.Syscall(registerClassEx.Addr(), 1,
+	ret, _, err := syscall.Syscall(registerClassEx.Addr(), 1,
 		uintptr(unsafe.Pointer(windowClass)),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("RegisterClassEx", err)
+	}
 	return ATOM(ret)
 }
 

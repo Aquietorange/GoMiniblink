@@ -34,7 +34,7 @@ func (_this *winMiniblink) initWke() {
 	} else {
 		_this.wke = new(free.Core).Init(_this)
 	}
-	//_this.onPaint = _this.defOnPaint
+	_this.onPaint = _this.defOnPaint
 	_this.wke.SetOnPaint(_this.paintUpdate)
 	if _this.initSize.Width > 0 && _this.initSize.Height > 0 {
 		_this.SetSize(_this.initSize.Width, _this.initSize.Height)
@@ -51,11 +51,8 @@ func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) {
 	//	Width:  300,
 	//	Height: 300,
 	//}, mb.Point{})
-	//bmp := _this.wke.GetImage(e.Clip)
-	//e.Graphics.DrawImage(bmp,
-	//	mb.Point{X: 0, Y: 0},
-	//	e.Clip.Rect,
-	//	e.Clip.Point)
+	bmp := _this.wke.GetImage(e.Clip)
+	e.Graphics.DrawImage(bmp, 0, 0, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
 }
 
 func (_this *winMiniblink) paintUpdate(args core.PaintUpdateArgs) {

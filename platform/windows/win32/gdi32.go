@@ -1208,7 +1208,7 @@ func GetCurrentObject(hdc HDC, objType uint32) HGDIOBJ {
 	return HGDIOBJ(ret)
 }
 
-func CreateDIBitmap(hdc HDC, pbmih *BITMAPV5HEADER, flInit uint32, pjBits *uint8, pbmi *BITMAPINFO, iUsage uint32) HBITMAP {
+func CreateDIBitmap(hdc HDC, pbmih *BITMAPINFOHEADER, flInit uint32, pjBits *uint8, pbmi *BITMAPINFO, iUsage uint32) HBITMAP {
 	ret, _, err := createDIBitmap.Call(
 		uintptr(hdc),
 		uintptr(unsafe.Pointer(pbmih)),
@@ -1271,7 +1271,7 @@ func AlphaBlend(hdcDest HDC, nXOriginDest, nYOriginDest, nWidthDest, nHeightDest
 }
 
 func BitBlt(hdcDest HDC, nXDest, nYDest, nWidth, nHeight int32, hdcSrc HDC, nXSrc, nYSrc int32, dwRop uint32) bool {
-	ret, _, _ := syscall.Syscall9(bitBlt.Addr(), 9,
+	ret, _, err := syscall.Syscall9(bitBlt.Addr(), 9,
 		uintptr(hdcDest),
 		uintptr(nXDest),
 		uintptr(nYDest),
@@ -1281,7 +1281,9 @@ func BitBlt(hdcDest HDC, nXDest, nYDest, nWidth, nHeight int32, hdcSrc HDC, nXSr
 		uintptr(nXSrc),
 		uintptr(nYSrc),
 		uintptr(dwRop))
-
+	if ret == 0 {
+		fmt.Println("BitBlt", err)
+	}
 	return ret != 0
 }
 
@@ -1337,11 +1339,13 @@ func CreateBitmap(nWidth, nHeight int32, cPlanes, cBitsPerPel uint32, lpvBits un
 }
 
 func CreateCompatibleBitmap(hdc HDC, nWidth, nHeight int32) HBITMAP {
-	ret, _, _ := syscall.Syscall(createCompatibleBitmap.Addr(), 3,
+	ret, _, err := syscall.Syscall(createCompatibleBitmap.Addr(), 3,
 		uintptr(hdc),
 		uintptr(nWidth),
 		uintptr(nHeight))
-
+	if ret == 0 {
+		fmt.Println("CreateCompatibleBitmap", err)
+	}
 	return HBITMAP(ret)
 }
 
@@ -1355,11 +1359,13 @@ func CreateBrushIndirect(lplb *LOGBRUSH) HBRUSH {
 }
 
 func CreateCompatibleDC(hdc HDC) HDC {
-	ret, _, _ := syscall.Syscall(createCompatibleDC.Addr(), 1,
+	ret, _, err := syscall.Syscall(createCompatibleDC.Addr(), 1,
 		uintptr(hdc),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("CreateCompatibleDC", err)
+	}
 	return HDC(ret)
 }
 
@@ -1375,7 +1381,7 @@ func CreateDC(lpszDriver, lpszDevice, lpszOutput *uint16, lpInitData *DEVMODE) H
 	return HDC(ret)
 }
 
-func CreateDIBSection(hdc HDC, pbmih *BITMAPINFO, iUsage uint32, ppvBits *unsafe.Pointer, hSection HANDLE, dwOffset uint32) HBITMAP {
+func CreateDIBSection(hdc HDC, pbmih *BITMAPINFOHEADER, iUsage uint32, ppvBits *unsafe.Pointer, hSection HANDLE, dwOffset uint32) HBITMAP {
 	ret, _, err := syscall.Syscall6(createDIBSection.Addr(), 6,
 		uintptr(hdc),
 		uintptr(unsafe.Pointer(pbmih)),
@@ -1444,11 +1450,13 @@ func CreateRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect int32) HRGN {
 }
 
 func DeleteDC(hdc HDC) bool {
-	ret, _, _ := syscall.Syscall(deleteDC.Addr(), 1,
+	ret, _, err := syscall.Syscall(deleteDC.Addr(), 1,
 		uintptr(hdc),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("DeleteDC", err)
+	}
 	return ret != 0
 }
 
@@ -1462,11 +1470,13 @@ func DeleteEnhMetaFile(hemf HENHMETAFILE) bool {
 }
 
 func DeleteObject(hObject HGDIOBJ) bool {
-	ret, _, _ := syscall.Syscall(deleteObject.Addr(), 1,
+	ret, _, err := syscall.Syscall(deleteObject.Addr(), 1,
 		uintptr(hObject),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("DeleteObject", err)
+	}
 	return ret != 0
 }
 
@@ -1816,11 +1826,13 @@ func SaveDC(hdc HDC) int32 {
 }
 
 func SelectObject(hdc HDC, hgdiobj HGDIOBJ) HGDIOBJ {
-	ret, _, _ := syscall.Syscall(selectObject.Addr(), 2,
+	ret, _, err := syscall.Syscall(selectObject.Addr(), 2,
 		uintptr(hdc),
 		uintptr(hgdiobj),
 		0)
-
+	if ret == 0 {
+		fmt.Println("SelectObject", err)
+	}
 	return HGDIOBJ(ret)
 }
 

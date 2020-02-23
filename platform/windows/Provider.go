@@ -16,7 +16,7 @@ type windowsCreateProc func(hWnd win32.HWND)
 type Provider struct {
 	hInstance  win32.HINSTANCE
 	className  string
-	main       string
+	mainId     string
 	handleWnds map[win32.HWND]baseWindow
 	nameWnds   map[string]baseWindow
 	defOwner   win32.HWND
@@ -32,7 +32,7 @@ func (_this *Provider) Init() *Provider {
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = mb.NewUUID()
 	_this.hInstance = win32.GetModuleHandle(nil)
-	_this.msClick = new(mouseClickWorker).init()
+	//_this.msClick = new(mouseClickWorker).init()
 	return _this
 }
 
@@ -84,7 +84,7 @@ func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
 	if w, ok := _this.handleWnds[hWnd]; ok {
 		delete(_this.nameWnds, w.id())
 		delete(_this.handleWnds, hWnd)
-		if isExit && w.id() == _this.main {
+		if isExit && w.id() == _this.mainId {
 			_this.Exit(0)
 		}
 	}
@@ -114,14 +114,16 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 		}
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
 		isdlg = w.isDialog()
-		ret := w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
-		_this.logKeyDown(msg, wParam)
-		if ret != 0 {
-			return ret
-		}
-		ret = _this.sendMouseClick(hWnd, msg, lParam)
-		if ret != 0 {
-			return ret
+		if w.getWindowMsgProc() != nil {
+			w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
+			//_this.logKeyDown(msg, wParam)
+			//		//if ret != 0 {
+			//		//	return ret
+			//		//}
+			//		//ret = _this.sendMouseClick(hWnd, msg, lParam)
+			//		//if ret != 0 {
+			//		//	return ret
+			//		//}
 		}
 	}
 	if isdlg && msg != win32.WM_CLOSE {
@@ -176,7 +178,7 @@ func (_this *Provider) RunMain(form platform.IForm, show func()) {
 		panic("类型不正确")
 	}
 	_this.registerWndClass()
-	_this.main = frm.id()
+	_this.mainId = frm.id()
 	show()
 	var message win32.MSG
 	for {

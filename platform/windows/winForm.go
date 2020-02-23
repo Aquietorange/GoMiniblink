@@ -179,7 +179,6 @@ func (_this *winForm) ShowToMax() {
 
 func (_this *winForm) ShowToMin() {
 	win32.ShowWindow(_this.hWnd(), win32.SW_MINIMIZE)
-	win32.UpdateWindow(_this.hWnd())
 }
 
 func (_this *winForm) Hide() {

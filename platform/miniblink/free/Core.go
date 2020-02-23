@@ -43,21 +43,12 @@ func (_this *Core) onNetResponse(wke wkeHandle, param, utf8Url uintptr, job wkeN
 	return 0
 }
 
-func (_this *Core) FillImage(bmp *image.RGBA) {
-	w := wkeGetWidth(_this.wke)
-	h := wkeGetHeight(_this.wke)
-	img := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-	wkePaint(_this.wke, img.Pix, 0)
-	draw.Draw(bmp, bmp.Bounds(), img, image.Pt(0, 0), draw.Src)
-}
-
 func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
 	bmp := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
-	//wkePaint2(_this.wke, bmp.Pix,
-	//	uint32(bmp.Bounds().Dx()), uint32(bmp.Bounds().Dy()), 0, 0,
-	//	uint32(bmp.Bounds().Dx()), uint32(bmp.Bounds().Dy()),
-	//	uint32(bound.X), uint32(bound.Y), true)
-	return bmp
+	wkePaint(_this.wke, bmp.Pix, 0)
+	sub := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
+	draw.Draw(sub, image.Rect(0, 0, bound.Width, bound.Height), bmp, image.Pt(bound.X, bound.Y), draw.Src)
+	return sub
 }
 
 func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {

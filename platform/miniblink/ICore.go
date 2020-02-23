@@ -11,8 +11,6 @@ type ICore interface {
 	GetImage(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
-
-	FillImage(bmp *image.RGBA)
 }
 
 type PaintUpdateArgs struct {

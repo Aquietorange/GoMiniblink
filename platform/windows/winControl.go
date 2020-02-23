@@ -45,6 +45,7 @@ func (_this *winControl) Hide() {
 func (_this *winControl) Show() {
 	if _this.IsCreate() {
 		win32.ShowWindow(_this.hWnd(), win32.SW_SHOW)
+		win32.UpdateWindow(_this.hWnd())
 	} else {
 		_this.createParams.Style |= win32.WS_VISIBLE
 	}
