@@ -45,12 +45,6 @@ func (_this *winMiniblink) initWke() {
 }
 
 func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) {
-	//bmp := image.NewRGBA(image.Rect(0, 0, 300, 300))
-	//_this.wke.FillImage(bmp)
-	//e.Graphics.DrawImage(bmp, mb.Point{}, mb.Rect{
-	//	Width:  300,
-	//	Height: 300,
-	//}, mb.Point{})
 	bmp := _this.wke.GetImage(e.Clip)
 	e.Graphics.DrawImage(bmp, 0, 0, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
 }

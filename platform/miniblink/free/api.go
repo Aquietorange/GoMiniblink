@@ -38,7 +38,6 @@ var (
 func init() {
 	showError = true
 	is64 := unsafe.Sizeof(uintptr(0)) == 8
-	println(is64)
 	if is64 {
 		lib = windows.NewLazyDLL(file_x64_dll)
 	} else {

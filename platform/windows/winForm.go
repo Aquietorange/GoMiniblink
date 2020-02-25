@@ -40,7 +40,7 @@ func (_this *winForm) init(provider *Provider) *winForm {
 		Sign:        0xFFFF,
 		WindowClass: sto16(provider.className),
 		ExStyle:     win32.WS_EX_APPWINDOW,
-		Style:       win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN,
+		Style:       win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN | win32.WS_CLIPCHILDREN,
 	}
 	_this.initTitle = ""
 	bakWndProc := _this.onWndProc

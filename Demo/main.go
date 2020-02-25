@@ -1,7 +1,6 @@
 package main
 
 import (
-	"qq.2564874169/goMiniblink"
 	"qq.2564874169/goMiniblink/forms"
 	"qq.2564874169/goMiniblink/platform/windows"
 )
@@ -29,14 +28,15 @@ func main() {
 		//		//f.SetIconVisable(false)
 		//	}, nil)
 		//}(target.(*forms.Form))
-		mb := new(forms.MiniblinkBrowser).Init()
-		mb.SetSize(740, 420)
-		mb.SetLocation(20, 20)
-		mb.SetAnchor(goMiniblink.AnchorStyle_Right | goMiniblink.AnchorStyle_Bottom | goMiniblink.AnchorStyle_Top | goMiniblink.AnchorStyle_Left)
-		mb.EvLoad["loadUri"] = func(target interface{}) {
-			mb.LoadUri("https://me.csdn.net/iamshuke")
-		}
-		frm.AddChild(mb)
+		//mb := new(forms.MiniblinkBrowser).Init()
+		//mb.SetSize(740, 420)
+		//mb.SetLocation(20, 20)
+		//mb.SetBgColor(0xFF00)
+		//mb.SetAnchor(goMiniblink.AnchorStyle_Right | goMiniblink.AnchorStyle_Bottom | goMiniblink.AnchorStyle_Top | goMiniblink.AnchorStyle_Left)
+		//mb.EvLoad["loadUri"] = func(target interface{}) {
+		//	mb.LoadUri("https://me.csdn.net/iamshuke")
+		//}
+		//frm.AddChild(mb)
 	}
 	forms.Run(frm)
 }

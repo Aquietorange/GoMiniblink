@@ -1,6 +1,7 @@
 package windows
 
 import (
+	"fmt"
 	"image"
 	"image/draw"
 	mb "qq.2564874169/goMiniblink"
@@ -160,10 +161,12 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			},
 		}
 		if e.Clip.IsEmpty() == false {
-			rect := new(win32.RECT)
-			win32.GetClientRect(hWnd, rect)
-			g := new(winGraphics).init(hdc, int(rect.Right-rect.Left), int(rect.Bottom-rect.Top))
-			e.Graphics = g
+			var rect win32.RECT
+			win32.GetClientRect(hWnd, &rect)
+			w := rect.Right - rect.Left
+			h := rect.Bottom - rect.Top
+			e.Graphics = new(winGraphics).init(hdc, int(w), int(h))
+			fmt.Println(e.Clip, w, h)
 			if _this.bgColor >= 0 {
 				bg := image.NewRGBA(image.Rect(0, 0, e.Clip.Width, e.Clip.Height))
 				draw.Draw(bg, bg.Rect, image.NewUniform(mb.IntToRGBA(_this.bgColor)), image.Pt(0, 0), draw.Src)

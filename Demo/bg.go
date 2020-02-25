@@ -36,7 +36,6 @@ func main() {
 	}
 }
 
-var memBmp win32.HBITMAP
 var rgba = []uint8{255, 0, 0, 0}
 
 func Paint(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) {
@@ -44,25 +43,23 @@ func Paint(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) {
 	hdc := win32.BeginPaint(hWnd, pt)
 	w := pt.RcPaint.Right - pt.RcPaint.Left
 	h := pt.RcPaint.Bottom - pt.RcPaint.Top
-	if memBmp == 0 {
-		pix := make([]uint8, w*h*4)
-		for i := 0; i < len(pix); i++ {
-			pix[i] = rgba[i%4]
-		}
-		var head win32.BITMAPV5HEADER
-		head.BiSize = uint32(unsafe.Sizeof(head))
-		head.BiWidth = w
-		head.BiHeight = h
-		head.BiBitCount = 32
-		head.BiPlanes = 1
-		head.BiCompression = win32.BI_RGB
+	pix := make([]uint8, w*h*4)
+	for i := 0; i < len(pix); i++ {
+		pix[i] = rgba[i%4]
+	}
+	var head win32.BITMAPV5HEADER
+	head.BiSize = uint32(unsafe.Sizeof(head))
+	head.BiWidth = w
+	head.BiHeight = h
+	head.BiBitCount = 32
+	head.BiPlanes = 1
+	head.BiCompression = win32.BI_RGB
 
-		var lpBits unsafe.Pointer
-		memBmp = win32.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, win32.DIB_RGB_COLORS, &lpBits, 0, 0)
-		bits := (*[1 << 30]byte)(lpBits)
-		for i := range pix {
-			bits[i] = pix[i]
-		}
+	var lpBits unsafe.Pointer
+	memBmp := win32.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, win32.DIB_RGB_COLORS, &lpBits, 0, 0)
+	bits := (*[1 << 30]byte)(lpBits)
+	for i := range pix {
+		bits[i] = pix[i]
 	}
 	memDc := win32.CreateCompatibleDC(hdc)
 	old := win32.SelectObject(memDc, win32.HGDIOBJ(memBmp))
@@ -70,7 +67,6 @@ func Paint(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) {
 	win32.SelectObject(memDc, old)
 	win32.DeleteDC(memDc)
 	win32.DeleteObject(win32.HGDIOBJ(memBmp))
-	memBmp = 0
 	win32.EndPaint(hWnd, pt)
 }
 
