@@ -23,7 +23,7 @@ func (_this *Core) Init(window platform.IWindow) *Core {
 		panic("创建失败")
 	}
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
-	//wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
+	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
 	//wkeNetOnResponse(_this.wke, _this.onNetResponse, 0)
 	//wkeOnLoadUrlBegin(_this.wke, _this.onLoadUrlBegin, 0)
 	return _this
@@ -56,15 +56,6 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 		return 0
 	}
 	w, h := int(rect.w), int(rect.h)
-	size := unsafe.Sizeof(uint32(1))
-	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x, bits = x+1, bits+size {
-			rgba := *((*uint32)(unsafe.Pointer(bits)))
-			pix := mb.IntToRGBA(int(rgba))
-			bmp.SetRGBA(x, y, pix)
-		}
-	}
 	e := miniblink.PaintUpdateArgs{
 		Wke: uintptr(wke),
 		Clip: mb.Bound{
@@ -73,17 +64,26 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 				Y: int(rect.y),
 			},
 			Rect: mb.Rect{
-				Width:  int(rect.w),
-				Height: int(rect.h),
+				Width:  w,
+				Height: h,
 			},
 		},
 		Size: mb.Rect{
-			Width:  w,
-			Height: h,
+			Width:  int(width),
+			Height: int(height),
 		},
-		Image: bmp,
 		Param: param,
 	}
+	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
+	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
+	for y := 0; y < h; y++ {
+		for x := 0; x < w*4; x++ {
+			sp := bmp.Stride*+y + x
+			dp := bmp.Stride*(e.Clip.Y+y) + e.Clip.X*4 + x
+			bmp.Pix[sp] = pixs[dp]
+		}
+	}
+	e.Image = bmp
 	_this.onPaint(e)
 	return 0
 }
