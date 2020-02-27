@@ -6,10 +6,10 @@ import (
 
 //todo 应该全是接口
 type MouseEvArgs struct {
-	ButtonIsDown map[MouseButtons]bool
-	X, Y, Delta  int
-	IsDouble     bool
-	Time         time.Time
+	Button      MouseButtons
+	X, Y, Delta int
+	IsDouble    bool
+	Time        time.Time
 }
 
 type PaintEvArgs struct {

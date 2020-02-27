@@ -10,6 +10,8 @@ type IProvider interface {
 	SetIcon(file string)
 	SetBgColor(color int)
 	GetScreen() mb.Screen
+	KeyIsDown(key mb.Keys) bool
+	MouseIsDown(button mb.MouseButtons) bool
 
 	NewForm() IForm
 	NewControl() IControl

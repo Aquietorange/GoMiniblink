@@ -29,16 +29,16 @@ type IWindow interface {
 	CreateGraphics() mb.Graphics
 }
 
-type WindowCreateProc func(handle uintptr)
+type WindowCreateProc func(handle uintptr) bool
 type WindowDestroyProc func()
-type WindowResizeProc func(e mb.Rect)
-type WindowMoveProc func(e mb.Point)
-type WindowMouseMoveProc func(e mb.MouseEvArgs)
-type WindowMouseDownProc func(e mb.MouseEvArgs)
-type WindowMouseUpProc func(e mb.MouseEvArgs)
-type WindowMouseWheelProc func(e mb.MouseEvArgs)
-type WindowMouseClickProc func(e mb.MouseEvArgs)
-type WindowPaintProc func(e mb.PaintEvArgs)
-type WindowKeyDownProc func(e *mb.KeyEvArgs)
-type WindowKeyUpProc func(e *mb.KeyEvArgs)
-type WindowKeyPressProc func(e *mb.KeyPressEvArgs)
+type WindowResizeProc func(e mb.Rect) bool
+type WindowMoveProc func(e mb.Point) bool
+type WindowMouseMoveProc func(e mb.MouseEvArgs) bool
+type WindowMouseDownProc func(e mb.MouseEvArgs) bool
+type WindowMouseUpProc func(e mb.MouseEvArgs) bool
+type WindowMouseWheelProc func(e mb.MouseEvArgs) bool
+type WindowMouseClickProc func(e mb.MouseEvArgs) bool
+type WindowPaintProc func(e mb.PaintEvArgs) bool
+type WindowKeyDownProc func(e *mb.KeyEvArgs) bool
+type WindowKeyUpProc func(e *mb.KeyEvArgs) bool
+type WindowKeyPressProc func(e *mb.KeyPressEvArgs) bool

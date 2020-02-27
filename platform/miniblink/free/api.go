@@ -19,20 +19,22 @@ type (
 var (
 	lib *windows.LazyDLL
 
-	showError             bool
-	_wkeIsInitialize      *windows.LazyProc
-	_wkeInitialize        *windows.LazyProc
-	_wkeCreateWebView     *windows.LazyProc
-	_wkeSetHandle         *windows.LazyProc
-	_wkeOnPaintBitUpdated *windows.LazyProc
-	_wkeLoadURL           *windows.LazyProc
-	_wkeResize            *windows.LazyProc
-	_wkeNetOnResponse     *windows.LazyProc
-	_wkeOnLoadUrlBegin    *windows.LazyProc
-	_wkePaint             *windows.LazyProc
-	_wkeGetWidth          *windows.LazyProc
-	_wkeGetHeight         *windows.LazyProc
-	_wkePaint2            *windows.LazyProc
+	showError               bool
+	_wkeIsInitialize        *windows.LazyProc
+	_wkeInitialize          *windows.LazyProc
+	_wkeCreateWebView       *windows.LazyProc
+	_wkeSetHandle           *windows.LazyProc
+	_wkeOnPaintBitUpdated   *windows.LazyProc
+	_wkeLoadURL             *windows.LazyProc
+	_wkeResize              *windows.LazyProc
+	_wkeNetOnResponse       *windows.LazyProc
+	_wkeOnLoadUrlBegin      *windows.LazyProc
+	_wkePaint               *windows.LazyProc
+	_wkeGetWidth            *windows.LazyProc
+	_wkeGetHeight           *windows.LazyProc
+	_wkePaint2              *windows.LazyProc
+	_wkeFireMouseEvent      *windows.LazyProc
+	_wkeFireMouseWheelEvent *windows.LazyProc
 )
 
 func init() {
@@ -43,6 +45,8 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_wkeFireMouseWheelEvent = lib.NewProc("wkeFireMouseWheelEvent")
+	_wkeFireMouseEvent = lib.NewProc("wkeFireMouseEvent")
 	_wkePaint2 = lib.NewProc("wkePaint2")
 	_wkeGetHeight = lib.NewProc("wkeGetHeight")
 	_wkeGetWidth = lib.NewProc("wkeGetWidth")
@@ -61,6 +65,32 @@ func init() {
 	if ret == 0 && showError {
 		fmt.Println(err)
 	}
+}
+
+func wkeFireMouseWheelEvent(wke wkeHandle, x, y, delta, flags int32) bool {
+	r, _, err := _wkeFireMouseWheelEvent.Call(
+		uintptr(wke),
+		uintptr(x),
+		uintptr(y),
+		uintptr(delta),
+		uintptr(flags))
+	if r == 0 && showError {
+		fmt.Println("wkeFireMouseWheelEvent", err)
+	}
+	return r != 0
+}
+
+func wkeFireMouseEvent(wke wkeHandle, message, x, y, flags int32) bool {
+	r, _, err := _wkeFireMouseEvent.Call(
+		uintptr(wke),
+		uintptr(message),
+		uintptr(x),
+		uintptr(y),
+		uintptr(flags))
+	if r == 0 && showError {
+		fmt.Println("wkeFireMouseEvent", err)
+	}
+	return r != 0
 }
 
 func wkePaint2(wke wkeHandle, buf []uint8, bufWdith, bufHeight, xDst, yDst, w, h, xSrc, ySrc uint32, copyAlpha bool) {

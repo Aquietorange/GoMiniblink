@@ -22,7 +22,7 @@ func (_this *winControl) init(provider *Provider) *winControl {
 		Style:     win32.WS_CHILD,
 		ExStyle:   0,
 	}
-	_this.provider.add(_this)
+	_this.app.add(_this)
 	return _this
 }
 
@@ -89,5 +89,5 @@ func (_this *winControl) Create() {
 }
 
 func (_this *winControl) class() string {
-	return _this.provider.className
+	return _this.app.className
 }

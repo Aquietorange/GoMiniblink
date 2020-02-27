@@ -81,102 +81,150 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.OnMouseClick = _this.defOnMouseClick
 
 	var bakKeyPress p.WindowKeyPressProc
-	bakKeyPress = _this.impl.SetOnKeyPress(func(e *mb.KeyPressEvArgs) {
+	bakKeyPress = _this.impl.SetOnKeyPress(func(e *mb.KeyPressEvArgs) bool {
+		b := false
 		if bakKeyPress != nil {
-			bakKeyPress(e)
+			b = bakKeyPress(e)
 		}
-		_this.OnKeyPress(e)
+		if !b {
+			_this.OnKeyPress(e)
+		}
+		return b
 	})
 
 	var bakKeyUp p.WindowKeyUpProc
-	bakKeyUp = _this.impl.SetOnKeyUp(func(e *mb.KeyEvArgs) {
+	bakKeyUp = _this.impl.SetOnKeyUp(func(e *mb.KeyEvArgs) bool {
+		b := false
 		if bakKeyUp != nil {
-			bakKeyUp(e)
+			b = bakKeyUp(e)
 		}
-		_this.OnKeyUp(e)
+		if !b {
+			_this.OnKeyUp(e)
+		}
+		return b
 	})
 
 	var bakKeyDown p.WindowKeyDownProc
-	bakKeyDown = _this.impl.SetOnKeyDown(func(e *mb.KeyEvArgs) {
+	bakKeyDown = _this.impl.SetOnKeyDown(func(e *mb.KeyEvArgs) bool {
+		b := false
 		if bakKeyDown != nil {
-			bakKeyDown(e)
+			b = bakKeyDown(e)
 		}
-		_this.OnKeyDown(e)
+		if !b {
+			_this.OnKeyDown(e)
+		}
+		return b
 	})
 
 	var bakPaint p.WindowPaintProc
-	bakPaint = _this.impl.SetOnPaint(func(e mb.PaintEvArgs) {
+	bakPaint = _this.impl.SetOnPaint(func(e mb.PaintEvArgs) bool {
+		b := false
 		if bakPaint != nil {
-			bakPaint(e)
+			b = bakPaint(e)
 		}
-		_this.OnPaint(e)
+		if !b {
+			_this.OnPaint(e)
+		}
+		return b
 	})
 
 	var bakMouseClick p.WindowMouseClickProc
-	bakMouseClick = _this.impl.SetOnMouseClick(func(e mb.MouseEvArgs) {
+	bakMouseClick = _this.impl.SetOnMouseClick(func(e mb.MouseEvArgs) bool {
+		b := false
 		if bakMouseClick != nil {
-			bakMouseClick(e)
+			b = bakMouseClick(e)
 		}
-		_this.OnMouseClick(e)
+		if !b {
+			_this.OnMouseClick(e)
+		}
+		return b
 	})
 
 	var bakMouseWheel p.WindowMouseWheelProc
-	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e mb.MouseEvArgs) {
+	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e mb.MouseEvArgs) bool {
+		b := false
 		if bakMouseWheel != nil {
-			bakMouseWheel(e)
+			b = bakMouseWheel(e)
 		}
-		_this.OnMouseWheel(e)
+		if !b {
+			_this.OnMouseWheel(e)
+		}
+		return b
 	})
 
 	var bakMouseUp p.WindowMouseUpProc
-	bakMouseUp = _this.impl.SetOnMouseUp(func(e mb.MouseEvArgs) {
+	bakMouseUp = _this.impl.SetOnMouseUp(func(e mb.MouseEvArgs) bool {
+		b := false
 		if bakMouseUp != nil {
-			bakMouseUp(e)
+			b = bakMouseUp(e)
 		}
-		_this.OnMouseUp(e)
+		if !b {
+			_this.OnMouseUp(e)
+		}
+		return b
 	})
 
 	var bakMouseDown p.WindowMouseDownProc
-	_this.impl.SetOnMouseDown(func(e mb.MouseEvArgs) {
+	bakMouseDown = _this.impl.SetOnMouseDown(func(e mb.MouseEvArgs) bool {
+		b := false
 		if bakMouseDown != nil {
-			bakMouseDown(e)
+			b = bakMouseDown(e)
 		}
-		_this.OnMouseDown(e)
+		if !b {
+			_this.OnMouseDown(e)
+		}
+		return b
 	})
 
 	var bakMouseMove p.WindowMouseMoveProc
-	bakMouseMove = _this.impl.SetOnMouseMove(func(e mb.MouseEvArgs) {
+	bakMouseMove = _this.impl.SetOnMouseMove(func(e mb.MouseEvArgs) bool {
+		b := false
 		if bakMouseMove != nil {
-			bakMouseMove(e)
+			b = bakMouseMove(e)
 		}
-		_this.OnMouseMove(e)
+		if !b {
+			_this.OnMouseMove(e)
+		}
+		return b
 	})
 
 	var bakResize p.WindowResizeProc
-	bakResize = _this.impl.SetOnResize(func(e mb.Rect) {
+	bakResize = _this.impl.SetOnResize(func(e mb.Rect) bool {
+		b := false
 		if bakResize != nil {
-			bakResize(e)
+			b = bakResize(e)
 		}
-		_this.size = e
-		_this.OnResize(e)
+		if !b {
+			_this.size = e
+			_this.OnResize(e)
+		}
+		return b
 	})
 
 	var bakMove p.WindowMoveProc
-	bakMove = _this.impl.SetOnMove(func(e mb.Point) {
+	bakMove = _this.impl.SetOnMove(func(e mb.Point) bool {
+		b := false
 		if bakMove != nil {
-			bakMove(e)
+			b = bakMove(e)
 		}
-		_this.pos = e
-		_this.OnMove(e)
+		if !b {
+			_this.pos = e
+			_this.OnMove(e)
+		}
+		return b
 	})
 
 	var bakCreate p.WindowCreateProc
-	bakCreate = _this.impl.SetOnCreate(func(handle uintptr) {
+	bakCreate = _this.impl.SetOnCreate(func(handle uintptr) bool {
+		b := false
 		if bakCreate != nil {
-			bakCreate(handle)
+			b = bakCreate(handle)
 		}
-		_this.Handle = handle
-		_this.OnLoad()
+		if !b {
+			_this.Handle = handle
+			_this.OnLoad()
+		}
+		return b
 	})
 	return _this
 }

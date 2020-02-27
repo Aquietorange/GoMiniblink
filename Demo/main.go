@@ -32,10 +32,9 @@ func main() {
 		mb := new(forms.MiniblinkBrowser).Init()
 		mb.SetSize(740, 420)
 		mb.SetLocation(20, 20)
-		mb.SetBgColor(0xFF00)
 		mb.SetAnchor(goMiniblink.AnchorStyle_Right | goMiniblink.AnchorStyle_Bottom | goMiniblink.AnchorStyle_Top | goMiniblink.AnchorStyle_Left)
 		mb.EvLoad["loadUri"] = func(target interface{}) {
-			mb.LoadUri("https://me.csdn.net/iamshuke")
+			mb.LoadUri("https://www.baidu.com")
 		}
 		frm.AddChild(mb)
 	}

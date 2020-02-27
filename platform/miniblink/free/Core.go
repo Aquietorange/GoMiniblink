@@ -6,6 +6,7 @@ import (
 	mb "qq.2564874169/goMiniblink"
 	plat "qq.2564874169/goMiniblink/platform"
 	core "qq.2564874169/goMiniblink/platform/miniblink"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 	"unsafe"
 )
 
@@ -41,6 +42,63 @@ func (_this *Core) onNetResponse(wke wkeHandle, param, utf8Url uintptr, job wkeN
 	//println("resp", url)
 	println("resp")
 	return 0
+}
+
+func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButtons, delta, x, y int) {
+	flags := wkeMouseFlags_None
+	if app.KeyIsDown(mb.Keys_Ctrl) {
+		flags |= wkeMouseFlags_CONTROL
+	}
+	if app.KeyIsDown(mb.Keys_Shift) {
+		flags |= wkeMouseFlags_SHIFT
+	}
+	if button&mb.MouseButtons_Left != 0 {
+		flags |= wkeMouseFlags_LBUTTON
+	}
+	if button&mb.MouseButtons_Right != 0 {
+		flags |= wkeMouseFlags_RBUTTON
+	}
+	if button&mb.MouseButtons_Middle != 0 {
+		flags |= wkeMouseFlags_MBUTTON
+	}
+	wkeFireMouseWheelEvent(_this.wke, int32(x), int32(y), int32(delta), int32(flags))
+}
+
+func (_this *Core) FireMouseEvent(app plat.IProvider, button mb.MouseButtons, isDown, isMove bool, x, y int) {
+	flags := wkeMouseFlags_None
+	if app.KeyIsDown(mb.Keys_Ctrl) {
+		flags |= wkeMouseFlags_CONTROL
+	}
+	if app.KeyIsDown(mb.Keys_Shift) {
+		flags |= wkeMouseFlags_SHIFT
+	}
+	msg := 0
+	if button&mb.MouseButtons_Left != 0 {
+		flags |= wkeMouseFlags_LBUTTON
+		if isDown {
+			msg = win32.WM_LBUTTONDOWN
+		} else if isMove {
+			msg = win32.WM_MOUSEMOVE
+		} else {
+			msg = win32.WM_LBUTTONUP
+		}
+	}
+	if button&mb.MouseButtons_Right != 0 {
+		flags |= wkeMouseFlags_RBUTTON
+		if isDown {
+			msg = win32.WM_RBUTTONDOWN
+		} else if isMove {
+			msg = win32.WM_MOUSEMOVE
+		} else {
+			msg = win32.WM_RBUTTONUP
+		}
+	}
+	if button == mb.MouseButtons_None && isMove {
+		msg = win32.WM_MOUSEMOVE
+	}
+	if msg != 0 {
+		wkeFireMouseEvent(_this.wke, int32(msg), int32(x), int32(y), int32(flags))
+	}
 }
 
 func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {

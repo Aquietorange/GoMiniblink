@@ -32,8 +32,16 @@ func (_this *Provider) Init() *Provider {
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = mb.NewUUID()
 	_this.hInstance = win32.GetModuleHandle(nil)
-	//_this.msClick = new(mouseClickWorker).init()
+	_this.msClick = new(mouseClickWorker).init()
 	return _this
+}
+
+func (_this *Provider) KeyIsDown(key mb.Keys) bool {
+	return _this.keysIsDown[key]
+}
+
+func (_this *Provider) MouseIsDown(button mb.MouseButtons) bool {
+	return _this.msClick.down_key == button
 }
 
 func (_this *Provider) SetBgColor(color int) {
@@ -115,15 +123,15 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
 		isdlg = w.isDialog()
 		if w.getWindowMsgProc() != nil {
-			w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
-			//_this.logKeyDown(msg, wParam)
-			//		//if ret != 0 {
-			//		//	return ret
-			//		//}
-			//		//ret = _this.sendMouseClick(hWnd, msg, lParam)
-			//		//if ret != 0 {
-			//		//	return ret
-			//		//}
+			_this.logKeyDown(msg, wParam)
+			ret := w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
+			if ret != 0 {
+				return ret
+			}
+			ret = _this.sendMouseClick(hWnd, msg, lParam)
+			if ret != 0 {
+				return ret
+			}
 		}
 	}
 	if isdlg && msg != win32.WM_CLOSE {
@@ -216,14 +224,13 @@ func (_this *mouseClickWorker) fire() {
 		if _this.click_hWnd != 0 && _this.time <= time.Now().UnixNano() {
 			x, y := int(win32.LOWORD(int32(_this.click_pos))), int(win32.HIWORD(int32(_this.click_pos)))
 			e := mb.MouseEvArgs{
-				X:            x,
-				Y:            y,
-				Delta:        0,
-				IsDouble:     _this.isDouble,
-				Time:         time.Now(),
-				ButtonIsDown: make(map[mb.MouseButtons]bool),
+				X:        x,
+				Y:        y,
+				Delta:    0,
+				IsDouble: _this.isDouble,
+				Time:     time.Now(),
+				Button:   _this.click_key,
 			}
-			e.ButtonIsDown[_this.click_key] = true
 			win32.PostMessage(_this.click_hWnd, uint32(win32.WM_COMMAND), uintptr(cmd_mouse_click), uintptr(unsafe.Pointer(&e)))
 			_this.click_hWnd = 0
 			_this.click_key = 0

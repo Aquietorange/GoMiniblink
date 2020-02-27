@@ -33,20 +33,20 @@ type MouseButtons int
 
 //鼠标按键
 const (
-	MouseButtons_None   MouseButtons = 2
-	MouseButtons_Left   MouseButtons = 4
-	MouseButtons_Right  MouseButtons = 8
-	MouseButtons_Middle MouseButtons = 16
+	MouseButtons_None   MouseButtons = 0
+	MouseButtons_Left   MouseButtons = 1
+	MouseButtons_Right  MouseButtons = 2
+	MouseButtons_Middle MouseButtons = 4
 )
 
 //控件停靠方式
 type AnchorStyle int
 
 const (
-	AnchorStyle_Left   AnchorStyle = 2
-	AnchorStyle_Right  AnchorStyle = 4
-	AnchorStyle_Top    AnchorStyle = 8
-	AnchorStyle_Bottom AnchorStyle = 16
+	AnchorStyle_Left   AnchorStyle = 1
+	AnchorStyle_Right  AnchorStyle = 2
+	AnchorStyle_Top    AnchorStyle = 4
+	AnchorStyle_Bottom AnchorStyle = 8
 )
 
 type Keys int

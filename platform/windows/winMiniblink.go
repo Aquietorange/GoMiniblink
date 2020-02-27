@@ -19,11 +19,28 @@ type winMiniblink struct {
 func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	_this.winControl.init(provider)
 	var baseCreateProc platform.WindowCreateProc
-	baseCreateProc = _this.SetOnCreate(func(handle uintptr) {
+	baseCreateProc = _this.SetOnCreate(func(handle uintptr) bool {
 		if baseCreateProc != nil {
 			baseCreateProc(handle)
 		}
 		_this.initWke()
+		return false
+	})
+	_this.SetOnMouseDown(func(e mb.MouseEvArgs) bool {
+		_this.wke.FireMouseEvent(_this.app, e.Button, true, false, e.X, e.Y)
+		return false
+	})
+	_this.SetOnMouseUp(func(e mb.MouseEvArgs) bool {
+		_this.wke.FireMouseEvent(_this.app, e.Button, false, false, e.X, e.Y)
+		return false
+	})
+	_this.SetOnMouseMove(func(e mb.MouseEvArgs) bool {
+		_this.wke.FireMouseEvent(_this.app, e.Button, false, true, e.X, e.Y)
+		return false
+	})
+	_this.SetOnMouseWheel(func(e mb.MouseEvArgs) bool {
+		_this.wke.FireMouseWheelEvent(_this.app, e.Button, e.Delta, e.X, e.Y)
+		return false
 	})
 	return _this
 }
@@ -44,9 +61,10 @@ func (_this *winMiniblink) initWke() {
 	}
 }
 
-func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) {
+func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) bool {
 	bmp := _this.wke.GetImage(e.Clip)
 	e.Graphics.DrawImage(bmp, 0, 0, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
+	return true
 }
 
 func (_this *winMiniblink) paintUpdate(args core.PaintUpdateArgs) {

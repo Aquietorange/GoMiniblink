@@ -23,11 +23,15 @@ func (_this *ChildContainer) init(container IChildContainer) *ChildContainer {
 	_this.logAnchor = make(map[uintptr]mb.Bound2)
 	_this.container = container
 	var bakResize p.WindowResizeProc
-	bakResize = container.toControls().SetOnResize(func(e mb.Rect) {
+	bakResize = container.toControls().SetOnResize(func(e mb.Rect) bool {
+		b := false
 		if bakResize != nil {
-			bakResize(e)
+			b = bakResize(e)
 		}
-		_this.onAnchor(e)
+		if !b {
+			_this.onAnchor(e)
+		}
+		return b
 	})
 	return _this
 }

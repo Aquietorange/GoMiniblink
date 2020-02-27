@@ -101,10 +101,10 @@ func (_this *winForm) formWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 func (_this *winForm) Create() {
 	if _this.IsCreate() == false {
 		win32.CreateDialogIndirectParam(
-			_this.provider.hInstance,
+			_this.app.hInstance,
 			_this.createParams,
-			_this.provider.defOwner,
-			syscall.NewCallback(_this.provider.defaultMsgProc),
+			_this.app.defOwner,
+			syscall.NewCallback(_this.app.defaultMsgProc),
 			unsafe.Pointer(&_this.idName))
 		win32.SetWindowText(_this.hWnd(), _this.initTitle)
 		win32.SetWindowPos(_this.hWnd(), 0,
@@ -116,9 +116,9 @@ func (_this *winForm) Create() {
 		if _this.createParams.Style&win32.DS_MODALFRAME == 0 {
 			if _this.initIcon != "" {
 				_this.SetIcon(_this.initIcon)
-			} else if _this.provider.defIcon != 0 {
-				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 1, uintptr(_this.provider.defIcon))
-				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 0, uintptr(_this.provider.defIcon))
+			} else if _this.app.defIcon != 0 {
+				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 1, uintptr(_this.app.defIcon))
+				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 0, uintptr(_this.app.defIcon))
 			}
 		}
 		for _, v := range _this.ctrls {
@@ -148,7 +148,7 @@ func (_this *winForm) Create() {
 //	_this.evWndCreate = nil
 //	_this.Create()
 //	_this.evWndCreate = bakEvCreate
-//	_this.provider.remove(preHwnd, false)
+//	_this.app.remove(preHwnd, false)
 //	win32.DestroyWindow(preHwnd)
 //	if isVisible {
 //		if isMax {
@@ -310,7 +310,7 @@ func (_this *winForm) SetMinimizeBox(isShow bool) {
 func (_this *winForm) SetIcon(iconFile string) {
 	_this.initIcon = iconFile
 	if _this.IsCreate() {
-		h := win32.LoadImage(_this.provider.hInstance, sto16(_this.initIcon), win32.IMAGE_ICON, 0, 0, win32.LR_LOADFROMFILE)
+		h := win32.LoadImage(_this.app.hInstance, sto16(_this.initIcon), win32.IMAGE_ICON, 0, 0, win32.LR_LOADFROMFILE)
 		if h != 0 {
 			win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 1, uintptr(h))
 			win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 0, uintptr(h))
