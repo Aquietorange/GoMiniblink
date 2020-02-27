@@ -160,11 +160,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			},
 		}
 		if e.Clip.IsEmpty() == false {
-			var rect win32.RECT
-			win32.GetClientRect(hWnd, &rect)
-			w := rect.Right - rect.Left
-			h := rect.Bottom - rect.Top
-			e.Graphics = new(winGraphics).init(hdc, int(w), int(h))
+			e.Graphics = new(winGraphics).init(hdc)
 			if _this.bgColor >= 0 {
 				bg := image.NewRGBA(image.Rect(0, 0, e.Clip.Width, e.Clip.Height))
 				draw.Draw(bg, bg.Rect, image.NewUniform(mb.IntToRGBA(_this.bgColor)), image.Pt(0, 0), draw.Src)
@@ -261,16 +257,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 
 func (_this *winBase) CreateGraphics() mb.Graphics {
 	hdc := win32.GetDC(_this.hWnd())
-	rect := new(win32.RECT)
-	win32.GetClientRect(_this.hWnd(), rect)
-	g := new(winGraphics).init(hdc, int(rect.Right-rect.Left), int(rect.Bottom-rect.Top))
-	//g.onClose = func(g *winGraphics) {
-	//	memDc := win32.CreateCompatibleDC(hdc)
-	//	win32.SelectObject(memDc, win32.HGDIOBJ(g.bmp))
-	//	win32.BitBlt(hdc, 0, 0, int32(g.width), int32(g.height), memDc, 0, 0, win32.SRCCOPY)
-	//	win32.DeleteDC(memDc)
-	//	win32.ReleaseDC(_this.hWnd(), hdc)
-	//}
+	g := new(winGraphics).init(hdc)
 	return g
 }
 

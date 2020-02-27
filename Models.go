@@ -40,6 +40,6 @@ type Screen struct {
 }
 
 type Graphics interface {
-	DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int)
+	DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int) Graphics
 	Close()
 }

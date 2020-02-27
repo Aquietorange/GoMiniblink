@@ -4,19 +4,19 @@ import (
 	"image"
 	"image/draw"
 	mb "qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform"
-	"qq.2564874169/goMiniblink/platform/miniblink"
+	plat "qq.2564874169/goMiniblink/platform"
+	core "qq.2564874169/goMiniblink/platform/miniblink"
 	"unsafe"
 )
 
 type Core struct {
-	owner platform.IWindow
+	owner plat.IWindow
 	wke   wkeHandle
 
-	onPaint miniblink.PaintCallback
+	onPaint core.PaintCallback
 }
 
-func (_this *Core) Init(window platform.IWindow) *Core {
+func (_this *Core) Init(window plat.IWindow) *Core {
 	_this.owner = window
 	_this.wke = wkeCreateWebView()
 	if _this.wke == 0 {
@@ -56,7 +56,7 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 		return 0
 	}
 	w, h := int(rect.w), int(rect.h)
-	e := miniblink.PaintUpdateArgs{
+	e := core.PaintUpdateArgs{
 		Wke: uintptr(wke),
 		Clip: mb.Bound{
 			Point: mb.Point{
@@ -75,11 +75,12 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 		Param: param,
 	}
 	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
+	stride := e.Size.Width * 4
 	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
 	for y := 0; y < h; y++ {
 		for x := 0; x < w*4; x++ {
-			sp := bmp.Stride*+y + x
-			dp := bmp.Stride*(e.Clip.Y+y) + e.Clip.X*4 + x
+			sp := bmp.Stride*y + x
+			dp := stride*(e.Clip.Y+y) + e.Clip.X*4 + x
 			bmp.Pix[sp] = pixs[dp]
 		}
 	}
@@ -92,7 +93,7 @@ func (_this *Core) Resize(width, height int) {
 	wkeResize(_this.wke, uint32(width), uint32(height))
 }
 
-func (_this *Core) SetOnPaint(callback miniblink.PaintCallback) {
+func (_this *Core) SetOnPaint(callback core.PaintCallback) {
 	_this.onPaint = callback
 }
 

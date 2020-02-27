@@ -50,9 +50,8 @@ func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) {
 }
 
 func (_this *winMiniblink) paintUpdate(args core.PaintUpdateArgs) {
-	//g := _this.CreateGraphics()
-	//g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y)
-	//g.Close()
+	g := _this.CreateGraphics()
+	g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
 }
 
 func (_this *winMiniblink) LoadUri(uri string) {
