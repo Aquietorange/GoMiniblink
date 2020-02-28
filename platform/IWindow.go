@@ -19,6 +19,7 @@ type IWindow interface {
 	SetOnKeyDown(proc WindowKeyDownProc) WindowKeyDownProc
 	SetOnKeyUp(proc WindowKeyUpProc) WindowKeyUpProc
 	SetOnKeyPress(proc WindowKeyPressProc) WindowKeyPressProc
+	SetOnCursor(proc WindowSetCursorProc) WindowSetCursorProc
 
 	Invoke(fn func(state interface{}), state interface{})
 	SetSize(w int, h int)
@@ -27,8 +28,10 @@ type IWindow interface {
 	Hide()
 	SetBgColor(color int)
 	CreateGraphics() mb.Graphics
+	SetCursor(cursor mb.CursorType)
 }
 
+type WindowSetCursorProc func() bool
 type WindowCreateProc func(handle uintptr) bool
 type WindowDestroyProc func()
 type WindowResizeProc func(e mb.Rect) bool

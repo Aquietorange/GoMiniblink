@@ -81,3 +81,9 @@ func (_this *winBase) SetOnMouseClick(proc platform.WindowMouseClickProc) platfo
 	_this.onMouseClick = proc
 	return pre
 }
+
+func (_this *winBase) SetOnCursor(proc platform.WindowSetCursorProc) platform.WindowSetCursorProc {
+	pre := _this.onSetCursor
+	_this.onSetCursor = proc
+	return pre
+}

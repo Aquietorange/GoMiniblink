@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/draw"
 	mb "qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform"
+	plat "qq.2564874169/goMiniblink/platform"
 	"qq.2564874169/goMiniblink/platform/windows/win32"
 	"time"
 	"unsafe"
@@ -19,19 +19,20 @@ type winBase struct {
 	invokeMap    map[string]*InvokeContext
 	onWndProc    windowsMsgProc
 
-	onCreate     platform.WindowCreateProc
-	onDestroy    platform.WindowDestroyProc
-	onResize     platform.WindowResizeProc
-	onMove       platform.WindowMoveProc
-	onMouseMove  platform.WindowMouseMoveProc
-	onMouseDown  platform.WindowMouseDownProc
-	onMouseUp    platform.WindowMouseUpProc
-	onMouseWheel platform.WindowMouseWheelProc
-	onMouseClick platform.WindowMouseClickProc
-	onPaint      platform.WindowPaintProc
-	onKeyDown    platform.WindowKeyDownProc
-	onKeyUp      platform.WindowKeyUpProc
-	onKeyPress   platform.WindowKeyPressProc
+	onCreate     plat.WindowCreateProc
+	onDestroy    plat.WindowDestroyProc
+	onResize     plat.WindowResizeProc
+	onMove       plat.WindowMoveProc
+	onMouseMove  plat.WindowMouseMoveProc
+	onMouseDown  plat.WindowMouseDownProc
+	onMouseUp    plat.WindowMouseUpProc
+	onMouseWheel plat.WindowMouseWheelProc
+	onMouseClick plat.WindowMouseClickProc
+	onPaint      plat.WindowPaintProc
+	onKeyDown    plat.WindowKeyDownProc
+	onKeyUp      plat.WindowKeyUpProc
+	onKeyPress   plat.WindowKeyPressProc
+	onSetCursor  plat.WindowSetCursorProc
 
 	bgColor int
 }
@@ -46,11 +47,6 @@ func (_this *winBase) init(provider *Provider, id string) *winBase {
 
 func (_this *winBase) SetBgColor(color int) {
 	_this.bgColor = color
-	//lbp := win32.LOGBRUSH{
-	//	LbStyle: win32.BS_SOLID,
-	//	LbColor: win32.COLORREF(color),
-	//}
-	//_this.bgColor = win32.CreateBrushIndirect(&lbp)
 }
 
 func (_this *winBase) isDialog() bool {
@@ -77,12 +73,22 @@ func (_this *winBase) getWindowMsgProc() windowsMsgProc {
 	return _this.msgProc
 }
 
+func (_this *winBase) SetCursor(cursor mb.CursorType) {
+	res := win32.MAKEINTRESOURCE(uintptr(toWinCursor(cursor)))
+	cur := win32.LoadCursor(0, res)
+	win32.SetCursor(cur)
+}
+
 func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	ret := int(_this.execCmd(hWnd, msg, wParam, lParam))
 	if ret != 0 {
 		return uintptr(ret)
 	}
 	switch msg {
+	case win32.WM_SETCURSOR:
+		if _this.onSetCursor != nil && _this.onSetCursor() {
+			ret = 1
+		}
 	case win32.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win32.GET_X_LPARAM(lParam), win32.GET_Y_LPARAM(lParam)

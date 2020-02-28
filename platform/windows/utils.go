@@ -11,6 +11,83 @@ func sto16(str string) *uint16 {
 	return ptr
 }
 
+func toWinCursor(cursor mb.CursorType) int {
+	switch cursor {
+	case mb.CursorType_ARROW:
+		return win32.IDC_ARROW
+	case mb.CursorType_SIZE:
+		return win32.IDC_SIZE
+	case mb.CursorType_ICON:
+		return win32.IDC_ICON
+	case mb.CursorType_HELP:
+		return win32.IDC_HELP
+	case mb.CursorType_APPSTARTING:
+		return win32.IDC_APPSTARTING
+	case mb.CursorType_HAND:
+		return win32.IDC_HAND
+	case mb.CursorType_NO:
+		return win32.IDC_NO
+	case mb.CursorType_SIZEALL:
+		return win32.IDC_SIZEALL
+	case mb.CursorType_SIZENS:
+		return win32.IDC_SIZENS
+	case mb.CursorType_SIZEWE:
+		return win32.IDC_SIZEWE
+	case mb.CursorType_SIZENWSE:
+		return win32.IDC_SIZENWSE
+	case mb.CursorType_SIZENESW:
+		return win32.IDC_SIZENESW
+	case mb.CursorType_UPARROW:
+		return win32.IDC_UPARROW
+	case mb.CursorType_CROSS:
+		return win32.IDC_CROSS
+	case mb.CursorType_WAIT:
+		return win32.IDC_WAIT
+	case mb.CursorType_IBEAM:
+		return win32.IDC_IBEAM
+	default:
+		return win32.IDC_ARROW
+	}
+}
+func winCursorTo(cursor int) mb.CursorType {
+	switch cursor {
+	case 32512:
+		return mb.CursorType_ARROW
+	case 32513:
+		return mb.CursorType_IBEAM
+	case 32514:
+		return mb.CursorType_WAIT
+	case 32515:
+		return mb.CursorType_CROSS
+	case 32516:
+		return mb.CursorType_UPARROW
+	case 32642:
+		return mb.CursorType_SIZENWSE
+	case 32643:
+		return mb.CursorType_SIZENESW
+	case 32644:
+		return mb.CursorType_SIZEWE
+	case 32645:
+		return mb.CursorType_SIZENS
+	case 32646:
+		return mb.CursorType_SIZEALL
+	case 32648:
+		return mb.CursorType_NO
+	case 32649:
+		return mb.CursorType_HAND
+	case 32650:
+		return mb.CursorType_APPSTARTING
+	case 32651:
+		return mb.CursorType_HELP
+	case 32641:
+		return mb.CursorType_ICON
+	case 32640:
+		return mb.CursorType_SIZE
+	default:
+		return mb.CursorType_ARROW
+	}
+}
+
 func vkToKey(vk int) mb.Keys {
 	switch vk {
 	case win32.VK_ESCAPE:

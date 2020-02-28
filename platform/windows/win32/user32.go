@@ -2908,11 +2908,13 @@ func KillTimer(hWnd HWND, uIDEvent uintptr) bool {
 }
 
 func LoadCursor(hInstance HINSTANCE, lpCursorName *uint16) HCURSOR {
-	ret, _, _ := syscall.Syscall(loadCursor.Addr(), 2,
+	ret, _, err := syscall.Syscall(loadCursor.Addr(), 2,
 		uintptr(hInstance),
 		uintptr(unsafe.Pointer(lpCursorName)),
 		0)
-
+	if ret == 0 {
+		fmt.Println("LoadCursor", err)
+	}
 	return HCURSOR(ret)
 }
 
@@ -2922,7 +2924,7 @@ func LoadIcon(hInstance HINSTANCE, lpIconName *uint16) HICON {
 		uintptr(unsafe.Pointer(lpIconName)),
 		0)
 	if ret == 0 {
-		fmt.Println(err)
+		fmt.Println("LoadIcon", err)
 	}
 	return HICON(ret)
 }

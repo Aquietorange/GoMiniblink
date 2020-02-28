@@ -5,6 +5,11 @@ import (
 )
 
 //todo 应该全是接口
+
+type CursorEvArgs struct {
+	IsHandle bool
+}
+
 type MouseEvArgs struct {
 	Button      MouseButtons
 	X, Y, Delta int

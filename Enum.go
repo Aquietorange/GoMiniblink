@@ -1,5 +1,28 @@
 package goMiniblink
 
+//鼠标样式
+type CursorType int
+
+//鼠标样式
+const (
+	CursorType_ARROW CursorType = iota + 1
+	CursorType_IBEAM
+	CursorType_WAIT
+	CursorType_CROSS
+	CursorType_UPARROW
+	CursorType_SIZENWSE
+	CursorType_SIZENESW
+	CursorType_SIZEWE
+	CursorType_SIZENS
+	CursorType_SIZEALL
+	CursorType_NO
+	CursorType_HAND
+	CursorType_APPSTARTING
+	CursorType_HELP
+	CursorType_ICON
+	CursorType_SIZE
+)
+
 //窗体的边框类型
 type FormBorder int
 

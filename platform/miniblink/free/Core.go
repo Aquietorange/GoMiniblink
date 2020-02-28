@@ -43,7 +43,21 @@ func (_this *Core) onNetResponse(wke wkeHandle, param, utf8Url uintptr, job wkeN
 	println("resp")
 	return 0
 }
-
+func (_this *Core) GetCursor() mb.CursorType {
+	cur := wkeGetCursorInfoType(_this.wke)
+	switch cur {
+	case wkeCursorType_Hand:
+		return mb.CursorType_HAND
+	case wkeCursorType_IBeam:
+		return mb.CursorType_IBEAM
+	case wkeCursorType_ColumnResize:
+		return mb.CursorType_SIZEWE
+	case wkeCursorType_RowResize:
+		return mb.CursorType_SIZENS
+	default:
+		return mb.CursorType_ARROW
+	}
+}
 func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButtons, delta, x, y int) {
 	flags := wkeMouseFlags_None
 	if app.KeyIsDown(mb.Keys_Ctrl) {
@@ -102,11 +116,13 @@ func (_this *Core) FireMouseEvent(app plat.IProvider, button mb.MouseButtons, is
 }
 
 func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
+	w := wkeGetWidth(_this.wke)
+	h := wkeGetHeight(_this.wke)
+	view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+	wkePaint(_this.wke, view.Pix, 0)
 	bmp := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
-	wkePaint(_this.wke, bmp.Pix, 0)
-	sub := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
-	draw.Draw(sub, image.Rect(0, 0, bound.Width, bound.Height), bmp, image.Pt(bound.X, bound.Y), draw.Src)
-	return sub
+	draw.Draw(bmp, image.Rect(0, 0, bound.Width, bound.Height), view, image.Pt(bound.X, bound.Y), draw.Src)
+	return bmp
 }
 
 func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {

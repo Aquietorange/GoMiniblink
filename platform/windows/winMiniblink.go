@@ -2,7 +2,7 @@ package windows
 
 import (
 	mb "qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform"
+	plat "qq.2564874169/goMiniblink/platform"
 	core "qq.2564874169/goMiniblink/platform/miniblink"
 	"qq.2564874169/goMiniblink/platform/miniblink/free"
 	"qq.2564874169/goMiniblink/platform/miniblink/vip"
@@ -18,7 +18,7 @@ type winMiniblink struct {
 
 func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	_this.winControl.init(provider)
-	var baseCreateProc platform.WindowCreateProc
+	var baseCreateProc plat.WindowCreateProc
 	baseCreateProc = _this.SetOnCreate(func(handle uintptr) bool {
 		if baseCreateProc != nil {
 			baseCreateProc(handle)
@@ -52,6 +52,7 @@ func (_this *winMiniblink) initWke() {
 		_this.wke = new(free.Core).Init(_this)
 	}
 	_this.onPaint = _this.defOnPaint
+	_this.onSetCursor = _this.defOnSetCursor
 	_this.wke.SetOnPaint(_this.paintUpdate)
 	if _this.initSize.Width > 0 && _this.initSize.Height > 0 {
 		_this.SetSize(_this.initSize.Width, _this.initSize.Height)
@@ -59,6 +60,12 @@ func (_this *winMiniblink) initWke() {
 	if _this.initUri != "" {
 		_this.LoadUri(_this.initUri)
 	}
+}
+
+func (_this *winMiniblink) defOnSetCursor() bool {
+	cur := _this.wke.GetCursor()
+	_this.SetCursor(cur)
+	return false
 }
 
 func (_this *winMiniblink) defOnPaint(e mb.PaintEvArgs) bool {

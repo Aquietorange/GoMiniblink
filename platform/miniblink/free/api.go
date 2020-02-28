@@ -35,6 +35,7 @@ var (
 	_wkePaint2              *windows.LazyProc
 	_wkeFireMouseEvent      *windows.LazyProc
 	_wkeFireMouseWheelEvent *windows.LazyProc
+	_wkeGetCursorInfoType   *windows.LazyProc
 )
 
 func init() {
@@ -45,6 +46,7 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_wkeGetCursorInfoType = lib.NewProc("wkeGetCursorInfoType")
 	_wkeFireMouseWheelEvent = lib.NewProc("wkeFireMouseWheelEvent")
 	_wkeFireMouseEvent = lib.NewProc("wkeFireMouseEvent")
 	_wkePaint2 = lib.NewProc("wkePaint2")
@@ -65,6 +67,11 @@ func init() {
 	if ret == 0 && showError {
 		fmt.Println(err)
 	}
+}
+
+func wkeGetCursorInfoType(wke wkeHandle) wkeCursorType {
+	r, _, _ := _wkeGetCursorInfoType.Call(uintptr(wke))
+	return wkeCursorType(r)
 }
 
 func wkeFireMouseWheelEvent(wke wkeHandle, x, y, delta, flags int32) bool {

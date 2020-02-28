@@ -229,6 +229,10 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	return _this
 }
 
+func (_this *BaseUI) SetCursor(cursor mb.CursorType) {
+	_this.impl.SetCursor(cursor)
+}
+
 func (_this *BaseUI) GetHandle() uintptr {
 	return _this.Handle
 }
