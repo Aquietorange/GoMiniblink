@@ -1,6 +1,7 @@
 package windows
 
 import (
+	"fmt"
 	mb "qq.2564874169/goMiniblink"
 	plat "qq.2564874169/goMiniblink/platform"
 	core "qq.2564874169/goMiniblink/platform/miniblink"
@@ -27,20 +28,51 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 		return false
 	})
 	_this.SetOnMouseDown(func(e mb.MouseEvArgs) bool {
-		_this.wke.FireMouseEvent(_this.app, e.Button, true, false, e.X, e.Y)
+		_this.wke.FireMouseClickEvent(_this.app, e.Button, true, e.IsDouble, e.X, e.Y)
 		return false
 	})
 	_this.SetOnMouseUp(func(e mb.MouseEvArgs) bool {
-		_this.wke.FireMouseEvent(_this.app, e.Button, false, false, e.X, e.Y)
+		_this.wke.FireMouseClickEvent(_this.app, e.Button, false, e.IsDouble, e.X, e.Y)
 		return false
 	})
 	_this.SetOnMouseMove(func(e mb.MouseEvArgs) bool {
-		_this.wke.FireMouseEvent(_this.app, e.Button, false, true, e.X, e.Y)
+		_this.wke.FireMouseMoveEvent(_this.app, e.Button, e.X, e.Y)
 		return false
 	})
 	_this.SetOnMouseWheel(func(e mb.MouseEvArgs) bool {
 		_this.wke.FireMouseWheelEvent(_this.app, e.Button, e.Delta, e.X, e.Y)
 		return false
+	})
+	_this.SetOnKeyDown(func(e *mb.KeyEvArgs) bool {
+		_this.wke.FireKeyEvent(e.Value, true, isExtendKey(e.Key), true, e.IsSys)
+		return false
+	})
+	_this.SetOnKeyUp(func(e *mb.KeyEvArgs) bool {
+		_this.wke.FireKeyEvent(e.Value, true, isExtendKey(e.Key), false, e.IsSys)
+		return false
+	})
+	_this.SetOnKeyPress(func(e *mb.KeyPressEvArgs) bool {
+		_this.wke.FireKeyPressEvent(int([]rune(e.KeyChar)[0]), true, false, e.IsSys)
+		return false
+	})
+	_this.SetOnFocus(func() bool {
+		_this.wke.SetFocus()
+		return true
+	})
+	_this.SetOnImeStartComposition(func() bool {
+		p := _this.wke.GetCaretPos()
+		fmt.Println(p)
+		//comp := win32.COMPOSITIONFORM{
+		//	DwStyle: win32.CFS_POINT | win32.CFS_FORCE_POSITION,
+		//	Pos: win32.POINT{
+		//		X: int32(10),
+		//		Y: int32(10),
+		//	},
+		//}
+		//imc := win32.ImmGetContext(_this.handle)
+		//win32.ImmSetCompositionWindow(imc, &comp)
+		//win32.ImmReleaseContext(_this.handle, imc)
+		return true
 	})
 	return _this
 }

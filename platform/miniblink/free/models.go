@@ -1,5 +1,12 @@
 package free
 
+type wkeKeyFlags int
+
+const (
+	wkeKeyFlags_Extend wkeKeyFlags = 0x0100
+	wkeKeyFlags_Repeat wkeKeyFlags = 0x4000
+)
+
 type wkeRect struct {
 	x, y, w, h int32
 }

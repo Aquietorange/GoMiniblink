@@ -25,24 +25,44 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 	}
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
 	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
-	//wkeNetOnResponse(_this.wke, _this.onNetResponse, 0)
-	//wkeOnLoadUrlBegin(_this.wke, _this.onLoadUrlBegin, 0)
 	return _this
 }
 
-func (_this *Core) onLoadUrlBegin(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr {
-	url := utf8PtrToString(utf8Url)
-	println("begin", url)
-	//println("begin")
-	return 0
+func (_this *Core) SetFocus() {
+	wkeSetFocus(_this.wke)
 }
 
-func (_this *Core) onNetResponse(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr {
-	//url := *(*[]rune)(unsafe.Pointer(utf8Url))
-	//println("resp", url)
-	println("resp")
-	return 0
+func (_this *Core) GetCaretPos() mb.Point {
+	rect := wkeGetCaretRect(_this.wke)
+	return mb.Point{X: int(rect.x), Y: int(rect.y)}
 }
+
+func (_this *Core) FireKeyPressEvent(charCode int, isRepeat, isExtend, isSys bool) {
+	flags := 0
+	if isRepeat {
+		flags |= int(wkeKeyFlags_Repeat)
+	}
+	if isExtend {
+		flags |= int(wkeKeyFlags_Extend)
+	}
+	wkeFireKeyPressEvent(_this.wke, charCode, uint32(flags), isSys)
+}
+
+func (_this *Core) FireKeyEvent(keyCode uintptr, isRepeat, isExtend, isDown, isSys bool) {
+	flags := 0
+	if isRepeat {
+		flags |= int(wkeKeyFlags_Repeat)
+	}
+	if isExtend {
+		flags |= int(wkeKeyFlags_Extend)
+	}
+	if isDown {
+		wkeFireKeyDownEvent(_this.wke, keyCode, uint32(flags), isSys)
+	} else {
+		wkeFireKeyUpEvent(_this.wke, keyCode, uint32(flags), isSys)
+	}
+}
+
 func (_this *Core) GetCursor() mb.CursorType {
 	cur := wkeGetCursorInfoType(_this.wke)
 	switch cur {
@@ -58,6 +78,7 @@ func (_this *Core) GetCursor() mb.CursorType {
 		return mb.CursorType_ARROW
 	}
 }
+
 func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButtons, delta, x, y int) {
 	flags := wkeMouseFlags_None
 	if app.KeyIsDown(mb.Keys_Ctrl) {
@@ -78,7 +99,24 @@ func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButton
 	wkeFireMouseWheelEvent(_this.wke, int32(x), int32(y), int32(delta), int32(flags))
 }
 
-func (_this *Core) FireMouseEvent(app plat.IProvider, button mb.MouseButtons, isDown, isMove bool, x, y int) {
+func (_this *Core) FireMouseMoveEvent(app plat.IProvider, button mb.MouseButtons, x, y int) {
+	flags := wkeMouseFlags_None
+	if app.KeyIsDown(mb.Keys_Ctrl) {
+		flags |= wkeMouseFlags_CONTROL
+	}
+	if app.KeyIsDown(mb.Keys_Shift) {
+		flags |= wkeMouseFlags_SHIFT
+	}
+	if button&mb.MouseButtons_Left != 0 {
+		flags |= wkeMouseFlags_LBUTTON
+	}
+	if button&mb.MouseButtons_Right != 0 {
+		flags |= wkeMouseFlags_RBUTTON
+	}
+	wkeFireMouseEvent(_this.wke, int32(win32.WM_MOUSEMOVE), int32(x), int32(y), int32(flags))
+}
+
+func (_this *Core) FireMouseClickEvent(app plat.IProvider, button mb.MouseButtons, isDown, isDb bool, x, y int) {
 	flags := wkeMouseFlags_None
 	if app.KeyIsDown(mb.Keys_Ctrl) {
 		flags |= wkeMouseFlags_CONTROL
@@ -89,26 +127,33 @@ func (_this *Core) FireMouseEvent(app plat.IProvider, button mb.MouseButtons, is
 	msg := 0
 	if button&mb.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
-		if isDown {
+		if isDb {
+			msg = win32.WM_LBUTTONDBLCLK
+		} else if isDown {
 			msg = win32.WM_LBUTTONDOWN
-		} else if isMove {
-			msg = win32.WM_MOUSEMOVE
 		} else {
 			msg = win32.WM_LBUTTONUP
 		}
 	}
 	if button&mb.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
-		if isDown {
+		if isDb {
+			msg = win32.WM_RBUTTONDBLCLK
+		} else if isDown {
 			msg = win32.WM_RBUTTONDOWN
-		} else if isMove {
-			msg = win32.WM_MOUSEMOVE
 		} else {
 			msg = win32.WM_RBUTTONUP
 		}
 	}
-	if button == mb.MouseButtons_None && isMove {
-		msg = win32.WM_MOUSEMOVE
+	if button&mb.MouseButtons_Middle != 0 {
+		flags |= wkeMouseFlags_MBUTTON
+		if isDb {
+			msg = win32.WM_MBUTTONDBLCLK
+		} else if isDown {
+			msg = win32.WM_MBUTTONDOWN
+		} else {
+			msg = win32.WM_MBUTTONUP
+		}
 	}
 	if msg != 0 {
 		wkeFireMouseEvent(_this.wke, int32(msg), int32(x), int32(y), int32(flags))

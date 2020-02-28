@@ -22,13 +22,6 @@ func main() {
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 	frm.EvLoad["add_child"] = func(target interface{}) {
-		//go func(f *forms.Form) {
-		//	time.Sleep(3 * time.Second)
-		//	f.Invoke(func(state interface{}) {
-		//		f.ShowInTaskbar(false)
-		//		//f.SetIconVisable(false)
-		//	}, nil)
-		//}(target.(*forms.Form))
 		mb := new(forms.MiniblinkBrowser).Init()
 		mb.SetSize(740, 420)
 		mb.SetLocation(20, 20)

@@ -20,6 +20,8 @@ type IWindow interface {
 	SetOnKeyUp(proc WindowKeyUpProc) WindowKeyUpProc
 	SetOnKeyPress(proc WindowKeyPressProc) WindowKeyPressProc
 	SetOnCursor(proc WindowSetCursorProc) WindowSetCursorProc
+	SetOnImeStartComposition(proc WindowImeStartCompositionProc) WindowImeStartCompositionProc
+	SetOnFocus(proc WindowFocusProc) WindowFocusProc
 
 	Invoke(fn func(state interface{}), state interface{})
 	SetSize(w int, h int)
@@ -31,6 +33,8 @@ type IWindow interface {
 	SetCursor(cursor mb.CursorType)
 }
 
+type WindowFocusProc func() bool
+type WindowImeStartCompositionProc func() bool
 type WindowSetCursorProc func() bool
 type WindowCreateProc func(handle uintptr) bool
 type WindowDestroyProc func()

@@ -24,12 +24,16 @@ type PaintEvArgs struct {
 
 type KeyEvArgs struct {
 	Key        Keys
+	Value      uintptr
 	KeysIsDown map[Keys]bool
 	IsHandle   bool
+	IsSys      bool
 }
 
 type KeyPressEvArgs struct {
 	KeyChar    string
+	Value      uintptr
 	KeysIsDown map[Keys]bool
 	IsHandle   bool
+	IsSys      bool
 }

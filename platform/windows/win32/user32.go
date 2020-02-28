@@ -896,6 +896,7 @@ const (
 	WM_MOUSEHOVER             = 0x2A1
 	WM_MOUSELEAVE             = 0x2A3
 	WM_CLIPBOARDUPDATE        = 0x031D
+	WM_IME_STARTCOMPOSITION   = 269
 )
 
 const (

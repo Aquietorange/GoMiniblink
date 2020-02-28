@@ -6,9 +6,14 @@ import (
 	"syscall"
 )
 
-func sto16(str string) *uint16 {
-	ptr, _ := syscall.UTF16PtrFromString(str)
-	return ptr
+func isExtendKey(key mb.Keys) bool {
+	switch key {
+	case mb.Keys_Insert, mb.Keys_Delete, mb.Keys_Home, mb.Keys_End, mb.Keys_PageUp,
+		mb.Keys_PageDown, mb.Keys_Left, mb.Keys_Right, mb.Keys_Up, mb.Keys_Down:
+		return true
+	default:
+		return false
+	}
 }
 
 func toWinCursor(cursor mb.CursorType) int {
@@ -49,6 +54,7 @@ func toWinCursor(cursor mb.CursorType) int {
 		return win32.IDC_ARROW
 	}
 }
+
 func winCursorTo(cursor int) mb.CursorType {
 	switch cursor {
 	case 32512:
@@ -301,4 +307,9 @@ func vkToKey(vk int) mb.Keys {
 	default:
 		return mb.Keys_Error
 	}
+}
+
+func sto16(str string) *uint16 {
+	ptr, _ := syscall.UTF16PtrFromString(str)
+	return ptr
 }

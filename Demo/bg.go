@@ -54,19 +54,17 @@ func Paint(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) {
 	head.BiBitCount = 32
 	head.BiPlanes = 1
 	head.BiCompression = win32.BI_RGB
-
-	var lpBits unsafe.Pointer
-	memBmp := win32.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, win32.DIB_RGB_COLORS, &lpBits, 0, 0)
-	bits := (*[1 << 30]byte)(lpBits)
-	for i := range pix {
-		bits[i] = pix[i]
+	var info win32.BITMAPINFO
+	info.BmiHeader = head.BITMAPINFOHEADER
+	memBmp := win32.CreateDIBitmap(hdc, &info.BmiHeader, win32.CBM_INIT, &pix[0], &info, win32.DIB_RGB_COLORS)
+	if memBmp != 0 {
+		memDc := win32.CreateCompatibleDC(hdc)
+		old := win32.SelectObject(memDc, win32.HGDIOBJ(memBmp))
+		win32.BitBlt(hdc, pt.RcPaint.Left, pt.RcPaint.Top, w, h, memDc, 0, 0, win32.SRCCOPY)
+		win32.SelectObject(memDc, old)
+		win32.DeleteDC(memDc)
+		win32.DeleteObject(win32.HGDIOBJ(memBmp))
 	}
-	memDc := win32.CreateCompatibleDC(hdc)
-	old := win32.SelectObject(memDc, win32.HGDIOBJ(memBmp))
-	win32.BitBlt(hdc, pt.RcPaint.Left, pt.RcPaint.Top, w, h, memDc, 0, 0, win32.SRCCOPY)
-	win32.SelectObject(memDc, old)
-	win32.DeleteDC(memDc)
-	win32.DeleteObject(win32.HGDIOBJ(memBmp))
 	win32.EndPaint(hWnd, pt)
 }
 

@@ -36,6 +36,11 @@ var (
 	_wkeFireMouseEvent      *windows.LazyProc
 	_wkeFireMouseWheelEvent *windows.LazyProc
 	_wkeGetCursorInfoType   *windows.LazyProc
+	_wkeFireKeyUpEvent      *windows.LazyProc
+	_wkeFireKeyDownEvent    *windows.LazyProc
+	_wkeFireKeyPressEvent   *windows.LazyProc
+	_wkeGetCaretRect        *windows.LazyProc
+	_wkeSetFocus            *windows.LazyProc
 )
 
 func init() {
@@ -46,6 +51,9 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_wkeFireKeyPressEvent = lib.NewProc("wkeFireKeyPressEvent")
+	_wkeFireKeyUpEvent = lib.NewProc("wkeFireKeyUpEvent")
+	_wkeFireKeyDownEvent = lib.NewProc("wkeFireKeyDownEvent")
 	_wkeGetCursorInfoType = lib.NewProc("wkeGetCursorInfoType")
 	_wkeFireMouseWheelEvent = lib.NewProc("wkeFireMouseWheelEvent")
 	_wkeFireMouseEvent = lib.NewProc("wkeFireMouseEvent")
@@ -62,10 +70,54 @@ func init() {
 	_wkeCreateWebView = lib.NewProc("wkeCreateWebView")
 	_wkeInitialize = lib.NewProc("wkeInitialize")
 	_wkeIsInitialize = lib.NewProc("wkeIsInitialize")
+	_wkeGetCaretRect = lib.NewProc("wkeGetCaretRect")
+	_wkeSetFocus = lib.NewProc("wkeSetFocus")
 
 	ret, _, err := _wkeInitialize.Call()
 	if ret == 0 && showError {
 		fmt.Println(err)
+	}
+}
+
+func wkeGetCaretRect(wke wkeHandle) wkeRect {
+	//_, _, _ = _wkeGetCaretRect.Call(uintptr(wke))
+	return wkeRect{}
+}
+
+func wkeSetFocus(wke wkeHandle) {
+	_, _, _ = _wkeSetFocus.Call(uintptr(wke))
+}
+
+func wkeFireKeyPressEvent(wke wkeHandle, code int, flags uint32, isSysKey bool) {
+	ret, _, err := _wkeFireKeyPressEvent.Call(
+		uintptr(wke),
+		uintptr(code),
+		uintptr(flags),
+		uintptr(toBool(isSysKey)))
+	if ret == 0 && showError {
+		fmt.Println("wkeFireKeyPressEvent", err)
+	}
+}
+
+func wkeFireKeyDownEvent(wke wkeHandle, code uintptr, flags uint32, isSysKey bool) {
+	ret, _, err := _wkeFireKeyDownEvent.Call(
+		uintptr(wke),
+		code,
+		uintptr(flags),
+		uintptr(toBool(isSysKey)))
+	if ret == 0 && showError {
+		fmt.Println("wkeFireKeyDownEvent", err)
+	}
+}
+
+func wkeFireKeyUpEvent(wke wkeHandle, code uintptr, flags uint32, isSysKey bool) {
+	ret, _, err := _wkeFireKeyUpEvent.Call(
+		uintptr(wke),
+		code,
+		uintptr(flags),
+		uintptr(toBool(isSysKey)))
+	if ret == 0 && showError {
+		fmt.Println("wkeFireKeyUpEvent", err)
 	}
 }
 
@@ -98,28 +150,6 @@ func wkeFireMouseEvent(wke wkeHandle, message, x, y, flags int32) bool {
 		fmt.Println("wkeFireMouseEvent", err)
 	}
 	return r != 0
-}
-
-func wkePaint2(wke wkeHandle, buf []uint8, bufWdith, bufHeight, xDst, yDst, w, h, xSrc, ySrc uint32, copyAlpha bool) {
-	var b byte = 0
-	if copyAlpha {
-		b = 1
-	}
-	r, _, err := _wkePaint2.Call(
-		uintptr(wke),
-		uintptr(unsafe.Pointer(&buf[0])),
-		uintptr(bufWdith),
-		uintptr(bufHeight),
-		uintptr(xDst),
-		uintptr(yDst),
-		uintptr(w),
-		uintptr(h),
-		uintptr(xSrc),
-		uintptr(ySrc),
-		uintptr(b))
-	if r == 0 && showError {
-		fmt.Println("wkePaint2", err)
-	}
 }
 
 func wkePaint(wke wkeHandle, bits []uint8, pitch uint32) {
@@ -196,18 +226,10 @@ func wkeCreateWebView() wkeHandle {
 	return wkeHandle(r)
 }
 
-func wkeInitialize() bool {
-	r, _, err := _wkeInitialize.Call()
-	if r == 0 && showError {
-		fmt.Println("wkeInitialize", err)
+func toBool(b bool) byte {
+	if b {
+		return 1
+	} else {
+		return 0
 	}
-	return r != 0
-}
-
-func wkeIsInitialize() bool {
-	r, _, err := _wkeIsInitialize.Call()
-	if r == 0 && showError {
-		fmt.Println("wkeIsInitialize", err)
-	}
-	return r != 0
 }
