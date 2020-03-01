@@ -284,6 +284,9 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 func (_this *winBase) CreateGraphics() mb.Graphics {
 	hdc := win32.GetDC(_this.hWnd())
 	g := new(winGraphics).init(hdc)
+	g.onClose = func(e *winGraphics) {
+		win32.ReleaseDC(_this.hWnd(), e.dc)
+	}
 	return g
 }
 

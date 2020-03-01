@@ -33,8 +33,11 @@ func (_this *Core) SetFocus() {
 }
 
 func (_this *Core) GetCaretPos() mb.Point {
-	rect := wkeGetCaretRect(_this.wke)
-	return mb.Point{X: int(rect.x), Y: int(rect.y)}
+	//rect := wkeGetCaretRect(_this.wke)
+	//return mb.Point{X: int(rect.x), Y: int(rect.y)}
+	var p win32.POINT
+	win32.GetCaretPos(&p)
+	return mb.Point{X: int(p.X), Y: int(p.Y)}
 }
 
 func (_this *Core) FireKeyPressEvent(charCode int, isRepeat, isExtend, isSys bool) {

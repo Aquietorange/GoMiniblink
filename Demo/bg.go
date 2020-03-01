@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	println(1 << 30)
 	className := "DemoClass"
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,

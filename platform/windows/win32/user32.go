@@ -2528,20 +2528,24 @@ func GetActiveWindow() HWND {
 }
 
 func GetAncestor(hWnd HWND, gaFlags uint32) HWND {
-	ret, _, _ := syscall.Syscall(getAncestor.Addr(), 2,
+	ret, _, err := syscall.Syscall(getAncestor.Addr(), 2,
 		uintptr(hWnd),
 		uintptr(gaFlags),
 		0)
-
+	if ret == 0 {
+		fmt.Println("GetAncestor", err)
+	}
 	return HWND(ret)
 }
 
 func GetCaretPos(lpPoint *POINT) bool {
-	ret, _, _ := syscall.Syscall(getCaretPos.Addr(), 1,
+	ret, _, err := syscall.Syscall(getCaretPos.Addr(), 1,
 		uintptr(unsafe.Pointer(lpPoint)),
 		0,
 		0)
-
+	if ret == 0 {
+		fmt.Println("GetCaretPos", err)
+	}
 	return ret != 0
 }
 

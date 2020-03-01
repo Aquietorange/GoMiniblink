@@ -57,7 +57,7 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	})
 	_this.SetOnFocus(func() bool {
 		_this.wke.SetFocus()
-		return true
+		return false
 	})
 	_this.SetOnImeStartComposition(func() bool {
 		p := _this.wke.GetCaretPos()
