@@ -70,6 +70,7 @@ var (
 	wkeOnLoadUrlBegin      *windows.LazyProc
 	wkeFireWindowsMessage  *windows.LazyProc
 	wkeGetCaretRect        *windows.LazyProc
+	wkeGetCaretRect2       *windows.LazyProc
 
 	appInstance          uintptr
 	className            string
@@ -136,12 +137,16 @@ const (
 )
 
 func init() {
-	//is64 := unsafe.Sizeof(uintptr(0)) == 8
+	is64 := unsafe.Sizeof(uintptr(0)) == 8
 	gdi32Lib = windows.NewLazySystemDLL("gdi32.dll")
 	user32Lib = windows.NewLazySystemDLL("user32.dll")
 	imm32Lib = windows.NewLazySystemDLL("imm32.dll")
 	kernel32Lib = windows.NewLazySystemDLL("kernel32.dll")
-	wkeLib = windows.NewLazyDLL("miniblink_x64.dll")
+	if is64 {
+		wkeLib = windows.NewLazyDLL("miniblink_x64.dll")
+	} else {
+		wkeLib = windows.NewLazyDLL("node.dll")
+	}
 
 	GetModuleHandle = kernel32Lib.NewProc("GetModuleHandleW")
 	RegisterClassEx = user32Lib.NewProc("RegisterClassExW")
@@ -197,6 +202,7 @@ func init() {
 	wkeOnLoadUrlBegin = wkeLib.NewProc("wkeOnLoadUrlBegin")
 	wkeFireWindowsMessage = wkeLib.NewProc("wkeFireWindowsMessage")
 	wkeGetCaretRect = wkeLib.NewProc("wkeGetCaretRect")
+	wkeGetCaretRect2 = wkeLib.NewProc("wkeGetCaretRect2")
 
 	code, _, err := wkeInitialize.Call()
 	if code == 0 {
@@ -480,7 +486,7 @@ func main() {
 		uintptr(unsafe.Pointer(utf16PtrFromString(className))),
 		uintptr(unsafe.Pointer(utf16PtrFromString("simple"))),
 		uintptr(WS_OVERLAPPEDWINDOW),
-		100, 100, 400, 300, 0, 0, appInstance, uintptr(unsafe.Pointer(nil)))
+		100, 100, 400, 400, 0, 0, appInstance, 0)
 	wkeLoadURL.Call(userdata[hWnd], uintptr(utf8To("https://www.baidu.com")))
 	ShowWindow.Call(hWnd, uintptr(SW_SHOW))
 	UpdateWindow.Call(hWnd)
@@ -493,7 +499,7 @@ func main() {
 		Pt      struct{ X, Y int32 }
 	}{}
 	for {
-		if code, _, _ := GetMessage.Call(uintptr(unsafe.Pointer(&msg)), 0, 0, 0); code != 0 {
+		if r, _, _ := GetMessage.Call(uintptr(unsafe.Pointer(&msg)), 0, 0, 0); r != 0 {
 			TranslateMessage.Call(uintptr(unsafe.Pointer(&msg)))
 			DispatchMessage.Call(uintptr(unsafe.Pointer(&msg)))
 		} else {
