@@ -7,6 +7,7 @@ import (
 	core "qq.2564874169/goMiniblink/platform/miniblink"
 	"qq.2564874169/goMiniblink/platform/miniblink/free"
 	"qq.2564874169/goMiniblink/platform/miniblink/vip"
+	"qq.2564874169/goMiniblink/platform/windows/win32"
 )
 
 type winMiniblink struct {
@@ -62,16 +63,16 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	_this.SetOnImeStartComposition(func() bool {
 		p := _this.wke.GetCaretPos()
 		fmt.Println(p)
-		//comp := win32.COMPOSITIONFORM{
-		//	DwStyle: win32.CFS_POINT | win32.CFS_FORCE_POSITION,
-		//	Pos: win32.POINT{
-		//		X: int32(10),
-		//		Y: int32(10),
-		//	},
-		//}
-		//imc := win32.ImmGetContext(_this.handle)
-		//win32.ImmSetCompositionWindow(imc, &comp)
-		//win32.ImmReleaseContext(_this.handle, imc)
+		comp := win32.COMPOSITIONFORM{
+			DwStyle: win32.CFS_POINT | win32.CFS_FORCE_POSITION,
+			Pos: win32.POINT{
+				X: int32(10),
+				Y: int32(10),
+			},
+		}
+		imc := win32.ImmGetContext(_this.handle)
+		win32.ImmSetCompositionWindow(imc, &comp)
+		win32.ImmReleaseContext(_this.handle, imc)
 		return true
 	})
 	return _this

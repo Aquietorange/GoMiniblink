@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"golang.org/x/sys/windows"
 	"image"
 	"image/draw"
@@ -16,37 +17,44 @@ var (
 	kernel32Lib *windows.LazyDLL
 	wkeLib      *windows.LazyDLL
 
-	GetModuleHandle    *windows.LazyProc
-	RegisterClassEx    *windows.LazyProc
-	CreateWindowEx     *windows.LazyProc
-	ShowWindow         *windows.LazyProc
-	UpdateWindow       *windows.LazyProc
-	GetMessage         *windows.LazyProc
-	TranslateMessage   *windows.LazyProc
-	DispatchMessage    *windows.LazyProc
-	DefWindowProc      *windows.LazyProc
-	CallWindowProc     *windows.LazyProc
-	DestroyWindow      *windows.LazyProc
-	PostQuitMessage    *windows.LazyProc
-	CreateDIBSection   *windows.LazyProc
-	CreateCompatibleDC *windows.LazyProc
-	SelectObject       *windows.LazyProc
-	BitBlt             *windows.LazyProc
-	DeleteDC           *windows.LazyProc
-	DeleteObject       *windows.LazyProc
-	GetDC              *windows.LazyProc
-	ReleaseDC          *windows.LazyProc
-	GetClientRect      *windows.LazyProc
-	BeginPaint         *windows.LazyProc
-	EndPaint           *windows.LazyProc
-	GetKeyState        *windows.LazyProc
-	LoadCursor         *windows.LazyProc
-	SetCursor          *windows.LazyProc
+	GetModuleHandle         *windows.LazyProc
+	RegisterClassEx         *windows.LazyProc
+	CreateWindowEx          *windows.LazyProc
+	ShowWindow              *windows.LazyProc
+	UpdateWindow            *windows.LazyProc
+	GetMessage              *windows.LazyProc
+	TranslateMessage        *windows.LazyProc
+	DispatchMessage         *windows.LazyProc
+	DefWindowProc           *windows.LazyProc
+	CallWindowProc          *windows.LazyProc
+	DestroyWindow           *windows.LazyProc
+	PostQuitMessage         *windows.LazyProc
+	CreateDIBSection        *windows.LazyProc
+	CreateCompatibleDC      *windows.LazyProc
+	SelectObject            *windows.LazyProc
+	BitBlt                  *windows.LazyProc
+	DeleteDC                *windows.LazyProc
+	DeleteObject            *windows.LazyProc
+	GetDC                   *windows.LazyProc
+	ReleaseDC               *windows.LazyProc
+	GetClientRect           *windows.LazyProc
+	BeginPaint              *windows.LazyProc
+	EndPaint                *windows.LazyProc
+	GetKeyState             *windows.LazyProc
+	LoadCursor              *windows.LazyProc
+	SetCursor               *windows.LazyProc
+	GetCaretPos             *windows.LazyProc
+	SetCapture              *windows.LazyProc
+	ReleaseCapture          *windows.LazyProc
+	ImmGetContext           *windows.LazyProc
+	ImmSetCompositionWindow *windows.LazyProc
+	ImmReleaseContext       *windows.LazyProc
 
 	wkeInitialize          *windows.LazyProc
 	wkeCreateWebView       *windows.LazyProc
 	wkeSetHandle           *windows.LazyProc
 	wkeSetFocus            *windows.LazyProc
+	wkeKillFocus           *windows.LazyProc
 	wkeResize              *windows.LazyProc
 	wkeLoadURL             *windows.LazyProc
 	wkeOnPaintBitUpdated   *windows.LazyProc
@@ -61,6 +69,7 @@ var (
 	wkeGetWidth            *windows.LazyProc
 	wkeOnLoadUrlBegin      *windows.LazyProc
 	wkeFireWindowsMessage  *windows.LazyProc
+	wkeGetCaretRect        *windows.LazyProc
 
 	appInstance          uintptr
 	className            string
@@ -69,45 +78,61 @@ var (
 )
 
 const (
-	CS_VREDRAW          = 1
-	CS_HREDRAW          = 2
-	WM_CREATE           = 1
-	WM_DESTROY          = 2
-	WM_SIZE             = 5
-	WM_PAINT            = 15
-	WM_CLOSE            = 16
-	WM_MOUSEMOVE        = 512
-	WM_LBUTTONDOWN      = 513
-	WM_LBUTTONUP        = 514
-	WM_LBUTTONDBLCLK    = 515
-	WM_RBUTTONDOWN      = 516
-	WM_RBUTTONUP        = 517
-	WM_RBUTTONDBLCLK    = 518
-	WM_MBUTTONDOWN      = 519
-	WM_MBUTTONUP        = 520
-	WM_MBUTTONDBLCLK    = 521
-	WM_MOUSEWHEEL       = 522
-	WM_SETCURSOR        = 32
-	WS_OVERLAPPEDWINDOW = 0x00000000 | 0x00C00000 | 0x00080000 | 0x00040000 | 0x00020000 | 0x00010000
-	SW_SHOW             = 5
-	BI_RGB              = 0
-	DIB_RGB_COLORS      = 0
-	SRCCOPY             = 0x00CC0020
-	MK_LBUTTON          = 0x0001
-	MK_MBUTTON          = 0x0010
-	MK_RBUTTON          = 0x0002
-	WKE_LBUTTON         = 0x01
-	WKE_RBUTTON         = 0x02
-	WKE_SHIFT           = 0x04
-	WKE_CONTROL         = 0x08
-	WKE_MBUTTON         = 0x10
-	VK_SHIFT            = 16
-	VK_CONTROL          = 17
-	IDC_IBEAM           = 32513
-	IDC_ARROW           = 32512
-	IDC_HAND            = 32649
-	IDC_SIZEWE          = 32644
-	IDC_SIZENS          = 32645
+	CS_VREDRAW              = 1
+	CS_HREDRAW              = 2
+	WM_CREATE               = 1
+	WM_DESTROY              = 2
+	WM_SIZE                 = 5
+	WM_PAINT                = 15
+	WM_CLOSE                = 16
+	WM_MOUSEMOVE            = 512
+	WM_LBUTTONDOWN          = 513
+	WM_LBUTTONUP            = 514
+	WM_LBUTTONDBLCLK        = 515
+	WM_RBUTTONDOWN          = 516
+	WM_RBUTTONUP            = 517
+	WM_RBUTTONDBLCLK        = 518
+	WM_MBUTTONDOWN          = 519
+	WM_MBUTTONUP            = 520
+	WM_MBUTTONDBLCLK        = 521
+	WM_MOUSEWHEEL           = 522
+	WM_SETCURSOR            = 32
+	WM_SETFOCUS             = 7
+	WM_KILLFOCUS            = 8
+	WM_SYSKEYDOWN           = 260
+	WM_KEYDOWN              = 256
+	WM_SYSKEYUP             = 261
+	WM_KEYUP                = 257
+	WM_SYSCHAR              = 262
+	WM_CHAR                 = 258
+	WM_IME_STARTCOMPOSITION = 269
+	WS_OVERLAPPEDWINDOW     = 0x00000000 | 0x00C00000 | 0x00080000 | 0x00040000 | 0x00020000 | 0x00010000
+	SW_SHOW                 = 5
+	BI_RGB                  = 0
+	DIB_RGB_COLORS          = 0
+	SRCCOPY                 = 0x00CC0020
+	MK_LBUTTON              = 0x0001
+	MK_MBUTTON              = 0x0010
+	MK_RBUTTON              = 0x0002
+	VK_SHIFT                = 16
+	VK_CONTROL              = 17
+	IDC_IBEAM               = 32513
+	IDC_ARROW               = 32512
+	IDC_HAND                = 32649
+	IDC_SIZEWE              = 32644
+	IDC_SIZENS              = 32645
+	KF_REPEAT               = 16384
+	KF_EXTENDED             = 256
+	CFS_POINT               = 2
+	CFS_FORCE_POSITION      = 32
+
+	WKE_LBUTTON  = 0x01
+	WKE_RBUTTON  = 0x02
+	WKE_SHIFT    = 0x04
+	WKE_CONTROL  = 0x08
+	WKE_MBUTTON  = 0x10
+	WKE_EXTENDED = 0x0100
+	WKE_REPEAT   = 0x4000
 )
 
 func init() {
@@ -144,6 +169,12 @@ func init() {
 	GetKeyState = user32Lib.NewProc("GetKeyState")
 	LoadCursor = user32Lib.NewProc("LoadCursorW")
 	SetCursor = user32Lib.NewProc("SetCursor")
+	GetCaretPos = user32Lib.NewProc("GetCaretPos")
+	ImmGetContext = imm32Lib.NewProc("ImmGetContext")
+	ImmSetCompositionWindow = imm32Lib.NewProc("ImmSetCompositionWindow")
+	ImmReleaseContext = imm32Lib.NewProc("ImmReleaseContext")
+	SetCapture = user32Lib.NewProc("SetCapture")
+	ReleaseCapture = user32Lib.NewProc("ReleaseCapture")
 
 	wkeInitialize = wkeLib.NewProc("wkeInitialize")
 	wkeFireKeyPressEvent = wkeLib.NewProc("wkeFireKeyPressEvent")
@@ -162,8 +193,10 @@ func init() {
 	wkeCreateWebView = wkeLib.NewProc("wkeCreateWebView")
 	wkeInitialize = wkeLib.NewProc("wkeInitialize")
 	wkeSetFocus = wkeLib.NewProc("wkeSetFocus")
+	wkeKillFocus = wkeLib.NewProc("wkeKillFocus")
 	wkeOnLoadUrlBegin = wkeLib.NewProc("wkeOnLoadUrlBegin")
 	wkeFireWindowsMessage = wkeLib.NewProc("wkeFireWindowsMessage")
+	wkeGetCaretRect = wkeLib.NewProc("wkeGetCaretRect")
 
 	code, _, err := wkeInitialize.Call()
 	if code == 0 {
@@ -259,6 +292,14 @@ func toUtf8(ptr uintptr) string {
 	return string(seq)
 }
 
+func toLp(value uintptr) int32 {
+	return int32(int16(int32(value)))
+}
+
+func toHp(value uintptr) int32 {
+	return int32(int16(int32(value) >> 16 & 0xffff))
+}
+
 func initWke(hWnd uintptr) {
 	wke, _, _ := wkeCreateWebView.Call()
 	userdata[hWnd] = wke
@@ -270,15 +311,6 @@ func initWke(hWnd uintptr) {
 	}), hWnd)
 	w, h := getSize(hWnd)
 	wkeResize.Call(wke, uintptr(int32(w)), uintptr(int32(h)))
-	wkeLoadURL.Call(wke, uintptr(utf8To("https://www.baidu.com")))
-}
-
-func toLp(value uintptr) int32 {
-	return int32(int16(int32(value)))
-}
-
-func toHp(value uintptr) int32 {
-	return int32(int16(int32(value) >> 16 & 0xffff))
 }
 
 func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uintptr {
@@ -313,16 +345,19 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 			drawToDc(hdc, bmp, bmp.Rect.Dx(), bmp.Rect.Dy(), int(uint32(pt.RcPaint.l)), int(uint32(pt.RcPaint.t)))
 		}
 		EndPaint.Call(hWnd, uintptr(unsafe.Pointer(&pt)))
+		return 0
 	case WM_CLOSE:
 		DestroyWindow.Call(hWnd)
 	case WM_SETCURSOR:
 		wke := userdata[hWnd]
-		res := (*uint16)(unsafe.Pointer(uintptr(IDC_ARROW)))
-		h, _, _ := LoadCursor.Call(0, uintptr(unsafe.Pointer(res)))
 		r, _, _ := wkeFireWindowsMessage.Call(wke, hWnd, uintptr(msg), 0, 0, 0)
-		if r == 0 {
-			SetCursor.Call(h)
+		if r != 0 {
+			return 0
 		}
+	case WM_SETFOCUS:
+		wkeSetFocus.Call(userdata[hWnd])
+	case WM_KILLFOCUS:
+		wkeKillFocus.Call(userdata[hWnd])
 	case WM_MOUSEMOVE,
 		WM_LBUTTONUP, WM_LBUTTONDOWN, WM_LBUTTONDBLCLK,
 		WM_RBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONDBLCLK,
@@ -357,7 +392,60 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		} else {
 			wkeFireMouseEvent.Call(wke, uintptr(msg), uintptr(x), uintptr(y), uintptr(flags))
 		}
-		return 1
+		return 0
+	case WM_SYSKEYDOWN, WM_KEYDOWN:
+		flags := 0
+		lp := int32(lParam)
+		if lp>>16&KF_REPEAT != 0 {
+			flags |= WKE_REPEAT
+		}
+		if lp>>16&KF_EXTENDED != 0 {
+			flags |= WKE_EXTENDED
+		}
+		isSys := 0
+		if msg == WM_SYSKEYDOWN {
+			isSys = 1
+		}
+		wkeFireKeyDownEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+	case WM_SYSKEYUP, WM_KEYUP:
+		flags := 0
+		lp := int32(lParam)
+		if lp>>16&KF_REPEAT != 0 {
+			flags |= WKE_REPEAT
+		}
+		if lp>>16&KF_EXTENDED != 0 {
+			flags |= WKE_EXTENDED
+		}
+		isSys := 0
+		if msg == WM_SYSKEYDOWN {
+			isSys = 1
+		}
+		wkeFireKeyUpEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+	case WM_SYSCHAR, WM_CHAR:
+		flags := WKE_REPEAT
+		if int32(lParam)>>16&KF_EXTENDED != 0 {
+			flags |= WKE_EXTENDED
+		}
+		isSys := 0
+		if msg == WM_SYSKEYDOWN {
+			isSys = 1
+		}
+		wkeFireKeyPressEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+	case WM_IME_STARTCOMPOSITION:
+		lp := struct {
+			x, y int32
+		}{}
+		GetCaretPos.Call(uintptr(unsafe.Pointer(&lp)))
+		fmt.Println(lp)
+		comp := struct {
+			style, x, y, l, t, r, b int32
+		}{}
+		comp.style = CFS_POINT | CFS_FORCE_POSITION
+		comp.x, comp.y = int32(0), int32(0)
+		imc, _, _ := ImmGetContext.Call(hWnd)
+		ImmSetCompositionWindow.Call(imc, uintptr(unsafe.Pointer(&comp)))
+		ImmReleaseContext.Call(hWnd, imc)
+		return 0
 	}
 	code, _, _ := DefWindowProc.Call(hWnd, uintptr(msg), wParam, lParam)
 	return code
@@ -383,10 +471,7 @@ func RegisterWindowClass() {
 	class.HInstance, _, _ = GetModuleHandle.Call(0)
 	class.LpszClassName = utf16PtrFromString(className)
 	class.LpfnWndProc = syscall.NewCallback(windowMsgProc)
-	code, _, err := RegisterClassEx.Call(uintptr(unsafe.Pointer(&class)))
-	if code == 0 {
-		panic(err)
-	}
+	RegisterClassEx.Call(uintptr(unsafe.Pointer(&class)))
 }
 
 func main() {
@@ -396,6 +481,7 @@ func main() {
 		uintptr(unsafe.Pointer(utf16PtrFromString("simple"))),
 		uintptr(WS_OVERLAPPEDWINDOW),
 		100, 100, 400, 300, 0, 0, appInstance, uintptr(unsafe.Pointer(nil)))
+	wkeLoadURL.Call(userdata[hWnd], uintptr(utf8To("https://www.baidu.com")))
 	ShowWindow.Call(hWnd, uintptr(SW_SHOW))
 	UpdateWindow.Call(hWnd)
 	msg := struct {
@@ -407,8 +493,7 @@ func main() {
 		Pt      struct{ X, Y int32 }
 	}{}
 	for {
-		code, _, _ := GetMessage.Call(uintptr(unsafe.Pointer(&msg)), 0, 0, 0)
-		if code != 0 {
+		if code, _, _ := GetMessage.Call(uintptr(unsafe.Pointer(&msg)), 0, 0, 0); code != 0 {
 			TranslateMessage.Call(uintptr(unsafe.Pointer(&msg)))
 			DispatchMessage.Call(uintptr(unsafe.Pointer(&msg)))
 		} else {
