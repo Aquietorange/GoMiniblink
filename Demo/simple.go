@@ -70,11 +70,12 @@ var (
 	wkeOnLoadUrlBegin      *windows.LazyProc
 	wkeFireWindowsMessage  *windows.LazyProc
 	wkeGetCaretRect        *windows.LazyProc
+	wkeGetCaretRect2       *windows.LazyProc
 
-	appInstance          uintptr
-	className            string
-	userdata             map[uintptr]uintptr
-	refOnPaintBitUpdated uintptr
+	is64        bool
+	appInstance uintptr
+	className   string
+	userdata    map[uintptr]uintptr
 )
 
 const (
@@ -136,12 +137,16 @@ const (
 )
 
 func init() {
-	//is64 := unsafe.Sizeof(uintptr(0)) == 8
+	is64 = unsafe.Sizeof(uintptr(0)) == 8
 	gdi32Lib = windows.NewLazySystemDLL("gdi32.dll")
 	user32Lib = windows.NewLazySystemDLL("user32.dll")
 	imm32Lib = windows.NewLazySystemDLL("imm32.dll")
 	kernel32Lib = windows.NewLazySystemDLL("kernel32.dll")
-	wkeLib = windows.NewLazyDLL("miniblink_x64.dll")
+	if is64 {
+		wkeLib = windows.NewLazyDLL("miniblink_x64.dll")
+	} else {
+		wkeLib = windows.NewLazyDLL("miniblink_x86.dll")
+	}
 
 	GetModuleHandle = kernel32Lib.NewProc("GetModuleHandleW")
 	RegisterClassEx = user32Lib.NewProc("RegisterClassExW")
@@ -197,6 +202,7 @@ func init() {
 	wkeOnLoadUrlBegin = wkeLib.NewProc("wkeOnLoadUrlBegin")
 	wkeFireWindowsMessage = wkeLib.NewProc("wkeFireWindowsMessage")
 	wkeGetCaretRect = wkeLib.NewProc("wkeGetCaretRect")
+	wkeGetCaretRect2 = wkeLib.NewProc("wkeGetCaretRect2")
 
 	code, _, err := wkeInitialize.Call()
 	if code == 0 {
@@ -274,8 +280,8 @@ func getSize(hWnd uintptr) (w, h int) {
 }
 
 func utf8To(str string) unsafe.Pointer {
-	ptr := []byte(str)
-	return unsafe.Pointer(&ptr[0])
+	buf := append([]byte(str), 0)
+	return unsafe.Pointer(&buf[0])
 }
 
 func toUtf8(ptr uintptr) string {
@@ -304,9 +310,8 @@ func initWke(hWnd uintptr) {
 	wke, _, _ := wkeCreateWebView.Call()
 	userdata[hWnd] = wke
 	wkeSetHandle.Call(wke, hWnd)
-	refOnPaintBitUpdated = syscall.NewCallback(onPaintBitUpdated)
-	wkeOnPaintBitUpdated.Call(wke, refOnPaintBitUpdated, hWnd)
-	wkeOnLoadUrlBegin.Call(wke, syscall.NewCallback(func(wke, param, utf8Url, job uintptr) uintptr {
+	wkeOnPaintBitUpdated.Call(wke, syscall.NewCallbackCDecl(onPaintBitUpdated), hWnd)
+	wkeOnLoadUrlBegin.Call(wke, syscall.NewCallbackCDecl(func(wke, param, utf8Url, job uintptr) uintptr {
 		return 0
 	}), hWnd)
 	w, h := getSize(hWnd)
@@ -349,9 +354,9 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 	case WM_CLOSE:
 		DestroyWindow.Call(hWnd)
 	case WM_SETCURSOR:
-		wke := userdata[hWnd]
-		r, _, _ := wkeFireWindowsMessage.Call(wke, hWnd, uintptr(msg), 0, 0, 0)
-		if r != 0 {
+		r, _, _ := wkeFireWindowsMessage.Call(userdata[hWnd], hWnd, uintptr(msg), wParam, lParam, 0)
+		c := byte(r)
+		if c != 0 {
 			return 0
 		}
 	case WM_SETFOCUS:
@@ -433,9 +438,9 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		wkeFireKeyPressEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
 	case WM_IME_STARTCOMPOSITION:
 		lp := struct {
-			x, y int32
+			x, y, w, h int32
 		}{}
-		GetCaretPos.Call(uintptr(unsafe.Pointer(&lp)))
+		wkeGetCaretRect2.Call(userdata[hWnd], uintptr(unsafe.Pointer(&lp)))
 		fmt.Println(lp)
 		comp := struct {
 			style, x, y, l, t, r, b int32
@@ -470,7 +475,7 @@ func RegisterWindowClass() {
 	class.Style = CS_VREDRAW | CS_HREDRAW
 	class.HInstance, _, _ = GetModuleHandle.Call(0)
 	class.LpszClassName = utf16PtrFromString(className)
-	class.LpfnWndProc = syscall.NewCallback(windowMsgProc)
+	class.LpfnWndProc = syscall.NewCallbackCDecl(windowMsgProc)
 	RegisterClassEx.Call(uintptr(unsafe.Pointer(&class)))
 }
 
