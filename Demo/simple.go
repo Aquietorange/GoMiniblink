@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"golang.org/x/sys/windows"
 	"image"
 	"image/draw"
@@ -26,7 +25,6 @@ var (
 	TranslateMessage        *windows.LazyProc
 	DispatchMessage         *windows.LazyProc
 	DefWindowProc           *windows.LazyProc
-	CallWindowProc          *windows.LazyProc
 	DestroyWindow           *windows.LazyProc
 	PostQuitMessage         *windows.LazyProc
 	CreateDIBSection        *windows.LazyProc
@@ -41,14 +39,11 @@ var (
 	BeginPaint              *windows.LazyProc
 	EndPaint                *windows.LazyProc
 	GetKeyState             *windows.LazyProc
-	LoadCursor              *windows.LazyProc
-	SetCursor               *windows.LazyProc
-	GetCaretPos             *windows.LazyProc
-	SetCapture              *windows.LazyProc
-	ReleaseCapture          *windows.LazyProc
 	ImmGetContext           *windows.LazyProc
 	ImmSetCompositionWindow *windows.LazyProc
 	ImmReleaseContext       *windows.LazyProc
+	SetCapture              *windows.LazyProc
+	ReleaseCapture          *windows.LazyProc
 
 	wkeInitialize          *windows.LazyProc
 	wkeCreateWebView       *windows.LazyProc
@@ -62,14 +57,12 @@ var (
 	wkeFireKeyPressEvent   *windows.LazyProc
 	wkeFireKeyUpEvent      *windows.LazyProc
 	wkeFireKeyDownEvent    *windows.LazyProc
-	wkeGetCursorInfoType   *windows.LazyProc
 	wkeFireMouseWheelEvent *windows.LazyProc
 	wkeFireMouseEvent      *windows.LazyProc
 	wkeGetHeight           *windows.LazyProc
 	wkeGetWidth            *windows.LazyProc
 	wkeOnLoadUrlBegin      *windows.LazyProc
 	wkeFireWindowsMessage  *windows.LazyProc
-	wkeGetCaretRect        *windows.LazyProc
 	wkeGetCaretRect2       *windows.LazyProc
 
 	is64        bool
@@ -117,11 +110,6 @@ const (
 	MK_RBUTTON              = 0x0002
 	VK_SHIFT                = 16
 	VK_CONTROL              = 17
-	IDC_IBEAM               = 32513
-	IDC_ARROW               = 32512
-	IDC_HAND                = 32649
-	IDC_SIZEWE              = 32644
-	IDC_SIZENS              = 32645
 	KF_REPEAT               = 16384
 	KF_EXTENDED             = 256
 	CFS_POINT               = 2
@@ -157,7 +145,6 @@ func init() {
 	TranslateMessage = user32Lib.NewProc("TranslateMessage")
 	DispatchMessage = user32Lib.NewProc("DispatchMessageW")
 	DefWindowProc = user32Lib.NewProc("DefWindowProcW")
-	CallWindowProc = user32Lib.NewProc("CallWindowProcW")
 	DestroyWindow = user32Lib.NewProc("DestroyWindow")
 	PostQuitMessage = user32Lib.NewProc("PostQuitMessage")
 	CreateDIBSection = gdi32Lib.NewProc("CreateDIBSection")
@@ -172,9 +159,6 @@ func init() {
 	BeginPaint = user32Lib.NewProc("BeginPaint")
 	EndPaint = user32Lib.NewProc("EndPaint")
 	GetKeyState = user32Lib.NewProc("GetKeyState")
-	LoadCursor = user32Lib.NewProc("LoadCursorW")
-	SetCursor = user32Lib.NewProc("SetCursor")
-	GetCaretPos = user32Lib.NewProc("GetCaretPos")
 	ImmGetContext = imm32Lib.NewProc("ImmGetContext")
 	ImmSetCompositionWindow = imm32Lib.NewProc("ImmSetCompositionWindow")
 	ImmReleaseContext = imm32Lib.NewProc("ImmReleaseContext")
@@ -185,7 +169,6 @@ func init() {
 	wkeFireKeyPressEvent = wkeLib.NewProc("wkeFireKeyPressEvent")
 	wkeFireKeyUpEvent = wkeLib.NewProc("wkeFireKeyUpEvent")
 	wkeFireKeyDownEvent = wkeLib.NewProc("wkeFireKeyDownEvent")
-	wkeGetCursorInfoType = wkeLib.NewProc("wkeGetCursorInfoType")
 	wkeFireMouseWheelEvent = wkeLib.NewProc("wkeFireMouseWheelEvent")
 	wkeFireMouseEvent = wkeLib.NewProc("wkeFireMouseEvent")
 	wkeGetHeight = wkeLib.NewProc("wkeGetHeight")
@@ -201,7 +184,6 @@ func init() {
 	wkeKillFocus = wkeLib.NewProc("wkeKillFocus")
 	wkeOnLoadUrlBegin = wkeLib.NewProc("wkeOnLoadUrlBegin")
 	wkeFireWindowsMessage = wkeLib.NewProc("wkeFireWindowsMessage")
-	wkeGetCaretRect = wkeLib.NewProc("wkeGetCaretRect")
 	wkeGetCaretRect2 = wkeLib.NewProc("wkeGetCaretRect2")
 
 	code, _, err := wkeInitialize.Call()
@@ -251,7 +233,7 @@ func drawToDc(dc uintptr, src *image.RGBA, width, height, xDst, yDst int) {
 	DeleteObject.Call(bmp)
 }
 
-func onPaintBitUpdated(wke uintptr, param, bits uintptr, rect uintptr, width, height uint32) uintptr {
+func onPaintBitUpdated(wke uintptr, param, bits uintptr, rect uintptr, width, _ uint32) uintptr {
 	wh, _, _ := wkeGetHeight.Call(wke)
 	rx, ry := int(*(*uint32)(unsafe.Pointer(rect))), int(*(*uint32)(unsafe.Pointer(rect + 4)))
 	w, h := int(*(*uint32)(unsafe.Pointer(rect + 8))), int(*(*uint32)(unsafe.Pointer(rect + 12)))
@@ -308,27 +290,29 @@ func toHp(value uintptr) int32 {
 
 func initWke(hWnd uintptr) {
 	wke, _, _ := wkeCreateWebView.Call()
-	userdata[hWnd] = wke
 	wkeSetHandle.Call(wke, hWnd)
 	wkeOnPaintBitUpdated.Call(wke, syscall.NewCallbackCDecl(onPaintBitUpdated), hWnd)
 	wkeOnLoadUrlBegin.Call(wke, syscall.NewCallbackCDecl(func(wke, param, utf8Url, job uintptr) uintptr {
-		return 0
+		//println(toUtf8(utf8Url))
+		return uintptr(byte(0))
 	}), hWnd)
 	w, h := getSize(hWnd)
 	wkeResize.Call(wke, uintptr(int32(w)), uintptr(int32(h)))
+	userdata[hWnd] = wke
 }
 
 func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uintptr {
 	switch msg {
 	case WM_CREATE:
 		initWke(hWnd)
+	case WM_CLOSE:
+		DestroyWindow.Call(hWnd)
 	case WM_DESTROY:
 		PostQuitMessage.Call(0)
 	case WM_SIZE:
 		w := toLp(lParam)
 		h := toHp(lParam)
-		wke := userdata[hWnd]
-		wkeResize.Call(wke, uintptr(w), uintptr(h))
+		wkeResize.Call(userdata[hWnd], uintptr(w), uintptr(h))
 	case WM_PAINT:
 		pt := struct {
 			Hdc         uintptr
@@ -351,9 +335,8 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		}
 		EndPaint.Call(hWnd, uintptr(unsafe.Pointer(&pt)))
 		return 0
-	case WM_CLOSE:
-		DestroyWindow.Call(hWnd)
 	case WM_SETCURSOR:
+		//todo 在从窗体右边进入时不能及时更新光标
 		r, _, _ := wkeFireWindowsMessage.Call(userdata[hWnd], hWnd, uintptr(msg), wParam, lParam, 0)
 		c := byte(r)
 		if c != 0 {
@@ -361,8 +344,10 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		}
 	case WM_SETFOCUS:
 		wkeSetFocus.Call(userdata[hWnd])
+		return 0
 	case WM_KILLFOCUS:
 		wkeKillFocus.Call(userdata[hWnd])
+		return 0
 	case WM_MOUSEMOVE,
 		WM_LBUTTONUP, WM_LBUTTONDOWN, WM_LBUTTONDBLCLK,
 		WM_RBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONDBLCLK,
@@ -370,8 +355,13 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		WM_MOUSEWHEEL:
 		x, y, delta := toLp(lParam), toHp(lParam), 0
 		wp := int(wParam)
-		if msg == WM_MOUSEWHEEL {
+		switch msg {
+		case WM_MOUSEWHEEL:
 			wp, delta = int(toLp(wParam)), int(toHp(wParam))
+		case WM_LBUTTONDOWN, WM_MBUTTONDOWN, WM_RBUTTONDOWN:
+			SetCapture.Call(hWnd)
+		case WM_LBUTTONUP, WM_MBUTTONUP, WM_RBUTTONUP:
+			ReleaseCapture.Call()
 		}
 		flags := 0
 		if wp&MK_LBUTTON != 0 {
@@ -392,12 +382,15 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 			flags |= WKE_CONTROL
 		}
 		wke := userdata[hWnd]
+		var r uintptr
 		if msg == WM_MOUSEWHEEL {
-			wkeFireMouseWheelEvent.Call(wke, uintptr(x), uintptr(y), uintptr(delta), uintptr(flags))
+			r, _, _ = wkeFireMouseWheelEvent.Call(wke, uintptr(x), uintptr(y), uintptr(delta), uintptr(flags))
 		} else {
-			wkeFireMouseEvent.Call(wke, uintptr(msg), uintptr(x), uintptr(y), uintptr(flags))
+			r, _, _ = wkeFireMouseEvent.Call(wke, uintptr(msg), uintptr(x), uintptr(y), uintptr(flags))
 		}
-		return 0
+		if byte(r) != 0 {
+			return 0
+		}
 	case WM_SYSKEYDOWN, WM_KEYDOWN:
 		flags := 0
 		lp := int32(lParam)
@@ -411,7 +404,10 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		if msg == WM_SYSKEYDOWN {
 			isSys = 1
 		}
-		wkeFireKeyDownEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		r, _, _ := wkeFireKeyDownEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		if byte(r) != 0 {
+			return 0
+		}
 	case WM_SYSKEYUP, WM_KEYUP:
 		flags := 0
 		lp := int32(lParam)
@@ -425,7 +421,10 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		if msg == WM_SYSKEYDOWN {
 			isSys = 1
 		}
-		wkeFireKeyUpEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		r, _, _ := wkeFireKeyUpEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		if byte(r) != 0 {
+			return 0
+		}
 	case WM_SYSCHAR, WM_CHAR:
 		flags := WKE_REPEAT
 		if int32(lParam)>>16&KF_EXTENDED != 0 {
@@ -435,22 +434,21 @@ func windowMsgProc(hWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uin
 		if msg == WM_SYSKEYDOWN {
 			isSys = 1
 		}
-		wkeFireKeyPressEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		r, _, _ := wkeFireKeyPressEvent.Call(userdata[hWnd], wParam, uintptr(flags), uintptr(isSys))
+		if byte(r) != 0 {
+			return 0
+		}
 	case WM_IME_STARTCOMPOSITION:
-		lp := struct {
-			x, y, w, h int32
-		}{}
-		wkeGetCaretRect2.Call(userdata[hWnd], uintptr(unsafe.Pointer(&lp)))
-		fmt.Println(lp)
+		rect, _, _ := wkeGetCaretRect2.Call(userdata[hWnd])
+		rx, ry := int(*(*uint32)(unsafe.Pointer(rect))), int(*(*uint32)(unsafe.Pointer(rect + 4)))
 		comp := struct {
 			style, x, y, l, t, r, b int32
 		}{}
 		comp.style = CFS_POINT | CFS_FORCE_POSITION
-		comp.x, comp.y = int32(0), int32(0)
+		comp.x, comp.y = int32(rx), int32(ry)
 		imc, _, _ := ImmGetContext.Call(hWnd)
 		ImmSetCompositionWindow.Call(imc, uintptr(unsafe.Pointer(&comp)))
 		ImmReleaseContext.Call(hWnd, imc)
-		return 0
 	}
 	code, _, _ := DefWindowProc.Call(hWnd, uintptr(msg), wParam, lParam)
 	return code
