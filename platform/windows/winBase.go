@@ -3,9 +3,9 @@ package windows
 import (
 	"image"
 	"image/draw"
-	mb "qq.2564874169/goMiniblink"
-	plat "qq.2564874169/goMiniblink/platform"
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	mb "qq2564874169/goMiniblink"
+	plat "qq2564874169/goMiniblink/platform"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 	"time"
 	"unsafe"
 )

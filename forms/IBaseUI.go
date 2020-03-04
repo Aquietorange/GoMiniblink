@@ -1,6 +1,6 @@
 package forms
 
-import "qq.2564874169/goMiniblink"
+import "qq2564874169/goMiniblink"
 
 type IBaseUI interface {
 	GetHandle() uintptr

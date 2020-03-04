@@ -3,10 +3,10 @@ package free
 import (
 	"image"
 	"image/draw"
-	mb "qq.2564874169/goMiniblink"
-	plat "qq.2564874169/goMiniblink/platform"
-	core "qq.2564874169/goMiniblink/platform/miniblink"
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	mb "qq2564874169/goMiniblink"
+	plat "qq2564874169/goMiniblink/platform"
+	core "qq2564874169/goMiniblink/platform/miniblink"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 	"unsafe"
 )
 

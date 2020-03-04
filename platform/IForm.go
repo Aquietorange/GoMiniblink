@@ -1,6 +1,6 @@
 package platform
 
-import mb "qq.2564874169/goMiniblink"
+import mb "qq2564874169/goMiniblink"
 
 type IForm interface {
 	IControls

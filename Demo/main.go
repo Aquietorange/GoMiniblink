@@ -1,9 +1,9 @@
 package main
 
 import (
-	"qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/forms"
-	"qq.2564874169/goMiniblink/platform/windows"
+	"qq2564874169/goMiniblink"
+	"qq2564874169/goMiniblink/forms"
+	"qq2564874169/goMiniblink/platform/windows"
 )
 
 func main() {

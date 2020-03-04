@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/goMiniblink"
-	p "qq.2564874169/goMiniblink/platform"
+	mb "qq2564874169/goMiniblink"
+	p "qq2564874169/goMiniblink/platform"
 )
 
 type IChild interface {

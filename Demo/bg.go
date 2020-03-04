@@ -1,7 +1,7 @@
 package main
 
 import (
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 	"syscall"
 	"unsafe"
 )

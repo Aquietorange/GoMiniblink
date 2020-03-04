@@ -2,12 +2,12 @@ package windows
 
 import (
 	"fmt"
-	mb "qq.2564874169/goMiniblink"
-	plat "qq.2564874169/goMiniblink/platform"
-	core "qq.2564874169/goMiniblink/platform/miniblink"
-	"qq.2564874169/goMiniblink/platform/miniblink/free"
-	"qq.2564874169/goMiniblink/platform/miniblink/vip"
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	mb "qq2564874169/goMiniblink"
+	plat "qq2564874169/goMiniblink/platform"
+	core "qq2564874169/goMiniblink/platform/miniblink"
+	"qq2564874169/goMiniblink/platform/miniblink/free"
+	"qq2564874169/goMiniblink/platform/miniblink/vip"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 )
 
 type winMiniblink struct {

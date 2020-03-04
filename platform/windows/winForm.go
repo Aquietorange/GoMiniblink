@@ -1,9 +1,9 @@
 package windows
 
 import (
-	mb "qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform"
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	mb "qq2564874169/goMiniblink"
+	"qq2564874169/goMiniblink/platform"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 	"syscall"
 	"unsafe"
 )

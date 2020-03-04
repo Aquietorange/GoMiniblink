@@ -2,8 +2,8 @@ package windows
 
 import (
 	"image"
-	"qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform/windows/win32"
+	"qq2564874169/goMiniblink"
+	"qq2564874169/goMiniblink/platform/windows/win32"
 	"unsafe"
 )
 

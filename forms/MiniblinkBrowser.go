@@ -1,8 +1,8 @@
 package forms
 
 import (
-	mb "qq.2564874169/goMiniblink"
-	"qq.2564874169/goMiniblink/platform"
+	mb "qq2564874169/goMiniblink"
+	"qq2564874169/goMiniblink/platform"
 )
 
 type MiniblinkBrowser struct {

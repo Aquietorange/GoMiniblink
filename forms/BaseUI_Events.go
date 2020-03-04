@@ -1,6 +1,6 @@
 package forms
 
-import mb "qq.2564874169/goMiniblink"
+import mb "qq2564874169/goMiniblink"
 
 func (_this *BaseUI) defOnKeyPress(e *mb.KeyPressEvArgs) {
 	for _, v := range _this.EvKeyPress {

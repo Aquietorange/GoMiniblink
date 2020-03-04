@@ -1,7 +1,7 @@
 package windows
 
 import (
-	plat "qq.2564874169/goMiniblink/platform"
+	plat "qq2564874169/goMiniblink/platform"
 )
 
 func (_this *winBase) SetOnFocus(proc plat.WindowFocusProc) plat.WindowFocusProc {
