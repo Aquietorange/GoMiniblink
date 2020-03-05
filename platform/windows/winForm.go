@@ -104,7 +104,7 @@ func (_this *winForm) Create() {
 			_this.app.hInstance,
 			_this.createParams,
 			_this.app.defOwner,
-			syscall.NewCallback(_this.app.defaultMsgProc),
+			syscall.NewCallbackCDecl(_this.app.defaultMsgProc),
 			unsafe.Pointer(&_this.idName))
 		win32.SetWindowText(_this.hWnd(), _this.initTitle)
 		win32.SetWindowPos(_this.hWnd(), 0,

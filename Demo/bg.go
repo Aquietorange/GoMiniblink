@@ -10,7 +10,7 @@ func main() {
 	className := "DemoClass"
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
-		LpfnWndProc:   syscall.NewCallback(defaultMsgProc),
+		LpfnWndProc:   syscall.NewCallbackCDecl(defaultMsgProc),
 		HInstance:     win32.GetModuleHandle(nil),
 		LpszClassName: sto16(className),
 	}

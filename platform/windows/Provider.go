@@ -22,12 +22,10 @@ type Provider struct {
 	defOwner   win32.HWND
 	defIcon    win32.HICON
 	msClick    *mouseClickWorker
-	keysIsDown map[mb.Keys]bool
 	defBgColor int
 }
 
 func (_this *Provider) Init() *Provider {
-	_this.keysIsDown = make(map[mb.Keys]bool)
 	_this.handleWnds = make(map[win32.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = mb.NewUUID()
@@ -36,12 +34,26 @@ func (_this *Provider) Init() *Provider {
 	return _this
 }
 
-func (_this *Provider) KeyIsDown(key mb.Keys) bool {
-	return _this.keysIsDown[key]
+func (_this *Provider) ModifierKeys() map[mb.Keys]bool {
+	keys := make(map[mb.Keys]bool)
+	cs := win32.GetKeyState(int32(win32.VK_CONTROL))
+	ss := win32.GetKeyState(int32(win32.VK_SHIFT))
+	as := win32.GetKeyState(int32(win32.VK_MENU))
+	keys[mb.Keys_Ctrl] = cs < 0
+	keys[mb.Keys_Shift] = ss < 0
+	keys[mb.Keys_Alt] = as < 0
+	return keys
 }
 
-func (_this *Provider) MouseIsDown(button mb.MouseButtons) bool {
-	return _this.msClick.down_key == button
+func (_this *Provider) MouseIsDown() map[mb.MouseButtons]bool {
+	keys := make(map[mb.MouseButtons]bool)
+	ls := win32.GetKeyState(int32(win32.VK_LBUTTON))
+	rs := win32.GetKeyState(int32(win32.VK_RBUTTON))
+	ms := win32.GetKeyState(int32(win32.VK_MBUTTON))
+	keys[mb.MouseButtons_Left] = ls < 0
+	keys[mb.MouseButtons_Right] = rs < 0
+	keys[mb.MouseButtons_Middle] = ms < 0
+	return keys
 }
 
 func (_this *Provider) SetBgColor(color int) {
@@ -70,7 +82,7 @@ func (_this *Provider) SetIcon(file string) {
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
-		LpfnWndProc:   syscall.NewCallback(_this.defaultMsgProc),
+		LpfnWndProc:   syscall.NewCallbackCDecl(_this.defaultMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
 		HIcon:         _this.defIcon,
@@ -123,7 +135,6 @@ func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintpt
 	} else if w, ok := _this.handleWnds[hWnd]; ok {
 		isdlg = w.isDialog()
 		if w.getWindowMsgProc() != nil {
-			_this.logKeyDown(msg, wParam)
 			ret := w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
 			if ret != 0 {
 				return ret
@@ -163,17 +174,6 @@ func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, lParam uintpt
 		}
 	}
 	return 0
-}
-
-func (_this *Provider) logKeyDown(msg uint32, wParam uintptr) {
-	switch msg {
-	case win32.WM_KEYDOWN, win32.WM_SYSKEYDOWN:
-		key := vkToKey(int(wParam))
-		_this.keysIsDown[key] = true
-	case win32.WM_KEYUP, win32.WM_SYSKEYUP:
-		key := vkToKey(int(wParam))
-		delete(_this.keysIsDown, key)
-	}
 }
 
 func (_this *Provider) Exit(code int) {

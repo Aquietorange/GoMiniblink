@@ -84,10 +84,11 @@ func (_this *Core) GetCursor() mb.CursorType {
 
 func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButtons, delta, x, y int) {
 	flags := wkeMouseFlags_None
-	if app.KeyIsDown(mb.Keys_Ctrl) {
+	keys := app.ModifierKeys()
+	if s, ok := keys[mb.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
-	if app.KeyIsDown(mb.Keys_Shift) {
+	if s, ok := keys[mb.Keys_Shift]; ok && s {
 		flags |= wkeMouseFlags_SHIFT
 	}
 	if button&mb.MouseButtons_Left != 0 {
@@ -104,12 +105,6 @@ func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButton
 
 func (_this *Core) FireMouseMoveEvent(app plat.IProvider, button mb.MouseButtons, x, y int) {
 	flags := wkeMouseFlags_None
-	if app.KeyIsDown(mb.Keys_Ctrl) {
-		flags |= wkeMouseFlags_CONTROL
-	}
-	if app.KeyIsDown(mb.Keys_Shift) {
-		flags |= wkeMouseFlags_SHIFT
-	}
 	if button&mb.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
 	}
@@ -121,10 +116,11 @@ func (_this *Core) FireMouseMoveEvent(app plat.IProvider, button mb.MouseButtons
 
 func (_this *Core) FireMouseClickEvent(app plat.IProvider, button mb.MouseButtons, isDown, isDb bool, x, y int) {
 	flags := wkeMouseFlags_None
-	if app.KeyIsDown(mb.Keys_Ctrl) {
+	keys := app.ModifierKeys()
+	if s, ok := keys[mb.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
-	if app.KeyIsDown(mb.Keys_Shift) {
+	if s, ok := keys[mb.Keys_Shift]; ok && s {
 		flags |= wkeMouseFlags_SHIFT
 	}
 	msg := 0

@@ -176,14 +176,14 @@ func wkeGetWidth(wke wkeHandle) uint32 {
 }
 
 func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr) {
-	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallback(callback), param)
+	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 	if r == 0 && showError {
 		fmt.Println("wkeOnLoadUrlBegin", err)
 	}
 }
 
 func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr) {
-	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallback(callback), param)
+	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 	if r == 0 && showError {
 		fmt.Println("wkeNetOnResponse", err)
 	}
@@ -205,7 +205,7 @@ func wkeLoadURL(wke wkeHandle, url string) {
 }
 
 func wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param uintptr) {
-	r, _, err := _wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallback(callback), param)
+	r, _, err := _wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 	if r == 0 && showError {
 		fmt.Println("wkeOnPaintBitUpdated", err)
 	}

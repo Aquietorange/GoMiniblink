@@ -35,6 +35,7 @@ type winBase struct {
 	onSetCursor           plat.WindowSetCursorProc
 	onImeStartComposition plat.WindowImeStartCompositionProc
 	onFocus               plat.WindowFocusProc
+	onLostFocus           plat.WindowLostFocusProc
 
 	bgColor int
 }
@@ -87,6 +88,10 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 		return uintptr(ret)
 	}
 	switch msg {
+	case win32.WM_KILLFOCUS:
+		if _this.onLostFocus != nil && _this.onLostFocus() {
+			ret = 1
+		}
 	case win32.WM_SETFOCUS:
 		if _this.onFocus != nil && _this.onFocus() {
 			ret = 1
@@ -128,10 +133,9 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 		key := vkToKey(int(wParam))
 		if _this.onKeyDown != nil && key != mb.Keys_Error {
 			e := mb.KeyEvArgs{
-				Key:        key,
-				Value:      wParam,
-				KeysIsDown: _this.app.keysIsDown,
-				IsSys:      msg == win32.WM_SYSKEYDOWN,
+				Key:   key,
+				Value: wParam,
+				IsSys: msg == win32.WM_SYSKEYDOWN,
 			}
 			if _this.onKeyDown(&e) || e.IsHandle {
 				ret = 1
@@ -141,10 +145,9 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 		key := vkToKey(int(wParam))
 		if _this.onKeyUp != nil && key != mb.Keys_Error {
 			e := mb.KeyEvArgs{
-				Key:        key,
-				Value:      wParam,
-				KeysIsDown: _this.app.keysIsDown,
-				IsSys:      msg == win32.WM_SYSKEYUP,
+				Key:   key,
+				Value: wParam,
+				IsSys: msg == win32.WM_SYSKEYUP,
 			}
 			if _this.onKeyUp(&e) || e.IsHandle {
 				ret = 1
@@ -153,10 +156,9 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 	case win32.WM_SYSCHAR, win32.WM_CHAR:
 		if _this.onKeyPress != nil {
 			e := mb.KeyPressEvArgs{
-				KeyChar:    string(wParam),
-				Value:      wParam,
-				KeysIsDown: _this.app.keysIsDown,
-				IsSys:      msg == win32.WM_SYSCHAR,
+				KeyChar: string(wParam),
+				Value:   wParam,
+				IsSys:   msg == win32.WM_SYSCHAR,
 			}
 			if _this.onKeyPress(&e) || e.IsHandle {
 				ret = 1
