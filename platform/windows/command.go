@@ -8,5 +8,4 @@ const (
 type InvokeContext struct {
 	fn    func(state interface{})
 	state interface{}
-	key   string
 }

@@ -6,6 +6,7 @@ import (
 	mb "qq2564874169/goMiniblink"
 	plat "qq2564874169/goMiniblink/platform"
 	"qq2564874169/goMiniblink/platform/windows/win32"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -16,7 +17,7 @@ type winBase struct {
 	handle       win32.HWND
 	isCreated    bool
 	thisIsDialog bool
-	invokeMap    map[string]*InvokeContext
+	invokeMap    sync.Map
 	onWndProc    windowsMsgProc
 
 	onCreate              plat.WindowCreateProc
@@ -44,7 +45,6 @@ func (_this *winBase) init(provider *Provider, id string) *winBase {
 	_this.app = provider
 	_this.idName = id
 	_this.SetBgColor(provider.defBgColor)
-	_this.invokeMap = make(map[string]*InvokeContext)
 	return _this
 }
 
@@ -296,10 +296,10 @@ func (_this *winBase) Invoke(fn func(state interface{}), state interface{}) {
 	ctx := InvokeContext{
 		fn:    fn,
 		state: state,
-		key:   mb.NewUUID(),
 	}
-	_this.invokeMap[ctx.key] = &ctx
-	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(cmd_invoke), uintptr(unsafe.Pointer(&ctx)))
+	ptr := uintptr(unsafe.Pointer(&ctx))
+	_this.invokeMap.Store(ptr, &ctx)
+	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(cmd_invoke), ptr)
 }
 
 func (_this *winBase) execCmd(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
@@ -309,11 +309,13 @@ func (_this *winBase) execCmd(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 	switch int(wParam) {
 	case cmd_invoke:
 		ctx := *((*InvokeContext)(unsafe.Pointer(lParam)))
-		delete(_this.invokeMap, ctx.key)
 		ctx.fn(ctx.state)
+		_this.invokeMap.Delete(lParam)
 	case cmd_mouse_click:
 		e := *((*mb.MouseEvArgs)(unsafe.Pointer(lParam)))
 		_this.onMouseClick(e)
+	default:
+		return 0
 	}
 	return 1
 }
