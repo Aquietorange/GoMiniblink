@@ -165,19 +165,28 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 		}
 	case win32.WM_ERASEBKGND:
+		//lbp := win32.LOGBRUSH{
+		//	LbStyle: win32.BS_SOLID,
+		//	LbColor: win32.COLORREF(_this.bgColor),
+		//}
+		//b := win32.CreateBrushIndirect(&lbp)
+		//rect := new(win32.RECT)
+		//win32.GetClientRect(hWnd, rect)
+		//win32.FillRect(win32.HDC(wParam), rect, b)
+		//win32.DeleteObject(win32.HGDIOBJ(b))
 		return 1
 	case win32.WM_PAINT:
-		pt := new(win32.PAINTSTRUCT)
-		hdc := win32.BeginPaint(hWnd, pt)
+		ps := new(win32.PAINTSTRUCT)
+		hdc := win32.BeginPaint(hWnd, ps)
 		e := mb.PaintEvArgs{
 			Clip: mb.Bound{
 				Point: mb.Point{
-					X: int(pt.RcPaint.Left),
-					Y: int(pt.RcPaint.Top),
+					X: int(ps.RcPaint.Left),
+					Y: int(ps.RcPaint.Top),
 				},
 				Rect: mb.Rect{
-					Width:  int(pt.RcPaint.Right - pt.RcPaint.Left),
-					Height: int(pt.RcPaint.Bottom - pt.RcPaint.Top),
+					Width:  int(ps.RcPaint.Right - ps.RcPaint.Left),
+					Height: int(ps.RcPaint.Bottom - ps.RcPaint.Top),
 				},
 			},
 		}
@@ -195,7 +204,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 			e.Graphics.Close()
 		}
-		win32.EndPaint(hWnd, pt)
+		win32.EndPaint(hWnd, ps)
 	case win32.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {
 			e := mb.MouseEvArgs{
@@ -330,4 +339,8 @@ func (_this *winBase) Id() string {
 
 func (_this *winBase) id() string {
 	return _this.Id()
+}
+
+func (_this *winBase) GetProvider() plat.IProvider {
+	return _this.app
 }

@@ -24,6 +24,7 @@ type IWindow interface {
 	SetOnFocus(proc WindowFocusProc) WindowFocusProc
 	SetOnLostFocus(proc WindowLostFocusProc) WindowLostFocusProc
 
+	GetProvider() IProvider
 	Invoke(fn func(state interface{}), state interface{})
 	SetSize(w int, h int)
 	SetLocation(x int, y int)

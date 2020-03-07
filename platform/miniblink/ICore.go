@@ -3,7 +3,6 @@ package miniblink
 import (
 	"image"
 	mb "qq2564874169/goMiniblink"
-	plat "qq2564874169/goMiniblink/platform"
 )
 
 type ICore interface {
@@ -11,12 +10,12 @@ type ICore interface {
 
 	SetFocus()
 	GetCaretPos() mb.Point
-	FireKeyPressEvent(charCode int, isRepeat, isExtend, isSys bool)
-	FireKeyEvent(keyCode uintptr, isRepeat, isExtend, isDown, isSys bool)
 	GetCursor() mb.CursorType
-	FireMouseWheelEvent(provider plat.IProvider, button mb.MouseButtons, delta, x, y int)
-	FireMouseMoveEvent(provider plat.IProvider, button mb.MouseButtons, x, y int)
-	FireMouseClickEvent(provider plat.IProvider, button mb.MouseButtons, isDown, isDb bool, x, y int)
+	FireKeyPressEvent(charCode int, isSys bool) bool
+	FireKeyEvent(e mb.KeyEvArgs, isDown, isSys bool) bool
+	FireMouseWheelEvent(button mb.MouseButtons, delta, x, y int) bool
+	FireMouseMoveEvent(button mb.MouseButtons, x, y int) bool
+	FireMouseClickEvent(button mb.MouseButtons, isDown, isDb bool, x, y int) bool
 	GetImage(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)

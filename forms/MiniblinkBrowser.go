@@ -14,6 +14,7 @@ type MiniblinkBrowser struct {
 func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.impl = Provider.NewMiniblink()
 	_this.BaseControl.Init(_this.impl)
+	_this.BaseControl.SetBgColor(-1)
 	_this.EvResize["__syncResize"] = _this.mbOnResize
 	return _this
 }

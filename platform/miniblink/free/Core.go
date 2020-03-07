@@ -3,6 +3,7 @@ package free
 import (
 	"image"
 	"image/draw"
+	"math"
 	mb "qq2564874169/goMiniblink"
 	plat "qq2564874169/goMiniblink/platform"
 	core "qq2564874169/goMiniblink/platform/miniblink"
@@ -11,6 +12,7 @@ import (
 )
 
 type Core struct {
+	app   plat.IProvider
 	owner plat.IWindow
 	wke   wkeHandle
 
@@ -18,6 +20,7 @@ type Core struct {
 }
 
 func (_this *Core) Init(window plat.IWindow) *Core {
+	_this.app = window.GetProvider()
 	_this.owner = window
 	_this.wke = wkeCreateWebView()
 	if _this.wke == 0 {
@@ -33,36 +36,23 @@ func (_this *Core) SetFocus() {
 }
 
 func (_this *Core) GetCaretPos() mb.Point {
-	//rect := wkeGetCaretRect(_this.wke)
-	//return mb.Point{X: int(rect.x), Y: int(rect.y)}
-	var p win32.POINT
-	win32.GetCaretPos(&p)
-	return mb.Point{X: int(p.X), Y: int(p.Y)}
+	rect := wkeGetCaretRect(_this.wke)
+	return mb.Point{X: int(rect.x), Y: int(rect.y)}
 }
 
-func (_this *Core) FireKeyPressEvent(charCode int, isRepeat, isExtend, isSys bool) {
-	flags := 0
-	if isRepeat {
-		flags |= int(wkeKeyFlags_Repeat)
-	}
-	if isExtend {
-		flags |= int(wkeKeyFlags_Extend)
-	}
-	wkeFireKeyPressEvent(_this.wke, charCode, uint32(flags), isSys)
+func (_this *Core) FireKeyPressEvent(charCode int, isSys bool) bool {
+	return wkeFireKeyPressEvent(_this.wke, charCode, uint32(wkeKeyFlags_Repeat), isSys)
 }
 
-func (_this *Core) FireKeyEvent(keyCode uintptr, isRepeat, isExtend, isDown, isSys bool) {
-	flags := 0
-	if isRepeat {
-		flags |= int(wkeKeyFlags_Repeat)
-	}
-	if isExtend {
+func (_this *Core) FireKeyEvent(e mb.KeyEvArgs, isDown, isSys bool) bool {
+	flags := int(wkeKeyFlags_Repeat)
+	if isExtKey(e.Key) {
 		flags |= int(wkeKeyFlags_Extend)
 	}
 	if isDown {
-		wkeFireKeyDownEvent(_this.wke, keyCode, uint32(flags), isSys)
+		return wkeFireKeyDownEvent(_this.wke, e.Value, uint32(flags), isSys)
 	} else {
-		wkeFireKeyUpEvent(_this.wke, keyCode, uint32(flags), isSys)
+		return wkeFireKeyUpEvent(_this.wke, e.Value, uint32(flags), isSys)
 	}
 }
 
@@ -82,9 +72,9 @@ func (_this *Core) GetCursor() mb.CursorType {
 	}
 }
 
-func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButtons, delta, x, y int) {
+func (_this *Core) FireMouseWheelEvent(button mb.MouseButtons, delta, x, y int) bool {
 	flags := wkeMouseFlags_None
-	keys := app.ModifierKeys()
+	keys := _this.app.ModifierKeys()
 	if s, ok := keys[mb.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
@@ -100,10 +90,10 @@ func (_this *Core) FireMouseWheelEvent(app plat.IProvider, button mb.MouseButton
 	if button&mb.MouseButtons_Middle != 0 {
 		flags |= wkeMouseFlags_MBUTTON
 	}
-	wkeFireMouseWheelEvent(_this.wke, int32(x), int32(y), int32(delta), int32(flags))
+	return wkeFireMouseWheelEvent(_this.wke, int32(x), int32(y), int32(delta), int32(flags))
 }
 
-func (_this *Core) FireMouseMoveEvent(app plat.IProvider, button mb.MouseButtons, x, y int) {
+func (_this *Core) FireMouseMoveEvent(button mb.MouseButtons, x, y int) bool {
 	flags := wkeMouseFlags_None
 	if button&mb.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
@@ -111,12 +101,12 @@ func (_this *Core) FireMouseMoveEvent(app plat.IProvider, button mb.MouseButtons
 	if button&mb.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 	}
-	wkeFireMouseEvent(_this.wke, int32(win32.WM_MOUSEMOVE), int32(x), int32(y), int32(flags))
+	return wkeFireMouseEvent(_this.wke, int32(win32.WM_MOUSEMOVE), int32(x), int32(y), int32(flags))
 }
 
-func (_this *Core) FireMouseClickEvent(app plat.IProvider, button mb.MouseButtons, isDown, isDb bool, x, y int) {
+func (_this *Core) FireMouseClickEvent(button mb.MouseButtons, isDown, isDb bool, x, y int) bool {
 	flags := wkeMouseFlags_None
-	keys := app.ModifierKeys()
+	keys := _this.app.ModifierKeys()
 	if s, ok := keys[mb.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
@@ -155,8 +145,9 @@ func (_this *Core) FireMouseClickEvent(app plat.IProvider, button mb.MouseButton
 		}
 	}
 	if msg != 0 {
-		wkeFireMouseEvent(_this.wke, int32(msg), int32(x), int32(y), int32(flags))
+		return wkeFireMouseEvent(_this.wke, int32(msg), int32(x), int32(y), int32(flags))
 	}
+	return false
 }
 
 func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
@@ -170,10 +161,6 @@ func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
 }
 
 func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
-	if width == 0 || height == 0 {
-		return 0
-	}
-	w, h := int(rect.w), int(rect.h)
 	e := core.PaintUpdateArgs{
 		Wke: uintptr(wke),
 		Clip: mb.Bound{
@@ -182,8 +169,8 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 				Y: int(rect.y),
 			},
 			Rect: mb.Rect{
-				Width:  w,
-				Height: h,
+				Width:  int(math.Min(float64(rect.w), float64(width))),
+				Height: int(math.Min(float64(rect.h), float64(wkeGetHeight(wke)))),
 			},
 		},
 		Size: mb.Rect{
@@ -192,11 +179,11 @@ func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *w
 		},
 		Param: param,
 	}
-	bmp := image.NewRGBA(image.Rect(0, 0, w, h))
+	bmp := image.NewRGBA(image.Rect(0, 0, e.Clip.Width, e.Clip.Height))
 	stride := e.Size.Width * 4
 	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
-	for y := 0; y < h; y++ {
-		for x := 0; x < w*4; x++ {
+	for y := 0; y < e.Clip.Height; y++ {
+		for x := 0; x < e.Clip.Width*4; x++ {
 			sp := bmp.Stride*y + x
 			dp := stride*(e.Clip.Y+y) + e.Clip.X*4 + x
 			bmp.Pix[sp] = pixs[dp]
@@ -217,4 +204,14 @@ func (_this *Core) SetOnPaint(callback core.PaintCallback) {
 
 func (_this *Core) LoadUri(uri string) {
 	wkeLoadURL(_this.wke, uri)
+}
+
+func isExtKey(key mb.Keys) bool {
+	switch key {
+	case mb.Keys_Insert, mb.Keys_Delete, mb.Keys_Home, mb.Keys_End, mb.Keys_PageUp,
+		mb.Keys_PageDown, mb.Keys_Left, mb.Keys_Right, mb.Keys_Up, mb.Keys_Down:
+		return true
+	default:
+		return false
+	}
 }
