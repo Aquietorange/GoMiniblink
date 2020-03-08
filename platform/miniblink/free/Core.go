@@ -16,7 +16,8 @@ type Core struct {
 	owner plat.IWindow
 	wke   wkeHandle
 
-	onPaint core.PaintCallback
+	onPaint   core.PaintCallback
+	onRequest core.RequestCallback
 }
 
 func (_this *Core) Init(window plat.IWindow) *Core {
@@ -28,7 +29,22 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 	}
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
 	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
+	wkeOnLoadUrlBegin(_this.wke, _this.onUrlBegin, 0)
 	return _this
+}
+
+func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
+	if _this.onRequest == nil {
+		return uintptr(toBool(false))
+	}
+	url := wkePtrToUtf8(utf8ptr)
+	e := new(wkeRequestEvArgs).init(_this, url, job)
+	_this.onRequest(e)
+	return uintptr(toBool(e.OnBegin()))
+}
+
+func (_this *Core) SetOnRequest(callback core.RequestCallback) {
+	_this.onRequest = callback
 }
 
 func (_this *Core) SetFocus() {
@@ -151,12 +167,14 @@ func (_this *Core) FireMouseClickEvent(button mb.MouseButtons, isDown, isDb bool
 }
 
 func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
+	bmp := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
 	w := wkeGetWidth(_this.wke)
 	h := wkeGetHeight(_this.wke)
-	view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-	wkePaint(_this.wke, view.Pix, 0)
-	bmp := image.NewRGBA(image.Rect(0, 0, bound.Width, bound.Height))
-	draw.Draw(bmp, image.Rect(0, 0, bound.Width, bound.Height), view, image.Pt(bound.X, bound.Y), draw.Src)
+	if w > 0 && h > 0 {
+		view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+		wkePaint(_this.wke, &view.Pix[0], 0)
+		draw.Draw(bmp, image.Rect(0, 0, bound.Width, bound.Height), view, image.Pt(bound.X, bound.Y), draw.Src)
+	}
 	return bmp
 }
 
@@ -206,12 +224,10 @@ func (_this *Core) LoadUri(uri string) {
 	wkeLoadURL(_this.wke, uri)
 }
 
-func isExtKey(key mb.Keys) bool {
-	switch key {
-	case mb.Keys_Insert, mb.Keys_Delete, mb.Keys_Home, mb.Keys_End, mb.Keys_PageUp,
-		mb.Keys_PageDown, mb.Keys_Left, mb.Keys_Right, mb.Keys_Up, mb.Keys_Down:
-		return true
-	default:
-		return false
-	}
+func (_this *Core) SafeInvoke(fn func(interface{}), state interface{}) {
+	_this.owner.Invoke(fn, state)
+}
+
+func (_this *Core) GetHandle() uintptr {
+	return uintptr(_this.wke)
 }

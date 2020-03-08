@@ -20,7 +20,6 @@ var (
 	lib *windows.LazyDLL
 
 	showError               bool
-	_wkeIsInitialize        *windows.LazyProc
 	_wkeInitialize          *windows.LazyProc
 	_wkeCreateWebView       *windows.LazyProc
 	_wkeSetHandle           *windows.LazyProc
@@ -32,7 +31,6 @@ var (
 	_wkePaint               *windows.LazyProc
 	_wkeGetWidth            *windows.LazyProc
 	_wkeGetHeight           *windows.LazyProc
-	_wkePaint2              *windows.LazyProc
 	_wkeFireMouseEvent      *windows.LazyProc
 	_wkeFireMouseWheelEvent *windows.LazyProc
 	_wkeGetCursorInfoType   *windows.LazyProc
@@ -41,6 +39,9 @@ var (
 	_wkeFireKeyPressEvent   *windows.LazyProc
 	_wkeGetCaretRect        *windows.LazyProc
 	_wkeSetFocus            *windows.LazyProc
+	_wkeNetGetRequestMethod *windows.LazyProc
+	_wkeNetSetData          *windows.LazyProc
+	_wkeNetCancelRequest    *windows.LazyProc
 )
 
 func init() {
@@ -51,13 +52,15 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_wkeNetCancelRequest = lib.NewProc("wkeNetCancelRequest")
+	_wkeNetSetData = lib.NewProc("wkeNetSetData")
+	_wkeNetGetRequestMethod = lib.NewProc("wkeNetGetRequestMethod")
 	_wkeFireKeyPressEvent = lib.NewProc("wkeFireKeyPressEvent")
 	_wkeFireKeyUpEvent = lib.NewProc("wkeFireKeyUpEvent")
 	_wkeFireKeyDownEvent = lib.NewProc("wkeFireKeyDownEvent")
 	_wkeGetCursorInfoType = lib.NewProc("wkeGetCursorInfoType")
 	_wkeFireMouseWheelEvent = lib.NewProc("wkeFireMouseWheelEvent")
 	_wkeFireMouseEvent = lib.NewProc("wkeFireMouseEvent")
-	_wkePaint2 = lib.NewProc("wkePaint2")
 	_wkeGetHeight = lib.NewProc("wkeGetHeight")
 	_wkeGetWidth = lib.NewProc("wkeGetWidth")
 	_wkePaint = lib.NewProc("wkePaint")
@@ -69,13 +72,48 @@ func init() {
 	_wkeSetHandle = lib.NewProc("wkeSetHandle")
 	_wkeCreateWebView = lib.NewProc("wkeCreateWebView")
 	_wkeInitialize = lib.NewProc("wkeInitialize")
-	_wkeIsInitialize = lib.NewProc("wkeIsInitialize")
 	_wkeGetCaretRect = lib.NewProc("wkeGetCaretRect2")
 	_wkeSetFocus = lib.NewProc("wkeSetFocus")
 
 	ret, _, err := _wkeInitialize.Call()
 	if ret == 0 && showError {
 		fmt.Println(err)
+	}
+}
+
+func wkeNetCancelRequest(job wkeNetJob) {
+	r, _, err := _wkeNetCancelRequest.Call(uintptr(job))
+	if r == 0 && showError {
+		fmt.Println("wkeNetCancelRequest", err)
+	}
+}
+
+func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr) {
+	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+	if r == 0 && showError {
+		fmt.Println("wkeNetOnResponse", err)
+	}
+}
+
+func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr) {
+	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+	if r == 0 && showError {
+		fmt.Println("wkeOnLoadUrlBegin", err)
+	}
+}
+
+func wkeNetGetRequestMethod(job wkeNetJob) wkeRequestType {
+	r, _, err := _wkeNetGetRequestMethod.Call(uintptr(job))
+	if r == 0 && showError {
+		fmt.Println("wkeNetGetRequestMethod", err)
+	}
+	return wkeRequestType(r)
+}
+
+func wkeNetSetData(job wkeNetJob, buf *byte, len uint32) {
+	r, _, err := _wkeNetSetData.Call(uintptr(job), uintptr(unsafe.Pointer(buf)), uintptr(len))
+	if r == 0 && showError {
+		fmt.Println("wkeNetSetData", err)
 	}
 }
 
@@ -140,8 +178,8 @@ func wkeFireMouseEvent(wke wkeHandle, message, x, y, flags int32) bool {
 	return byte(r) != 0
 }
 
-func wkePaint(wke wkeHandle, bits []uint8, pitch uint32) {
-	r, _, err := _wkePaint.Call(uintptr(wke), uintptr(unsafe.Pointer(&bits[0])), uintptr(pitch))
+func wkePaint(wke wkeHandle, bits *uint8, pitch uint32) {
+	r, _, err := _wkePaint.Call(uintptr(wke), uintptr(unsafe.Pointer(bits)), uintptr(pitch))
 	if r == 0 && showError {
 		fmt.Println("wkePaint", err)
 	}
@@ -161,20 +199,6 @@ func wkeGetWidth(wke wkeHandle) uint32 {
 		fmt.Println("wkeGetWidth", err)
 	}
 	return uint32(r)
-}
-
-func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr) {
-	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
-	if r == 0 && showError {
-		fmt.Println("wkeOnLoadUrlBegin", err)
-	}
-}
-
-func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr) {
-	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
-	if r == 0 && showError {
-		fmt.Println("wkeNetOnResponse", err)
-	}
 }
 
 func wkeResize(wke wkeHandle, w, h uint32) {

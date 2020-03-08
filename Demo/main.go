@@ -26,9 +26,9 @@ func main() {
 		mb.SetSize(740, 420)
 		mb.SetLocation(20, 20)
 		mb.SetAnchor(goMiniblink.AnchorStyle_Right | goMiniblink.AnchorStyle_Bottom | goMiniblink.AnchorStyle_Top | goMiniblink.AnchorStyle_Left)
-		mb.EvLoad["loadUri"] = func(target interface{}) {
-			mb.LoadUri("https://www.baidu.com")
-		}
+		mb.ResourceLoader = append(mb.ResourceLoader, new(forms.FileLoader).Init("D:\\CodeSource\\GoMiniblink\\Demo\\Res", "loc.res"))
+		mb.LoadUri("http://loc.res/control.html")
+		//mb.LoadUri("https://www.baidu.com")
 		frm.AddChild(mb)
 	}
 	forms.Run(frm)

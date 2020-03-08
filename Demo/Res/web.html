@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <script>
+        function get(url, callback) {
+            var req = new XMLHttpRequest();
+            req.open("get", url, true);
+            req.onreadystatechange = function() {
+                if (req.readyState === 4) {
+                    callback(req.responseText);
+                }
+            };
+            req.send();
+        }
+
+        function post(url, data, callback) {
+            var req = new XMLHttpRequest();
+            req.open("post", url, true);
+            req.onreadystatechange = function() {
+                if (req.readyState === 4) {
+                    callback(req.responseText);
+                }
+            };
+            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            req.send(data);
+        }
+
+        window.onload = function() {
+            document.getElementById("btnGet").addEventListener("click",
+                function() {
+                    get(webapi("/curr_time?min=10"),
+                        function(data) {
+                            var html = "<li>" + data + "</li>";
+                            document.getElementById("getul").innerHTML += html;
+                        });
+                });
+            document.getElementById("btnPost").addEventListener("click",
+                function () {
+                    post(webapi("/save_time"),
+                        "time=" + new Date().getTime() + "&zone=beijing",
+                        function(data) {
+                            var html = "<li>" + data + "</li>";
+                            document.getElementById("postul").innerHTML += html;
+                        });
+                });
+        };
+    </script>
+</head>
+<body>
+<p>NetApiEngine是一个web服务器，目的是用于分离界面和业务逻辑。</p>
+<img src="images/web.png" style="width: 100%"/>
+<fieldset>
+    <legend>GET请求</legend>
+    <ul id="getul"></ul>
+    <button id="btnGet">获取10分钟后的时间</button>
+</fieldset>
+<fieldset>
+    <legend>POST请求</legend>
+    <ul id="postul"></ul>
+    <button id="btnPost">提交数据</button>
+</fieldset>
+</body>
+</html>

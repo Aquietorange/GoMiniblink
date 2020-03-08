@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <style>
+        fieldset {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<h3>本页面只做重点介绍，和官方完全一样的就不做详细介绍了</h3>
+<fieldset>
+    <legend>导航变更：NavigateBefore</legend>
+    <p>相对于官方，新增WindowOpen和BlankLink两个类型</p>
+</fieldset>
+<fieldset>
+    <legend>文档加载完毕：DocumentReady</legend>
+    <p>拥有一个Frame.RunJs()，用于在具体的框架内执行js</p>
+</fieldset>
+<fieldset>
+    <legend>Url加载之前：RequestBefore</legend>
+    <p>获取各种信息，包括请求头和PostBody</p>
+    <p>可以直接设置Data，用于立刻返回结果（不会发起实际的请求）</p>
+    <p>Response事件 - 监听此请求的实际返回内容，也可以替换</p>
+    <p>Async() - 异步处理</p>
+    <p>资源加载就是基于此事件写的</p>
+</fieldset>
+<fieldset>
+    <legend>3个弹框事件：AlertBefore，ConfirmBefore，PromptBefore</legend>
+    <p>都拥有一个Window属性，其实就是马上要显示的Form模态窗体</p>
+</fieldset>
+<fieldset>
+    <legend>window.open事件：WindowOpen</legend>
+    <p>在此能够取得open的参数，设置open返回值</p>
+</fieldset>
+<fieldset>
+    <legend>文件拖拽事件：dropFile</legend>
+    <p>window.addEventListener("dropFile", function(e){ console.log(e.detail) })</p>
+    <p>FireDropFile=false;可以关闭这个事件</p>
+</fieldset>
+<fieldset>
+    <legend>其他事件</legend>
+    <p>UrlChanged - 略</p>
+    <p>ConsoleMessage - 控制台消息</p>
+    <p>PaintUpdated - 渲染事件</p>
+    <p>Download - 下载</p>
+    <p>DidCreateScriptContext - JS引擎初始化完成</p>
+</fieldset>
+</body>
+</html>

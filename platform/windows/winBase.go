@@ -38,7 +38,8 @@ type winBase struct {
 	onFocus               plat.WindowFocusProc
 	onLostFocus           plat.WindowLostFocusProc
 
-	bgColor int
+	bgColor     int
+	fiexdCursor bool
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
@@ -103,7 +104,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			ret = 1
 		}
 	case win32.WM_SETCURSOR:
-		if _this.onSetCursor != nil && _this.onSetCursor() {
+		if _this.fiexdCursor || (_this.onSetCursor != nil && _this.onSetCursor()) {
 			ret = 1
 		}
 	case win32.WM_SIZE:
@@ -229,6 +230,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 		}
 	case win32.WM_LBUTTONDOWN, win32.WM_RBUTTONDOWN, win32.WM_MBUTTONDOWN:
+		_this.fiexdCursor = true
 		win32.SetCapture(hWnd)
 		if _this.onMouseDown != nil {
 			e := mb.MouseEvArgs{
@@ -249,6 +251,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 		}
 	case win32.WM_LBUTTONUP, win32.WM_RBUTTONUP, win32.WM_MBUTTONUP:
+		_this.fiexdCursor = false
 		win32.ReleaseCapture()
 		if _this.onMouseUp != nil {
 			e := mb.MouseEvArgs{

@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <!-- 加载一个不存在的JS -->
+    <script src="notexists.js"></script>
+
+    <!-- 加载一个存在的JS -->
+    <script src="js/hook.js"></script>
+    
+    <style>
+        input {
+            display: block;
+            margin: auto;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<input type="button" value="在请求发起前拦截" onclick="showName()"/>
+<input type="button" value="对获得的实际内容进行修改" onclick="alert(fmtName('zhangsan'))"/>
+</body>
+</html>

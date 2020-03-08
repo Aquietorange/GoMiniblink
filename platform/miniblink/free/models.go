@@ -1,5 +1,14 @@
 package free
 
+type wkeRequestType int
+
+const (
+	wkeRequestType_Unknow = 1
+	wkeRequestType_Get    = 2
+	wkeRequestType_Post   = 3
+	wkeRequestType_Put    = 4
+)
+
 type wkeKeyFlags int
 
 const (

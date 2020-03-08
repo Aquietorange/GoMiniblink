@@ -6,8 +6,13 @@ import (
 
 //todo 应该全是接口
 
-type CursorEvArgs struct {
-	IsHandle bool
+type RequestEvArgs interface {
+	Url() string
+	Method() string
+	SetData([]byte)
+	GetData() []byte
+	SetCancel(b bool)
+	IsCancel() bool
 }
 
 type MouseEvArgs struct {

@@ -8,6 +8,7 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
+	SetOnRequest(callback RequestCallback)
 	SetFocus()
 	GetCaretPos() mb.Point
 	GetCursor() mb.CursorType
@@ -19,7 +20,11 @@ type ICore interface {
 	GetImage(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
+	SafeInvoke(fn func(interface{}), state interface{})
+	GetHandle() uintptr
 }
+
+type RequestCallback func(args mb.RequestEvArgs)
 
 type PaintUpdateArgs struct {
 	Wke   uintptr

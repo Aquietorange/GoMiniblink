@@ -28,7 +28,7 @@ type Provider struct {
 func (_this *Provider) Init() *Provider {
 	_this.handleWnds = make(map[win32.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
-	_this.className = mb.NewUUID()
+	_this.className = "goMiniblinkClass"
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.msClick = new(mouseClickWorker).init()
 	return _this

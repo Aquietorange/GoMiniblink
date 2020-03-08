@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-family: 微软雅黑;
+        }
+        body {
+            padding-bottom: 100px;
+        }
+        fieldset {
+            margin: 15px;
+            padding: 15px;
+            padding-top: 5px;
+        }
+        .sj-1 {
+            padding-left: 80px;
+        }
+        .sj-2 {
+            padding-left: 120px;
+        }
+        fieldset > ul {
+            background-color: aquamarine;
+            padding-bottom: 10px;
+        }
+        fieldset>ol{
+            background-color:lightblue;
+        }
+        fieldset > ul > li, fieldset > ol > li {
+            display: block;
+            line-height: 28px;
+            list-style: none;
+            padding-left: 40px;
+            font-size: 15px;
+        }
+        fieldset > ul > li:first-child, fieldset > ol > li:first-child {
+            padding-left: 15px;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        function func_1(name, age) {
+            alert("name=" + name + ", age=" + age);
+        }
+
+        function func_2() {
+            return "李四";
+        }
+
+        function func_3(func) {
+            var result = func(5, 6);
+            alert(result);
+        }
+
+        function func_4() {
+            return { name: "张三", age: 18 };
+        }
+
+        function func_5() {
+            return function(name) {
+                alert("name=" + name);
+            };
+        }
+    </script>
+</head>
+<body>
+<fieldset>
+    <legend>带参数的</legend>
+    <ul>
+        <li>JS定义</li>
+        <li>function func_1(name, age) {</li>
+        <li class="sj-1">alert("name=" + name + ", age=" + age);</li>
+        <li>}</li>
+    </ul>
+    <ol>
+        <li>.NET调用</li>
+        <li>CallJsFunc("func_1", "小张", 15);</li>
+    </ol>
+</fieldset>
+<fieldset>
+    <legend>带返回值的</legend>
+    <ul>
+        <li>JS定义</li>
+        <li>function func_2() {</li>
+        <li class="sj-1">return "李四";</li>
+        <li>}</li>
+    </ul>
+    <ol>
+        <li>.NET调用</li>
+        <li>var result = CallJsFunc("func_2");</li>
+        <li>MessageBox.Show("名字叫：" + result);</li>
+    </ol>
+</fieldset>
+<fieldset>
+    <legend>参数是一个.NET的委托</legend>
+    <ul>
+        <li>JS定义</li>
+        <li>function func_3(func) {</li>
+        <li class="sj-1">var result = func(5, 6);</li>
+        <li class="sj-1">alert(result);</li>
+        <li>}</li>
+    </ul>
+    <ol>
+        <li>.NET调用</li>
+        <li>CallJsFunc("func_3", new TempNetFunc(param => {</li>
+        <li class="sj-1">var n1 = Convert.ToInt32(param[0]);</li>
+        <li class="sj-1">var n2 = Convert.ToInt32(param[1]);</li>
+        <li class="sj-1">return n1 * n2;</li>
+        <li>}));</li>
+    </ol>
+</fieldset>
+<fieldset>
+    <legend>返回值不是基础类型</legend>
+    <ul>
+        <li>JS定义</li>
+        <li>function func_4() {</li>
+        <li class="sj-1">return { name: "张三", age: 18 };</li>
+        <li>}</li>
+    </ul>
+    <ol>
+        <li>.NET调用</li>
+        <li>dynamic data = CallJsFunc("func_4");</li>
+        <li>if (data.age >= 18){</li>
+        <li class="sj-1">MessageBox.Show(data.name + "已成年");</li>
+        <li>} else {</li>
+        <li class="sj-1">MessageBox.Show(data.name + "未成年");</li>
+        <li>}</li>
+    </ol>
+</fieldset>
+<fieldset>
+    <legend>返回值是一个js函数</legend>
+    <ul>
+        <li>JS定义</li>
+        <li>function func_5() {</li>
+        <li class="sj-1">return function(name) {</li>
+        <li class="sj-2">alert("name=" + name);</li>
+        <li class="sj-1">};</li>
+        <li>}</li>
+    </ul>
+    <ol>
+        <li>.NET调用</li>
+        <li>dynamic func = CallJsFunc("func_5");</li>
+        <li>func("王老五");</li>
+    </ol>
+</fieldset>
+</body>
+</html>

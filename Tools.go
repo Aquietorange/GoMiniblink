@@ -1,14 +1,9 @@
 package goMiniblink
 
 import (
-	uuid "github.com/satori/go.uuid"
 	"image/color"
-	"strings"
+	"os"
 )
-
-func NewUUID() string {
-	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
-}
 
 func IntToRGBA(rgba int) color.RGBA {
 	return color.RGBA{
@@ -17,4 +12,15 @@ func IntToRGBA(rgba int) color.RGBA {
 		B: uint8(rgba >> 16),
 		A: uint8(rgba >> 24),
 	}
+}
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

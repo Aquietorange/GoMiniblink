@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-family: 微软雅黑;
+        }
+
+        body {
+            padding-bottom: 50px;
+        }
+
+        fieldset {
+            margin: 15px;
+            padding: 15px;
+            padding-top: 5px;
+        }
+
+        .sj-1 {
+            padding-left: 80px;
+        }
+
+        .sj-2 {
+            padding-left: 120px;
+        }
+
+        fieldset > ul {
+            background-color: aquamarine;
+            padding-bottom: 10px;
+        }
+
+        fieldset > ol {
+            background-color: lightblue;
+        }
+
+        fieldset > ul > li, fieldset > ol > li {
+            display: block;
+            line-height: 22px;
+            list-style: none;
+            padding-left: 40px;
+            font-size: 15px;
+        }
+
+        fieldset > ul > li:first-child, fieldset > ol > li:first-child {
+            padding-left: 15px;
+            font-size: 18px;
+        }
+        fieldset>button {
+            width: 80px;
+        }
+        body > ol>li {
+            display: block;
+            padding-left: 25px;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            document.getElementById("btnFunc1").addEventListener("click",
+                function() {
+                    var result = Func1(2, 3);
+                    alert(result);
+                });
+            document.getElementById("btnFunc2").addEventListener("click",
+                function () {
+                    Func2(function(n1, n2) {
+                        alert(n1 * n2);
+                    });
+                });
+            document.getElementById("btnFunc3").addEventListener("click",
+                function () {
+                    var result = Func3({ n1: 4, n2: 5 });
+                    alert(result);
+                });
+            document.getElementById("btnFunc4").addEventListener("click",
+                function () {
+                    var result = Func4("韩梅梅");
+                    alert(result);
+                });
+            document.getElementById("btnFunc5").addEventListener("click",
+                function () {
+                    var func = Func5();
+                    alert(func("刘德华"));
+                });
+        };
+    </script>
+</head>
+<body>
+<fieldset>
+    <legend>普通调用,参数和返回值都是基本类型</legend>
+    <ol>
+        <li>.NET定义</li>
+        <li>[NetFunc]</li>
+        <li>private object Func1(int n1, int n2){</li>
+        <li class="sj-1">return "结果是：" + (n1 * n2);</li>
+        <li>}</li>
+    </ol>
+    <ul>
+        <li>JS调用</li>
+        <li>var result = Func1(2, 3);</li>
+        <li>alert(result);</li>
+    </ul>
+    <button id="btnFunc1">执行</button>
+</fieldset>
+<fieldset>
+    <legend>向.NET传递函数</legend>
+    <ol>
+        <li>.NET定义</li>
+        <li>[NetFunc]</li>
+        <li>private void Func2(JsFunc func){</li>
+        <li class="sj-1">func(5, 6);</li>
+        <li>}</li>
+    </ol>
+    <ul>
+        <li>JS调用</li>
+        <li>Func2(function(n1, n2) {</li>
+        <li class="sj-1">alert(n1 * n2);</li>
+        <li>});</li>
+    </ul>
+    <button id="btnFunc2">执行</button>
+</fieldset>
+<fieldset>
+    <legend>向.NET传递非基本类型</legend>
+    <ol>
+        <li>.NET定义</li>
+        <li>[NetFunc]</li>
+        <li>private object Func3(dynamic data){</li>
+        <li class="sj-1">return data.n1 * data.n2;</li>
+        <li>}</li>
+    </ol>
+    <ul>
+        <li>JS调用</li>
+        <li>var result = Func3({ n1: 4, n2: 5});</li>
+        <li>alert(result);</li>
+    </ul>
+    <button id="btnFunc3">执行</button>
+</fieldset>
+    <fieldset>
+        <legend>传参数量并不是和绑定必须相同</legend>
+        <ol>
+            <li>.NET定义</li>
+            <li>[NetFunc]</li>
+            <li>private object Func4(string name, int age, int? year) {</li>
+            <li class="sj-1">return $"name={name}, age={age}, year={year}";</li>
+            <li>}</li>
+        </ol>
+        <ul>
+            <li>JS调用</li>
+            <li>var result = Func4("韩梅梅");</li>
+            <li>alert(result);</li>
+        </ul>
+        <button id="btnFunc4">执行</button>
+    </fieldset>
+<fieldset>
+    <legend>返回值是一个.NET委托</legend>
+    <ol>
+        <li>.NET定义</li>
+        <li>[NetFunc]</li>
+        <li>private object Func5() {</li>
+        <li class="sj-1">return new TempNetFunc(param => "姓名：" + param[0]);</li>
+        <li>}</li>
+    </ol>
+    <ul>
+        <li>JS调用</li>
+        <li>var func = Func5();</li>
+        <li>alert(func("刘德华"));</li>
+    </ul>
+    <button id="btnFunc5">执行</button>
+</fieldset>
+<ol>
+    <li>额外的说明</li>
+    <li>[NetFunc]默认使用方法名作为函数命名，可以用[NetFunc("newFuncName")]明确指定命名。</li>
+    <li>[NetFunc]其实是BindNetFunc方法的自动实现版本。</li>
+    <li>[NetFunc]是RegisterNetFunc方法扫描并绑定的，而且它可以扫描任意类型。</li>
+    <li>RegisterNetFunc只在窗体模式下会默认扫描当前窗体，控件模式需要手动调用来指定去哪找[NetFunc]。</li>
+    <li>JsFunc对象可以在不同的线程使用，因为内部其实是绑定了线程的。</li>
+</ol>
+</body>
+</html>

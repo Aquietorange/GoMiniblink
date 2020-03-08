@@ -1,0 +1,19 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <script>
+        window.onload = function() {
+            window.addEventListener("dropFile",
+                function(e) {
+                    document.getElementById("show").innerText = JSON.stringify(e.detail);
+                });
+        }
+    </script>
+</head>
+<body style="background-color: #333; color: #fff;">
+<p id="show" style="display: block; text-align: center; margin: 20px;word-break: break-all">把文件拖到黑色区域</p>
+</body>
+</html>

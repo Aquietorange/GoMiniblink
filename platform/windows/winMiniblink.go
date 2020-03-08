@@ -12,9 +12,10 @@ import (
 type winMiniblink struct {
 	winControl
 
-	wke      core.ICore
-	initUri  string
-	initSize mb.Rect
+	wke       core.ICore
+	initUri   string
+	initSize  mb.Rect
+	onRequest func(args mb.RequestEvArgs)
 }
 
 func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
@@ -79,6 +80,10 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 		}
 		return false
 	})
+	_this.SetOnResize(func(e mb.Rect) bool {
+		_this.wke.Resize(e.Width, e.Height)
+		return true
+	})
 	return _this
 }
 
@@ -88,18 +93,25 @@ func (_this *winMiniblink) initWke() {
 	} else {
 		_this.wke = new(free.Core).Init(_this)
 	}
-	_this.wke.SetOnPaint(_this.paintUpdate)
+	_this.wke.SetOnPaint(func(args core.PaintUpdateArgs) {
+		g := _this.CreateGraphics()
+		g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
+	})
+	_this.wke.SetOnRequest(func(args mb.RequestEvArgs) {
+		if _this.onRequest != nil {
+			_this.onRequest(args)
+		}
+	})
 	if _this.initSize.Width > 0 && _this.initSize.Height > 0 {
-		_this.SetSize(_this.initSize.Width, _this.initSize.Height)
+		_this.wke.Resize(_this.initSize.Width, _this.initSize.Height)
 	}
 	if _this.initUri != "" {
 		_this.LoadUri(_this.initUri)
 	}
 }
 
-func (_this *winMiniblink) paintUpdate(args core.PaintUpdateArgs) {
-	g := _this.CreateGraphics()
-	g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
+func (_this *winMiniblink) SetOnRequest(fn func(args mb.RequestEvArgs)) {
+	_this.onRequest = fn
 }
 
 func (_this *winMiniblink) LoadUri(uri string) {
@@ -112,7 +124,6 @@ func (_this *winMiniblink) LoadUri(uri string) {
 
 func (_this *winMiniblink) SetSize(width, height int) {
 	if _this.IsCreate() {
-		_this.wke.Resize(width, height)
 		_this.winControl.SetSize(width, height)
 	} else {
 		_this.initSize = mb.Rect{

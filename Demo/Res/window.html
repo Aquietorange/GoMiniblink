@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>demo</title>
+    <style>
+        ul > li {
+            padding: 10px;
+            list-style: none;
+            margin: 0;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h3 class="mbform-drag" style="background-color: #ccc; padding: 20px;">
+        灰色区域应用了mbform-drag类样式，所以可以拖拽窗体，前提是必须在窗体形式中打开页面，因为控件形式没有实现和窗体相关的功能
+        <span style="display: block; line-height: 25px; background-color: green; color: #fff;margin-top: 20px" class="mbform-nodrag">
+            绿色区域应用了mbform-nodrag类样式，所以即使在mbform-drag的里面也不能拖动
+        </span>
+    </h3>
+<ul style="float: left; clear: left; padding: 0; margin: 0">
+    <li><a href="javascript:;" class="mbform-max">窗体最大化类样式：mbform-max</a></li>
+    <li><a href="javascript:;" class="mbform-min">窗体最小化类样式：mbform-min</a></li>
+    <li><a href="javascript:;" class="mbform-close">关闭窗体类样式：mbform-close</a></li>
+    <li>form.DropByClass=true;可以打开样式拖拽，无边框窗体默认是true</li>
+    <li>form.NoneBorderResize=true;可以在无边框模式下调整窗体大小</li>
+    <li>form.ShadowWidth.SetAll(10);设置窗体四边阴影为10像素</li>
+</ul>
+</body>
+</html>
