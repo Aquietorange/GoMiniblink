@@ -5,7 +5,8 @@ type CursorType int
 
 //鼠标样式
 const (
-	CursorType_ARROW CursorType = iota + 1
+	CursorType_Default CursorType = iota + 1
+	CursorType_ARROW
 	CursorType_IBEAM
 	CursorType_WAIT
 	CursorType_CROSS

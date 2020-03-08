@@ -72,8 +72,12 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 		return true
 	})
 	_this.SetOnCursor(func() bool {
-		_this.SetCursor(_this.wke.GetCursor())
-		return true
+		t := _this.wke.GetCursor()
+		if t != mb.CursorType_Default {
+			_this.SetCursor(t)
+			return true
+		}
+		return false
 	})
 	return _this
 }

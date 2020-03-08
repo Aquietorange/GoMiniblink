@@ -45,6 +45,7 @@ func (_this *winBase) init(provider *Provider, id string) *winBase {
 	_this.app = provider
 	_this.idName = id
 	_this.SetBgColor(provider.defBgColor)
+	_this.onWndProc = _this.msgProc
 	return _this
 }
 
@@ -73,7 +74,7 @@ func (_this *winBase) createProc(hWnd win32.HWND) {
 }
 
 func (_this *winBase) getWindowMsgProc() windowsMsgProc {
-	return _this.msgProc
+	return _this.onWndProc
 }
 
 func (_this *winBase) SetCursor(cursor mb.CursorType) {
@@ -227,6 +228,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 		}
 	case win32.WM_LBUTTONDOWN, win32.WM_RBUTTONDOWN, win32.WM_MBUTTONDOWN:
+		win32.SetCapture(hWnd)
 		if _this.onMouseDown != nil {
 			e := mb.MouseEvArgs{
 				X:    int(win32.GET_X_LPARAM(lParam)),
@@ -246,6 +248,7 @@ func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 			}
 		}
 	case win32.WM_LBUTTONUP, win32.WM_RBUTTONUP, win32.WM_MBUTTONUP:
+		win32.ReleaseCapture()
 		if _this.onMouseUp != nil {
 			e := mb.MouseEvArgs{
 				X:    int(win32.GET_X_LPARAM(lParam)),
