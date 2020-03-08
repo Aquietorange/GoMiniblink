@@ -16,7 +16,7 @@ type windowsCreateProc func(hWnd win32.HWND)
 type Provider struct {
 	hInstance  win32.HINSTANCE
 	className  string
-	mainId     string
+	mainId     win32.HWND
 	handleWnds map[win32.HWND]baseWindow
 	nameWnds   map[string]baseWindow
 	defOwner   win32.HWND
@@ -82,7 +82,7 @@ func (_this *Provider) SetIcon(file string) {
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
-		LpfnWndProc:   syscall.NewCallbackCDecl(_this.defaultMsgProc),
+		LpfnWndProc:   syscall.NewCallbackCDecl(_this.classMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
 		HIcon:         _this.defIcon,
@@ -97,59 +97,30 @@ func (_this *Provider) registerWndClass() {
 }
 
 func (_this *Provider) add(wnd baseWindow) {
-	_this.nameWnds[wnd.id()] = wnd
+	if hWnd := wnd.hWnd(); hWnd != 0 {
+		if _this.mainId == 0 {
+			_this.mainId = hWnd
+		}
+		_this.handleWnds[hWnd] = wnd
+	}
 }
 
 func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
 	if w, ok := _this.handleWnds[hWnd]; ok {
-		delete(_this.nameWnds, w.id())
 		delete(_this.handleWnds, hWnd)
-		if isExit && w.id() == _this.mainId {
+		if isExit && w.hWnd() == _this.mainId {
 			_this.Exit(0)
 		}
 	}
 }
 
-func (_this *Provider) defaultMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-	isdlg := false
-	if msg == win32.WM_CREATE {
-		cp := *((*win32.CREATESTRUCT)(unsafe.Pointer(lParam)))
-		if cp.CreateParams != 0 {
-			id := *((*string)(unsafe.Pointer(cp.CreateParams)))
-			if w, ok := _this.nameWnds[id]; ok {
-				_this.handleWnds[hWnd] = w
-				if w.getCreateProc() != nil {
-					w.getCreateProc()(hWnd)
-				}
-			}
-		}
-	} else if msg == win32.WM_INITDIALOG && lParam != 0 {
-		id := *((*string)(unsafe.Pointer(lParam)))
-		if w, ok := _this.nameWnds[id]; ok {
-			isdlg = true
-			_this.handleWnds[hWnd] = w
-			if w.getCreateProc() != nil {
-				w.getCreateProc()(hWnd)
-			}
-		}
-	} else if w, ok := _this.handleWnds[hWnd]; ok {
-		isdlg = w.isDialog()
-		if w.getWindowMsgProc() != nil {
-			ret := w.getWindowMsgProc()(hWnd, msg, wParam, lParam)
-			if ret != 0 {
-				return ret
-			}
-			ret = _this.sendMouseClick(hWnd, msg, lParam)
-			if ret != 0 {
-				return ret
-			}
+func (_this *Provider) classMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+	if w, ok := _this.handleWnds[hWnd]; ok {
+		if code := w.wndMsgProc(hWnd, msg, wParam, lParam); code != 0 {
+			return code
 		}
 	}
-	if isdlg && msg != win32.WM_CLOSE {
-		return 0
-	} else {
-		return win32.DefWindowProc(hWnd, msg, wParam, lParam)
-	}
+	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
 }
 
 func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, lParam uintptr) uintptr {
@@ -181,12 +152,11 @@ func (_this *Provider) Exit(code int) {
 }
 
 func (_this *Provider) RunMain(form platform.IForm, show func()) {
-	frm, ok := form.(*winForm)
+	_, ok := form.(*winForm)
 	if ok == false {
 		panic("类型不正确")
 	}
 	_this.registerWndClass()
-	_this.mainId = frm.id()
 	show()
 	var message win32.MSG
 	for {

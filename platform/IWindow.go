@@ -3,7 +3,6 @@ package platform
 import mb "qq2564874169/goMiniblink"
 
 type IWindow interface {
-	Id() string
 	Create()
 	GetHandle() uintptr
 	SetOnCreate(proc WindowCreateProc) WindowCreateProc
@@ -23,6 +22,7 @@ type IWindow interface {
 	SetOnImeStartComposition(proc WindowImeStartCompositionProc) WindowImeStartCompositionProc
 	SetOnFocus(proc WindowFocusProc) WindowFocusProc
 	SetOnLostFocus(proc WindowLostFocusProc) WindowLostFocusProc
+	SetOnLoad(proc WindowLoadProc) WindowLoadProc
 
 	GetProvider() IProvider
 	Invoke(fn func(state interface{}), state interface{})
@@ -39,6 +39,7 @@ type WindowLostFocusProc func() bool
 type WindowFocusProc func() bool
 type WindowImeStartCompositionProc func() bool
 type WindowSetCursorProc func() bool
+type WindowLoadProc func()
 type WindowCreateProc func(handle uintptr) bool
 type WindowDestroyProc func()
 type WindowResizeProc func(e mb.Rect) bool

@@ -1,7 +1,6 @@
 package windows
 
 import (
-	mb "qq2564874169/goMiniblink"
 	p "qq2564874169/goMiniblink/platform"
 	"qq2564874169/goMiniblink/platform/windows/win32"
 	"unsafe"
@@ -14,7 +13,7 @@ type winControl struct {
 }
 
 func (_this *winControl) init(provider *Provider) *winControl {
-	_this.winBase.init(provider, mb.NewUUID())
+	_this.winBase.init(provider)
 	_this.createParams = &win32.CREATESTRUCT{
 		Instance:  provider.hInstance,
 		ClassName: uintptr(unsafe.Pointer(sto16(provider.className))),
@@ -22,7 +21,6 @@ func (_this *winControl) init(provider *Provider) *winControl {
 		Style:     win32.WS_CHILD,
 		ExStyle:   0,
 	}
-	_this.app.add(_this)
 	return _this
 }
 
@@ -74,7 +72,7 @@ func (_this *winControl) Create() {
 	if _this.createParams.Parent == 0 {
 		panic("身为一个控件，必须有父窗口")
 	}
-	win32.CreateWindowEx(
+	hWnd := win32.CreateWindowEx(
 		_this.createParams.ExStyle,
 		(*uint16)(unsafe.Pointer(_this.createParams.ClassName)),
 		(*uint16)(unsafe.Pointer(_this.createParams.Name)),
@@ -85,9 +83,10 @@ func (_this *winControl) Create() {
 		_this.createParams.Cy,
 		_this.createParams.Parent, 0,
 		_this.createParams.Instance,
-		unsafe.Pointer(&_this.idName))
-}
-
-func (_this *winControl) class() string {
-	return _this.app.className
+		nil)
+	if hWnd != 0 {
+		_this.fireCreate(hWnd)
+	} else {
+		panic("创建失败")
+	}
 }

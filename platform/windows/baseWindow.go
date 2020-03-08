@@ -5,9 +5,6 @@ import (
 )
 
 type baseWindow interface {
-	id() string
 	hWnd() win32.HWND
-	isDialog() bool
-	getCreateProc() windowsCreateProc
-	getWindowMsgProc() windowsMsgProc
+	wndMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 }

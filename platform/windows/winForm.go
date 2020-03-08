@@ -5,7 +5,6 @@ import (
 	"qq2564874169/goMiniblink/platform"
 	"qq2564874169/goMiniblink/platform/windows/win32"
 	"syscall"
-	"unsafe"
 )
 
 type winForm struct {
@@ -16,25 +15,11 @@ type winForm struct {
 	createParams *win32.DLGTEMPLATEEX
 	initTitle    string
 	initIcon     string
-	ctrls        map[string]platform.IControl
-}
-
-func (_this *winForm) hWnd() win32.HWND {
-	return _this.handle
-}
-
-func (_this *winForm) class() string {
-	return win32.UTF16PtrToString(_this.createParams.WindowClass)
-}
-
-func (_this *winForm) id() string {
-	return _this.idName
+	ctrls        []platform.IControl
 }
 
 func (_this *winForm) init(provider *Provider) *winForm {
-	_this.winBase.init(provider, mb.NewUUID())
-	_this.ctrls = make(map[string]platform.IControl)
-	_this.thisIsDialog = true
+	_this.winBase.init(provider)
 	_this.createParams = &win32.DLGTEMPLATEEX{
 		Ver:         1,
 		Sign:        0xFFFF,
@@ -43,15 +28,6 @@ func (_this *winForm) init(provider *Provider) *winForm {
 		Style:       win32.WS_SIZEBOX | win32.WS_CAPTION | win32.WS_SYSMENU | win32.WS_MAXIMIZEBOX | win32.WS_MINIMIZEBOX | win32.DS_ABSALIGN | win32.WS_CLIPCHILDREN,
 	}
 	_this.initTitle = ""
-	bakWndProc := _this.onWndProc
-	_this.onWndProc = func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-		ret := _this.formWndProc(hWnd, msg, wParam, lParam)
-		if ret == 0 {
-			ret = bakWndProc(hWnd, msg, wParam, lParam)
-		}
-		return ret
-	}
-	provider.add(_this)
 	return _this
 }
 
@@ -60,7 +36,7 @@ func (_this *winForm) GetHandle() uintptr {
 }
 
 func (_this *winForm) AddControl(control platform.IControl) {
-	_this.ctrls[control.Id()] = control
+	_this.ctrls = append(_this.ctrls, control)
 	if _this.IsCreate() {
 		control.SetParent(_this)
 		control.Create()
@@ -78,10 +54,42 @@ func (_this *winForm) RemoveControl(control platform.IControl) {
 }
 
 func (_this *winForm) formWndProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	var b bool
 	switch msg {
+	case win32.WM_INITDIALOG:
+		_this.isCreated = true
+		_this.handle = hWnd
+		_this.app.add(_this)
+		win32.SetWindowText(hWnd, _this.initTitle)
+		win32.SetWindowPos(hWnd, 0,
+			int32(_this.createParams.X),
+			int32(_this.createParams.Y),
+			int32(_this.createParams.CX),
+			int32(_this.createParams.CY),
+			win32.SWP_NOZORDER)
+		if _this.createParams.Style&win32.DS_MODALFRAME == 0 {
+			if _this.initIcon != "" {
+				_this.SetIcon(_this.initIcon)
+			} else if _this.app.defIcon != 0 {
+				win32.SendMessage(hWnd, win32.WM_SETICON, 1, uintptr(_this.app.defIcon))
+				win32.SendMessage(hWnd, win32.WM_SETICON, 0, uintptr(_this.app.defIcon))
+			}
+		}
+		for _, v := range _this.ctrls {
+			if v.GetHandle() == 0 {
+				v.SetParent(_this)
+				v.Create()
+				v.Show()
+			}
+		}
+		if _this.onCreate != nil {
+			_this.onCreate(uintptr(hWnd))
+		}
 	case win32.WM_CLOSE:
 		if _this.onClose != nil && _this.onClose() {
-			return 1
+			b = true
+		} else {
+			return win32.DefWindowProc(hWnd, msg, wParam, lParam)
 		}
 	case win32.WM_SIZE:
 		if _this.onState != nil {
@@ -95,38 +103,27 @@ func (_this *winForm) formWndProc(hWnd win32.HWND, msg uint32, wParam, lParam ui
 			}
 		}
 	}
-	return 0
+	if b == false {
+		if r := _this.winBase.msgProc(hWnd, msg, wParam, lParam); r != 0 {
+			b = true
+		}
+	}
+	if b {
+		return uintptr(byte(1))
+	}
+	return uintptr(byte(0))
 }
 
 func (_this *winForm) Create() {
 	if _this.IsCreate() == false {
-		win32.CreateDialogIndirectParam(
+		hWnd := win32.CreateDialogIndirectParam(
 			_this.app.hInstance,
 			_this.createParams,
 			_this.app.defOwner,
-			syscall.NewCallbackCDecl(_this.app.defaultMsgProc),
-			unsafe.Pointer(&_this.idName))
-		win32.SetWindowText(_this.hWnd(), _this.initTitle)
-		win32.SetWindowPos(_this.hWnd(), 0,
-			int32(_this.createParams.X),
-			int32(_this.createParams.Y),
-			int32(_this.createParams.CX),
-			int32(_this.createParams.CY),
-			win32.SWP_NOZORDER)
-		if _this.createParams.Style&win32.DS_MODALFRAME == 0 {
-			if _this.initIcon != "" {
-				_this.SetIcon(_this.initIcon)
-			} else if _this.app.defIcon != 0 {
-				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 1, uintptr(_this.app.defIcon))
-				win32.SendMessage(_this.hWnd(), win32.WM_SETICON, 0, uintptr(_this.app.defIcon))
-			}
-		}
-		for _, v := range _this.ctrls {
-			if v.GetHandle() == 0 {
-				v.SetParent(_this)
-				v.Create()
-				v.Show()
-			}
+			syscall.NewCallbackCDecl(_this.formWndProc),
+			nil)
+		if hWnd == 0 {
+			panic("创建失败")
 		}
 	}
 }

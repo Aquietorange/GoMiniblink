@@ -214,17 +214,12 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		return b
 	})
 
-	var bakCreate p.WindowCreateProc
-	bakCreate = _this.impl.SetOnCreate(func(handle uintptr) bool {
-		b := false
-		if bakCreate != nil {
-			b = bakCreate(handle)
+	var bakLoad p.WindowLoadProc
+	bakLoad = _this.impl.SetOnLoad(func() {
+		if bakLoad != nil {
+			bakLoad()
 		}
-		if !b {
-			_this.Handle = handle
-			_this.OnLoad()
-		}
-		return b
+		_this.OnLoad()
 	})
 	return _this
 }
@@ -234,7 +229,7 @@ func (_this *BaseUI) SetCursor(cursor mb.CursorType) {
 }
 
 func (_this *BaseUI) GetHandle() uintptr {
-	return _this.Handle
+	return _this.impl.GetHandle()
 }
 
 func (_this *BaseUI) SetLocation(x, y int) {

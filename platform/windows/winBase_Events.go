@@ -4,6 +4,12 @@ import (
 	plat "qq2564874169/goMiniblink/platform"
 )
 
+func (_this *winBase) SetOnLoad(proc plat.WindowLoadProc) plat.WindowLoadProc {
+	pre := _this.onLoad
+	_this.onLoad = proc
+	return pre
+}
+
 func (_this *winBase) SetOnLostFocus(proc plat.WindowLostFocusProc) plat.WindowLostFocusProc {
 	pre := _this.onLostFocus
 	_this.onLostFocus = proc

@@ -12,14 +12,14 @@ import (
 )
 
 type winBase struct {
-	app          *Provider
-	idName       string
-	handle       win32.HWND
-	isCreated    bool
-	thisIsDialog bool
-	invokeMap    sync.Map
-	onWndProc    windowsMsgProc
+	app       *Provider
+	handle    win32.HWND
+	isCreated bool
+	invokeMap sync.Map
+	onWndProc windowsMsgProc
+	isLoad    bool
 
+	onLoad                plat.WindowLoadProc
 	onCreate              plat.WindowCreateProc
 	onDestroy             plat.WindowDestroyProc
 	onResize              plat.WindowResizeProc
@@ -41,11 +41,10 @@ type winBase struct {
 	bgColor int
 }
 
-func (_this *winBase) init(provider *Provider, id string) *winBase {
+func (_this *winBase) init(provider *Provider) *winBase {
 	_this.app = provider
-	_this.idName = id
-	_this.SetBgColor(provider.defBgColor)
 	_this.onWndProc = _this.msgProc
+	_this.SetBgColor(provider.defBgColor)
 	return _this
 }
 
@@ -53,28 +52,8 @@ func (_this *winBase) SetBgColor(color int) {
 	_this.bgColor = color
 }
 
-func (_this *winBase) isDialog() bool {
-	return _this.thisIsDialog
-}
-
 func (_this *winBase) IsCreate() bool {
 	return _this.isCreated
-}
-
-func (_this *winBase) getCreateProc() windowsCreateProc {
-	return _this.createProc
-}
-
-func (_this *winBase) createProc(hWnd win32.HWND) {
-	_this.isCreated = true
-	_this.handle = hWnd
-	if _this.onCreate != nil {
-		_this.onCreate(uintptr(hWnd))
-	}
-}
-
-func (_this *winBase) getWindowMsgProc() windowsMsgProc {
-	return _this.onWndProc
 }
 
 func (_this *winBase) SetCursor(cursor mb.CursorType) {
@@ -83,12 +62,34 @@ func (_this *winBase) SetCursor(cursor mb.CursorType) {
 	win32.SetCursor(cur)
 }
 
-func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	ret := int(_this.execCmd(hWnd, msg, wParam, lParam))
-	if ret != 0 {
-		return uintptr(ret)
+func (_this *winBase) wndMsgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	if _this.onWndProc != nil {
+		return _this.onWndProc(hWnd, msg, wParam, lParam)
 	}
+	return 0
+}
+
+func (_this *winBase) fireCreate(hWnd win32.HWND) {
+	_this.isCreated = true
+	_this.handle = hWnd
+	_this.app.add(_this)
+	if _this.onCreate != nil {
+		_this.onCreate(uintptr(hWnd))
+	}
+}
+
+func (_this *winBase) msgProc(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	var ret int
 	switch msg {
+	case win32.WM_SHOWWINDOW:
+		if _this.isLoad == false {
+			if _this.onLoad != nil {
+				_this.onLoad()
+			}
+			_this.isLoad = true
+		}
+	case win32.WM_COMMAND:
+		ret = _this.execCmd(wParam, lParam)
 	case win32.WM_KILLFOCUS:
 		if _this.onLostFocus != nil && _this.onLostFocus() {
 			ret = 1
@@ -314,10 +315,7 @@ func (_this *winBase) Invoke(fn func(state interface{}), state interface{}) {
 	win32.PostMessage(_this.hWnd(), uint32(win32.WM_COMMAND), uintptr(cmd_invoke), ptr)
 }
 
-func (_this *winBase) execCmd(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-	if msg != win32.WM_COMMAND {
-		return 0
-	}
+func (_this *winBase) execCmd(wParam, lParam uintptr) int {
 	switch int(wParam) {
 	case cmd_invoke:
 		ctx := *((*InvokeContext)(unsafe.Pointer(lParam)))
@@ -334,14 +332,6 @@ func (_this *winBase) execCmd(hWnd win32.HWND, msg uint32, wParam, lParam uintpt
 
 func (_this *winBase) hWnd() win32.HWND {
 	return _this.handle
-}
-
-func (_this *winBase) Id() string {
-	return _this.idName
-}
-
-func (_this *winBase) id() string {
-	return _this.Id()
 }
 
 func (_this *winBase) GetProvider() plat.IProvider {
