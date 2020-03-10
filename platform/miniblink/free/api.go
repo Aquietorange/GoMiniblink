@@ -13,7 +13,22 @@ const (
 )
 
 type (
-	wkeHandle uintptr
+	wkeHandle   uintptr
+	jsExecState uintptr
+	jsValue     int64
+)
+
+type jsType int
+
+const (
+	jsType_NUMBER    jsType = 0
+	jsType_STRING    jsType = 1
+	jsType_BOOLEAN   jsType = 2
+	jsType_OBJECT    jsType = 3
+	jsType_FUNCTION  jsType = 4
+	jsType_UNDEFINED jsType = 5
+	jsType_ARRAY     jsType = 6
+	jsType_NULL      jsType = 7
 )
 
 var (
@@ -42,6 +57,17 @@ var (
 	_wkeNetGetRequestMethod *windows.LazyProc
 	_wkeNetSetData          *windows.LazyProc
 	_wkeNetCancelRequest    *windows.LazyProc
+	_wkeJsBindFunction      *windows.LazyProc
+	_jsArgCount             *windows.LazyProc
+	_jsArg                  *windows.LazyProc
+	_jsTypeOf               *windows.LazyProc
+	_jsToTempString         *windows.LazyProc
+	_jsToDouble             *windows.LazyProc
+	_jsToBoolean            *windows.LazyProc
+	_jsGetLength            *windows.LazyProc
+	_jsGetAt                *windows.LazyProc
+	_jsGetKeys              *windows.LazyProc
+	_jsGet                  *windows.LazyProc
 )
 
 func init() {
@@ -52,6 +78,10 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_jsTypeOf = lib.NewProc("jsTypeOf")
+	_jsArg = lib.NewProc("jsArg")
+	_jsArgCount = lib.NewProc("jsArgCount")
+	_wkeJsBindFunction = lib.NewProc("wkeJsBindFunction")
 	_wkeNetCancelRequest = lib.NewProc("wkeNetCancelRequest")
 	_wkeNetSetData = lib.NewProc("wkeNetSetData")
 	_wkeNetGetRequestMethod = lib.NewProc("wkeNetGetRequestMethod")
@@ -81,6 +111,29 @@ func init() {
 	}
 }
 
+func jsTypeOf(value jsValue) jsType {
+	r, _, _ := _jsTypeOf.Call(uintptr(value))
+	return jsType(r)
+}
+
+func jsArg(es jsExecState, index uint32) jsValue {
+	r, _, _ := _jsArg.Call(uintptr(es), uintptr(index))
+	return jsValue(r)
+}
+
+func jsArgCount(es jsExecState) uint32 {
+	r, _, _ := _jsArgCount.Call(uintptr(es))
+	return uint32(r)
+}
+
+func wkeJsBindFunction(name string, fn wkeJsNativeFunction, param unsafe.Pointer, argCount uint32) {
+	ptr := []byte(name)
+	r, _, err := _wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), uintptr(param), uintptr(argCount))
+	if r == 0 && showError {
+		fmt.Println("wkeJsBindFunction", err)
+	}
+}
+
 func wkeNetCancelRequest(job wkeNetJob) {
 	r, _, err := _wkeNetCancelRequest.Call(uintptr(job))
 	if r == 0 && showError {
@@ -88,15 +141,15 @@ func wkeNetCancelRequest(job wkeNetJob) {
 	}
 }
 
-func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr) {
-	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param unsafe.Pointer) {
+	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 	if r == 0 && showError {
 		fmt.Println("wkeNetOnResponse", err)
 	}
 }
 
-func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr) {
-	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param unsafe.Pointer) {
+	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 	if r == 0 && showError {
 		fmt.Println("wkeOnLoadUrlBegin", err)
 	}
@@ -135,19 +188,19 @@ func wkeFireKeyPressEvent(wke wkeHandle, code int, flags uint32, isSysKey bool) 
 	return byte(ret) != 0
 }
 
-func wkeFireKeyDownEvent(wke wkeHandle, code uintptr, flags uint32, isSysKey bool) bool {
+func wkeFireKeyDownEvent(wke wkeHandle, code, flags uint32, isSysKey bool) bool {
 	ret, _, _ := _wkeFireKeyDownEvent.Call(
 		uintptr(wke),
-		code,
+		uintptr(code),
 		uintptr(flags),
 		uintptr(toBool(isSysKey)))
 	return byte(ret) != 0
 }
 
-func wkeFireKeyUpEvent(wke wkeHandle, code uintptr, flags uint32, isSysKey bool) bool {
+func wkeFireKeyUpEvent(wke wkeHandle, code, flags uint32, isSysKey bool) bool {
 	ret, _, _ := _wkeFireKeyUpEvent.Call(
 		uintptr(wke),
-		code,
+		uintptr(code),
 		uintptr(flags),
 		uintptr(toBool(isSysKey)))
 	return byte(ret) != 0
@@ -216,8 +269,8 @@ func wkeLoadURL(wke wkeHandle, url string) {
 	}
 }
 
-func wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param uintptr) {
-	r, _, err := _wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+func wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param unsafe.Pointer) {
+	r, _, err := _wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 	if r == 0 && showError {
 		fmt.Println("wkeOnPaintBitUpdated", err)
 	}

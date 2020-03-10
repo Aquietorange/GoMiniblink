@@ -2,6 +2,28 @@ package goMiniblink
 
 import "image"
 
+type GoFuncContext struct {
+	Name  string
+	State interface{}
+	Param []interface{}
+}
+
+type GoFuncFn func(context GoFuncContext) interface{}
+
+type GoFunc struct {
+	Name  string
+	State interface{}
+	Fn    GoFuncFn
+}
+
+func (_this *GoFunc) OnExecute(param []interface{}) interface{} {
+	return _this.Fn(GoFuncContext{
+		Name:  _this.Name,
+		State: _this.State,
+		Param: param,
+	})
+}
+
 type Point struct {
 	X, Y int
 }

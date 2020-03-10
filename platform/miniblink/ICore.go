@@ -8,6 +8,7 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
+	BindGoFunc(fn mb.GoFunc)
 	SetOnRequest(callback RequestCallback)
 	SetFocus()
 	GetCaretPos() mb.Point

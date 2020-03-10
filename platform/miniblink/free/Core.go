@@ -18,6 +18,9 @@ type Core struct {
 
 	onPaint   core.PaintCallback
 	onRequest core.RequestCallback
+
+	_ref    []interface{}
+	_jsFunc map[string]wkeJsNativeFunction
 }
 
 func (_this *Core) Init(window plat.IWindow) *Core {
@@ -27,10 +30,37 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 	if _this.wke == 0 {
 		panic("创建失败")
 	}
+	_this._jsFunc = make(map[string]wkeJsNativeFunction)
+
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
-	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
-	wkeOnLoadUrlBegin(_this.wke, _this.onUrlBegin, 0)
+	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, nil)
+	wkeOnLoadUrlBegin(_this.wke, _this.onUrlBegin, nil)
 	return _this
+}
+
+func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
+
+}
+
+func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
+
+}
+
+func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
+	count := jsArgCount(es)
+	ps := make([]interface{}, count)
+	for i := 0; i < int(count); i++ {
+		value := jsArg(es, uint32(i))
+		ps[count] = toGoValue(_this, value, es)
+	}
+	fn := *((*mb.GoFunc)(unsafe.Pointer(state)))
+	ret := fn.OnExecute(ps)
+	return toJsValue(_this, ret, es)
+}
+
+func (_this *Core) BindGoFunc(fn mb.GoFunc) {
+	_this._ref = append(_this._ref, fn)
+	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, unsafe.Pointer(&fn), 0)
 }
 
 func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
@@ -66,9 +96,9 @@ func (_this *Core) FireKeyEvent(e mb.KeyEvArgs, isDown, isSys bool) bool {
 		flags |= int(wkeKeyFlags_Extend)
 	}
 	if isDown {
-		return wkeFireKeyDownEvent(_this.wke, e.Value, uint32(flags), isSys)
+		return wkeFireKeyDownEvent(_this.wke, uint32(e.Value), uint32(flags), isSys)
 	} else {
-		return wkeFireKeyUpEvent(_this.wke, e.Value, uint32(flags), isSys)
+		return wkeFireKeyUpEvent(_this.wke, uint32(e.Value), uint32(flags), isSys)
 	}
 }
 

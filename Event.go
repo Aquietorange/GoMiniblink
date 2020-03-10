@@ -7,8 +7,8 @@ import (
 //todo 应该全是接口
 
 type RequestEvArgs interface {
-	Url() string
-	Method() string
+	GetUrl() string
+	GetMethod() string
 	SetData([]byte)
 	GetData() []byte
 	SetCancel(b bool)

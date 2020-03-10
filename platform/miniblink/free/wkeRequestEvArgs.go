@@ -39,7 +39,7 @@ func (_this *wkeRequestEvArgs) GetData() []byte {
 	return _this.data
 }
 
-func (_this *wkeRequestEvArgs) Method() string {
+func (_this *wkeRequestEvArgs) GetMethod() string {
 	t := wkeNetGetRequestMethod(_this.job)
 	switch t {
 	case wkeRequestType_Get:
@@ -53,7 +53,16 @@ func (_this *wkeRequestEvArgs) Method() string {
 	}
 }
 
-func (_this *wkeRequestEvArgs) Url() string {
+func (_this *wkeRequestEvArgs) wkeSetData(data []byte) {
+	if data == nil || len(data) == 0 {
+		var buf = [1]byte{0}
+		wkeNetSetData(_this.job, &buf[0], 1)
+	} else {
+		wkeNetSetData(_this.job, &data[0], uint32(len(data)))
+	}
+}
+
+func (_this *wkeRequestEvArgs) GetUrl() string {
 	return _this.url
 }
 
@@ -63,13 +72,4 @@ func (_this *wkeRequestEvArgs) IsCancel() bool {
 
 func (_this *wkeRequestEvArgs) SetCancel(b bool) {
 	_this.cancel = b
-}
-
-func (_this *wkeRequestEvArgs) wkeSetData(data []byte) {
-	if data == nil || len(data) == 0 {
-		var buf = [1]byte{0}
-		wkeNetSetData(_this.job, &buf[0], 1)
-	} else {
-		wkeNetSetData(_this.job, &data[0], uint32(len(data)))
-	}
 }
