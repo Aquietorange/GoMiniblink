@@ -8,8 +8,12 @@ import (
 	plat "qq2564874169/goMiniblink/platform"
 	core "qq2564874169/goMiniblink/platform/miniblink"
 	"qq2564874169/goMiniblink/platform/windows/win32"
+	"strconv"
+	"time"
 	"unsafe"
 )
+
+var _jsFns = make(map[int64]*mb.GoFunc)
 
 type Core struct {
 	app   plat.IProvider
@@ -19,8 +23,7 @@ type Core struct {
 	onPaint   core.PaintCallback
 	onRequest core.RequestCallback
 
-	_ref    []interface{}
-	_jsFunc map[string]wkeJsNativeFunction
+	//_jsFunc map[string]wkeJsNativeFunction
 }
 
 func (_this *Core) Init(window plat.IWindow) *Core {
@@ -30,7 +33,7 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 	if _this.wke == 0 {
 		panic("创建失败")
 	}
-	_this._jsFunc = make(map[string]wkeJsNativeFunction)
+	//_this._jsFunc = make(map[string]wkeJsNativeFunction)
 
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
 	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, nil)
@@ -39,11 +42,89 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 }
 
 func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
-
+	if value == nil {
+		return jsUndefined()
+	}
+	switch value.(type) {
+	case int:
+		return jsInt(int32(value.(int)))
+	case int8:
+		return jsInt(int32(value.(int8)))
+	case int16:
+		return jsInt(int32(value.(int16)))
+	case int32:
+		return jsInt(value.(int32))
+	case int64:
+		return jsDouble(float64(value.(int64)))
+	case uint:
+		return jsInt(int32(value.(uint)))
+	case uint8:
+		return jsInt(int32(value.(uint8)))
+	case uint16:
+		return jsInt(int32(value.(uint16)))
+	case uint32:
+		return jsInt(int32(value.(uint32)))
+	case uint64:
+		return jsDouble(float64(value.(uint64)))
+	case float32:
+		return jsFloat(value.(float32))
+	case float64:
+		return jsDouble(value.(float64))
+	case bool:
+		return jsBoolean(value.(bool))
+	case string:
+		return jsString(es, value.(string))
+	case time.Time:
+		return jsDouble(float64(value.(time.Time).Unix()))
+	default:
+		break
+	}
+	//todo is list or is map
 }
 
 func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
-
+	switch jsTypeOf(value) {
+	case jsType_NULL, jsType_UNDEFINED:
+		return nil
+	case jsType_NUMBER:
+		return jsToDouble(es, value)
+	case jsType_BOOLEAN:
+		return jsToBoolean(es, value)
+	case jsType_STRING:
+		return jsToTempString(es, value)
+	case jsType_ARRAY:
+		length := jsGetLength(es, value)
+		ps := make([]interface{}, length)
+		for i := 0; i < length; i++ {
+			v := jsGetAt(es, value, uint32(i))
+			ps[i] = toGoValue(core, v, es)
+		}
+		return ps
+	case jsType_OBJECT:
+		ps := make(map[string]interface{})
+		keys := jsGetKeys(es, value)
+		for _, k := range keys {
+			v := jsGet(es, value, k)
+			ps[k] = toGoValue(core, v, es)
+		}
+		return ps
+	case jsType_FUNCTION:
+		name := "func" + strconv.FormatInt(mb.NewId(), 10)
+		jsSetGlobal(es, name, value)
+		return mb.JsFunc(func(param ...interface{}) interface{} {
+			jses := wkeGlobalExec(core.wke)
+			ps := make([]jsValue, len(param))
+			for i, v := range param {
+				ps[i] = toJsValue(core, v, jses)
+			}
+			fn := jsGetGlobal(jses, name)
+			ret := jsCall(jses, fn, jsUndefined(), ps, len(ps))
+			jsSetGlobal(jses, name, jsUndefined())
+			return toGoValue(core, ret, jses)
+		})
+	default:
+		panic("不支持的js类型：" + strconv.Itoa(int(value)))
+	}
 }
 
 func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
@@ -53,14 +134,17 @@ func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
 		value := jsArg(es, uint32(i))
 		ps[count] = toGoValue(_this, value, es)
 	}
-	fn := *((*mb.GoFunc)(unsafe.Pointer(state)))
-	ret := fn.OnExecute(ps)
-	return toJsValue(_this, ret, es)
+	if fn, ok := _jsFns[*(*int64)(unsafe.Pointer(state))]; ok {
+		ret := fn.OnExecute(ps)
+		return toJsValue(_this, ret, es)
+	}
+	return 0
 }
 
-func (_this *Core) BindGoFunc(fn mb.GoFunc) {
-	_this._ref = append(_this._ref, fn)
-	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, unsafe.Pointer(&fn), 0)
+func (_this *Core) BindFunc(fn mb.GoFunc) {
+	id := mb.NewId()
+	_jsFns[id] = &fn
+	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, unsafe.Pointer(&id), 0)
 }
 
 func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {

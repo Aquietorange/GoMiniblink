@@ -1,5 +1,18 @@
 package free
 
+type jsData struct {
+	name [100]uint16
+	propertyGet,
+	propertySet,
+	finalize,
+	callAsFunction uintptr
+}
+
+type jsKeys struct {
+	length uint32
+	first  uintptr
+}
+
 type wkeRequestType int
 
 const (

@@ -68,6 +68,22 @@ var (
 	_jsGetAt                *windows.LazyProc
 	_jsGetKeys              *windows.LazyProc
 	_jsGet                  *windows.LazyProc
+	_jsSetGlobal            *windows.LazyProc
+	_jsGetGlobal            *windows.LazyProc
+	_wkeGlobalExec          *windows.LazyProc
+	_jsCall                 *windows.LazyProc
+	_jsUndefined            *windows.LazyProc
+	_jsInt                  *windows.LazyProc
+	_jsBoolean              *windows.LazyProc
+	_jsDouble               *windows.LazyProc
+	_jsFloat                *windows.LazyProc
+	_jsString               *windows.LazyProc
+	_jsEmptyArray           *windows.LazyProc
+	_jsSetLength            *windows.LazyProc
+	_jsSetAt                *windows.LazyProc
+	_jsFunction             *windows.LazyProc
+	_jsEmptyObject          *windows.LazyProc
+	_jsSet                  *windows.LazyProc
 )
 
 func init() {
@@ -78,6 +94,29 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_jsSet = lib.NewProc("jsSet")
+	_jsEmptyObject = lib.NewProc("jsEmptyObject")
+	_jsFunction = lib.NewProc("jsFunction")
+	_jsSetAt = lib.NewProc("jsSetAt")
+	_jsSetLength = lib.NewProc("jsSetLength")
+	_jsEmptyArray = lib.NewProc("jsEmptyArray")
+	_jsString = lib.NewProc("jsString")
+	_jsFloat = lib.NewProc("jsFloat")
+	_jsDouble = lib.NewProc("jsDouble")
+	_jsBoolean = lib.NewProc("jsBoolean")
+	_jsInt = lib.NewProc("jsInt")
+	_jsUndefined = lib.NewProc("jsUndefined")
+	_jsCall = lib.NewProc("jsCall")
+	_wkeGlobalExec = lib.NewProc("wkeGlobalExec")
+	_jsGetGlobal = lib.NewProc("jsGetGlobal")
+	_jsSetGlobal = lib.NewProc("jsSetGlobal")
+	_jsGet = lib.NewProc("jsGet")
+	_jsGetKeys = lib.NewProc("jsGetKeys")
+	_jsGetAt = lib.NewProc("jsGetAt")
+	_jsGetLength = lib.NewProc("jsGetLength")
+	_jsToBoolean = lib.NewProc("jsToBoolean")
+	_jsToDouble = lib.NewProc("jsToDouble")
+	_jsToTempString = lib.NewProc("jsToTempString")
 	_jsTypeOf = lib.NewProc("jsTypeOf")
 	_jsArg = lib.NewProc("jsArg")
 	_jsArgCount = lib.NewProc("jsArgCount")
@@ -109,6 +148,130 @@ func init() {
 	if ret == 0 && showError {
 		fmt.Println(err)
 	}
+}
+
+func jsSet(es jsExecState, obj jsValue, name string, value jsValue) {
+	ptr := []byte(name)
+	_jsSet.Call(uintptr(es), uintptr(obj), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
+}
+
+func jsEmptyObject(es jsExecState) jsValue {
+	r, _, _ := _jsEmptyObject.Call(uintptr(es))
+	return jsValue(r)
+}
+
+func jsFunction(es jsExecState, fn jsValue) {
+	_jsFunction.Call(uintptr(es), uintptr(fn))
+}
+
+func jsSetAt(es jsExecState, array jsValue, index uint32, value jsValue) {
+	_jsSetAt.Call(uintptr(es), uintptr(array), uintptr(index), uintptr(value))
+}
+
+func jsSetLength(es jsExecState, array jsValue, length uint32) {
+	_jsSetLength.Call(uintptr(es), uintptr(array), uintptr(length))
+}
+
+func jsEmptyArray(es jsExecState) jsValue {
+	r, _, _ := _jsEmptyArray.Call(uintptr(es))
+	return jsValue(r)
+}
+
+func jsString(es jsExecState, value string) jsValue {
+	ptr := []byte(value)
+	r, _, _ := _jsString.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
+	return jsValue(r)
+}
+
+func jsFloat(value float32) jsValue {
+	r, _, _ := _jsFloat.Call(uintptr(value))
+	return jsValue(r)
+}
+
+func jsDouble(value float64) jsValue {
+	r, _, _ := _jsDouble.Call(uintptr(value))
+	return jsValue(r)
+}
+
+func jsBoolean(value bool) jsValue {
+	r, _, _ := _jsBoolean.Call(uintptr(toBool(value)))
+	return jsValue(r)
+}
+
+func jsInt(value int32) jsValue {
+	r, _, _ := _jsInt.Call(uintptr(value))
+	return jsValue(r)
+}
+
+func jsCall(es jsExecState, fn, thisObject jsValue, args []jsValue, argCount int) jsValue {
+	var ptr = uintptr(0)
+	if len(args) > 0 {
+		ptr = uintptr(unsafe.Pointer(&args[0]))
+	}
+	r, _, _ := _jsCall.Call(uintptr(es), uintptr(fn), uintptr(thisObject), ptr, uintptr(argCount))
+	return jsValue(r)
+}
+
+func wkeGlobalExec(wke wkeHandle) jsExecState {
+	r, _, _ := _wkeGlobalExec.Call(uintptr(wke))
+	return jsExecState(r)
+}
+
+func jsGetGlobal(es jsExecState, name string) jsValue {
+	ptr := []byte(name)
+	r, _, _ := _jsGetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
+	return jsValue(r)
+}
+
+func jsSetGlobal(es jsExecState, name string, value jsValue) {
+	ptr := []byte(name)
+	_jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
+}
+
+func jsGetKeys(es jsExecState, value jsValue) []string {
+	r, _, _ := _jsGetKeys.Call(uintptr(es), uintptr(value))
+	keys := *((*jsKeys)(unsafe.Pointer(r)))
+	items := make([]string, keys.length)
+	for i := 0; i < int(keys.length); i++ {
+		items[i] = string(keys.first)
+		keys.first += unsafe.Sizeof(keys.first)
+	}
+	return items
+}
+
+func jsGet(es jsExecState, value jsValue, name string) jsValue {
+	r, _, _ := _jsGet.Call(uintptr(es), uintptr(value))
+	return jsValue(r)
+}
+
+func jsGetAt(es jsExecState, value jsValue, index uint32) jsValue {
+	r, _, _ := _jsGetAt.Call(uintptr(es), uintptr(value), uintptr(index))
+	return jsValue(r)
+}
+
+func jsGetLength(es jsExecState, value jsValue) int {
+	r, _, _ := _jsGetLength.Call(uintptr(es), uintptr(value))
+	return int(r)
+}
+
+func jsUndefined() jsValue {
+	r, _, _ := _jsUndefined.Call()
+	return jsValue(r)
+}
+
+func jsToBoolean(es jsExecState, value jsValue) bool {
+	r, _, _ := _jsToBoolean.Call(uintptr(es), uintptr(value))
+	return byte(r) != 0
+}
+
+func jsToDouble(es jsExecState, value jsValue) float64 {
+	r, _, _ := _jsToDouble.Call(uintptr(es), uintptr(value))
+	return float64(r)
+}
+
+func jsToTempString(es jsExecState, value jsValue) string {
+	r, _, _ := _jsToTempString.Call(uintptr(es), uintptr(value))
+	return wkePtrToUtf8(r)
 }
 
 func jsTypeOf(value jsValue) jsType {

@@ -2,6 +2,8 @@ package goMiniblink
 
 import "image"
 
+type JsFunc func(param ...interface{}) interface{}
+
 type GoFuncContext struct {
 	Name  string
 	State interface{}

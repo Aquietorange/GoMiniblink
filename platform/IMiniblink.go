@@ -7,4 +7,5 @@ type IMiniblink interface {
 
 	SetOnRequest(func(e mb.RequestEvArgs))
 	LoadUri(uri string)
+	BindFunc(fn mb.GoFunc)
 }

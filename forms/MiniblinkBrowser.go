@@ -26,11 +26,19 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	return _this
 }
 
+func (_this *MiniblinkBrowser) BindFunc(name string, fn mb.GoFuncFn, state interface{}) {
+	_this.impl.BindFunc(mb.GoFunc{
+		Name:  name,
+		State: state,
+		Fn:    fn,
+	})
+}
+
 func (_this *MiniblinkBrowser) loadRes(e mb.RequestEvArgs) {
 	if len(_this.ResourceLoader) == 0 {
 		return
 	}
-	url, err := url2.Parse(e.Url())
+	url, err := url2.Parse(e.GetUrl())
 	if err != nil {
 		return
 	}
