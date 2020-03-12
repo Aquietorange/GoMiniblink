@@ -8,7 +8,9 @@ import (
 	plat "qq2564874169/goMiniblink/platform"
 	core "qq2564874169/goMiniblink/platform/miniblink"
 	"qq2564874169/goMiniblink/platform/windows/win32"
+	"reflect"
 	"strconv"
+	"syscall"
 	"time"
 	"unsafe"
 )
@@ -79,7 +81,45 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 	default:
 		break
 	}
-	//todo is list or is map
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Slice, reflect.Array:
+		length := rv.Len()
+		arr := jsEmptyArray(es)
+		jsSetLength(es, arr, uint32(length))
+		for i := 0; i < length; i++ {
+			v := toJsValue(core, rv.Index(i).Interface(), es)
+			jsSetAt(es, arr, uint32(i), v)
+		}
+		return arr
+	case reflect.Map:
+		obj := jsEmptyObject(es)
+		kv := rv.MapRange()
+		for kv.Next() && kv.Key().Kind() == reflect.String {
+			k := kv.Key().Interface().(string)
+			v := toJsValue(core, kv.Value().Interface(), es)
+			jsSet(es, obj, k, v)
+		}
+		return obj
+	case reflect.Struct:
+		obj := jsEmptyObject(es)
+		for i := 0; i < rv.NumField(); i++ {
+			f := rv.Field(i).Type().Name()
+			v := toJsValue(core, rv.Field(i).Interface(), es)
+			jsSet(es, obj, f, v)
+		}
+		return obj
+	case reflect.Func:
+		jsFn := jsData{}
+		arr, _ := syscall.UTF16FromString("function")
+		for i := 0; i < len(arr); i++ {
+			jsFn.name[i] = arr[i]
+		}
+		var fire = func(es jsExecState, obj, args jsValue, count uint32) jsValue {
+
+		}
+	}
+	panic("不支持的go类型：" + rv.Kind().String())
 }
 
 func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
