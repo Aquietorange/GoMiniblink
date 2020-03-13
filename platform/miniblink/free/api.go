@@ -160,8 +160,9 @@ func jsEmptyObject(es jsExecState) jsValue {
 	return jsValue(r)
 }
 
-func jsFunction(es jsExecState, fn jsValue) {
-	_jsFunction.Call(uintptr(es), uintptr(fn))
+func jsFunction(es jsExecState, data *jsData) jsValue {
+	r, _, _ := _jsFunction.Call(uintptr(es), uintptr(unsafe.Pointer(data)))
+	return jsValue(r)
 }
 
 func jsSetAt(es jsExecState, array jsValue, index uint32, value jsValue) {

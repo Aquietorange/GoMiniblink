@@ -16,6 +16,7 @@ import (
 )
 
 var _jsFns = make(map[int64]*mb.GoFunc)
+var _ref = make(map[int64]interface{})
 
 type Core struct {
 	app   plat.IProvider
@@ -111,13 +112,29 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		return obj
 	case reflect.Func:
 		jsFn := jsData{}
-		arr, _ := syscall.UTF16FromString("function")
-		for i := 0; i < len(arr); i++ {
-			jsFn.name[i] = arr[i]
+		name, _ := syscall.UTF16FromString("function")
+		for i := 0; i < len(name); i++ {
+			jsFn.name[i] = name[i]
 		}
-		var fire = func(es jsExecState, obj, args jsValue, count uint32) jsValue {
-
+		var call = func(fnes jsExecState, obj, args jsValue, count uint32) jsValue {
+			arr := make([]reflect.Value, count)
+			for i := uint32(0); i < count; i++ {
+				jv := jsGetAt(fnes, args, i)
+				gv := toGoValue(core, jv, fnes)
+				arr[i] = reflect.ValueOf(gv)
+			}
+			rs := rv.Call(arr)
+			if len(rs) > 0 {
+				return toJsValue(core, rs[0].Interface(), fnes)
+			}
+			return 0
 		}
+		jsFn.callAsFunction = syscall.NewCallbackCDecl(call)
+		jsFn.finalize = syscall.NewCallbackCDecl(func(ptr uintptr) {
+			delete(_ref, int64(ptr))
+		})
+		_ref[int64(jsFn.callAsFunction)] = call
+		return jsFunction(es, &jsFn)
 	}
 	panic("不支持的go类型：" + rv.Kind().String())
 }
