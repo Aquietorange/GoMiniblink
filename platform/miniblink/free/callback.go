@@ -6,4 +6,4 @@ type wkeNetResponseCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeN
 
 type wkeLoadUrlBeginCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr
 
-type wkeJsNativeFunction func(es jsExecState, param uintptr) jsValue
+type wkeJsNativeFunction func(es jsExecState, param uintptr) uintptr

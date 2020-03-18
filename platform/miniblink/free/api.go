@@ -15,26 +15,25 @@ const (
 type (
 	wkeHandle   uintptr
 	jsExecState uintptr
-	jsValue     int64
+	jsValue     uint64
 )
 
-type jsType int
+type jsType uint32
 
 const (
-	jsType_NUMBER    jsType = 0
-	jsType_STRING    jsType = 1
-	jsType_BOOLEAN   jsType = 2
-	jsType_OBJECT    jsType = 3
-	jsType_FUNCTION  jsType = 4
-	jsType_UNDEFINED jsType = 5
-	jsType_ARRAY     jsType = 6
-	jsType_NULL      jsType = 7
+	jsType_NUMBER jsType = iota
+	jsType_STRING
+	jsType_BOOLEAN
+	jsType_OBJECT
+	jsType_FUNCTION
+	jsType_UNDEFINED
+	jsType_ARRAY
+	jsType_NULL
 )
 
 var (
 	lib *windows.LazyDLL
 
-	showError               bool
 	_wkeInitialize          *windows.LazyProc
 	_wkeCreateWebView       *windows.LazyProc
 	_wkeSetHandle           *windows.LazyProc
@@ -63,6 +62,8 @@ var (
 	_jsTypeOf               *windows.LazyProc
 	_jsToTempString         *windows.LazyProc
 	_jsToDouble             *windows.LazyProc
+	_jsToFloat              *windows.LazyProc
+	_jsToInt                *windows.LazyProc
 	_jsToBoolean            *windows.LazyProc
 	_jsGetLength            *windows.LazyProc
 	_jsGetAt                *windows.LazyProc
@@ -87,13 +88,14 @@ var (
 )
 
 func init() {
-	showError = true
 	is64 := unsafe.Sizeof(uintptr(0)) == 8
 	if is64 {
 		lib = windows.NewLazyDLL(file_x64_dll)
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_jsToInt = lib.NewProc("jsToInt")
+	_jsToFloat = lib.NewProc("jsToFloat")
 	_jsSet = lib.NewProc("jsSet")
 	_jsEmptyObject = lib.NewProc("jsEmptyObject")
 	_jsFunction = lib.NewProc("jsFunction")
@@ -145,7 +147,7 @@ func init() {
 	_wkeSetFocus = lib.NewProc("wkeSetFocus")
 
 	ret, _, err := _wkeInitialize.Call()
-	if ret == 0 && showError {
+	if ret == 0 {
 		fmt.Println(err)
 	}
 }
@@ -179,7 +181,7 @@ func jsEmptyArray(es jsExecState) jsValue {
 }
 
 func jsString(es jsExecState, value string) jsValue {
-	ptr := []byte(value)
+	ptr := toCallStr(value)
 	r, _, _ := _jsString.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
@@ -219,13 +221,13 @@ func wkeGlobalExec(wke wkeHandle) jsExecState {
 }
 
 func jsGetGlobal(es jsExecState, name string) jsValue {
-	ptr := []byte(name)
+	ptr := toCallStr(name)
 	r, _, _ := _jsGetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
 
 func jsSetGlobal(es jsExecState, name string, value jsValue) {
-	ptr := []byte(name)
+	ptr := toCallStr(name)
 	_jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
 }
 
@@ -241,7 +243,8 @@ func jsGetKeys(es jsExecState, value jsValue) []string {
 }
 
 func jsGet(es jsExecState, value jsValue, name string) jsValue {
-	r, _, _ := _jsGet.Call(uintptr(es), uintptr(value))
+	ptr := toCallStr(name)
+	r, _, _ := _jsGet.Call(uintptr(es), uintptr(value), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
 
@@ -276,12 +279,14 @@ func jsToTempString(es jsExecState, value jsValue) string {
 }
 
 func jsTypeOf(value jsValue) jsType {
+	fmt.Println("value is ", value, uintptr(value))
 	r, _, _ := _jsTypeOf.Call(uintptr(value))
+	fmt.Println("type is ", r)
 	return jsType(r)
 }
 
-func jsArg(es jsExecState, index uint32) jsValue {
-	r, _, _ := _jsArg.Call(uintptr(es), uintptr(index))
+func jsArg(es jsExecState, argIdx uint32) jsValue {
+	r, _, _ := _jsArg.Call(uintptr(es), uintptr(argIdx))
 	return jsValue(r)
 }
 
@@ -290,48 +295,30 @@ func jsArgCount(es jsExecState) uint32 {
 	return uint32(r)
 }
 
-func wkeJsBindFunction(name string, fn wkeJsNativeFunction, param unsafe.Pointer, argCount uint32) {
-	ptr := []byte(name)
-	r, _, err := _wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), uintptr(param), uintptr(argCount))
-	if r == 0 && showError {
-		fmt.Println("wkeJsBindFunction", err)
-	}
+func wkeJsBindFunction(name string, fn wkeJsNativeFunction, param uintptr, argCount uint32) {
+	ptr := toCallStr(name)
+	_wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), param, uintptr(argCount))
 }
 
 func wkeNetCancelRequest(job wkeNetJob) {
-	r, _, err := _wkeNetCancelRequest.Call(uintptr(job))
-	if r == 0 && showError {
-		fmt.Println("wkeNetCancelRequest", err)
-	}
+	_wkeNetCancelRequest.Call(uintptr(job))
 }
 
 func wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param unsafe.Pointer) {
-	r, _, err := _wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
-	if r == 0 && showError {
-		fmt.Println("wkeNetOnResponse", err)
-	}
+	_wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 }
 
 func wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param unsafe.Pointer) {
-	r, _, err := _wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
-	if r == 0 && showError {
-		fmt.Println("wkeOnLoadUrlBegin", err)
-	}
+	_wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 }
 
 func wkeNetGetRequestMethod(job wkeNetJob) wkeRequestType {
-	r, _, err := _wkeNetGetRequestMethod.Call(uintptr(job))
-	if r == 0 && showError {
-		fmt.Println("wkeNetGetRequestMethod", err)
-	}
+	r, _, _ := _wkeNetGetRequestMethod.Call(uintptr(job))
 	return wkeRequestType(r)
 }
 
-func wkeNetSetData(job wkeNetJob, buf *byte, len uint32) {
-	r, _, err := _wkeNetSetData.Call(uintptr(job), uintptr(unsafe.Pointer(buf)), uintptr(len))
-	if r == 0 && showError {
-		fmt.Println("wkeNetSetData", err)
-	}
+func wkeNetSetData(job wkeNetJob, buf []byte, len uint32) {
+	_wkeNetSetData.Call(uintptr(job), uintptr(unsafe.Pointer(&buf[0])), uintptr(len))
 }
 
 func wkeGetCaretRect(wke wkeHandle) wkeRect {
@@ -395,63 +382,39 @@ func wkeFireMouseEvent(wke wkeHandle, message, x, y, flags int32) bool {
 	return byte(r) != 0
 }
 
-func wkePaint(wke wkeHandle, bits *uint8, pitch uint32) {
-	r, _, err := _wkePaint.Call(uintptr(wke), uintptr(unsafe.Pointer(bits)), uintptr(pitch))
-	if r == 0 && showError {
-		fmt.Println("wkePaint", err)
-	}
+func wkePaint(wke wkeHandle, bits []byte, pitch uint32) {
+	_wkePaint.Call(uintptr(wke), uintptr(unsafe.Pointer(&bits[0])), uintptr(pitch))
 }
 
 func wkeGetHeight(wke wkeHandle) uint32 {
-	r, _, err := _wkeGetHeight.Call(uintptr(wke))
-	if r == 0 && showError {
-		fmt.Println("wkeGetHeight", err)
-	}
+	r, _, _ := _wkeGetHeight.Call(uintptr(wke))
 	return uint32(r)
 }
 
 func wkeGetWidth(wke wkeHandle) uint32 {
-	r, _, err := _wkeGetWidth.Call(uintptr(wke))
-	if r == 0 && showError {
-		fmt.Println("wkeGetWidth", err)
-	}
+	r, _, _ := _wkeGetWidth.Call(uintptr(wke))
 	return uint32(r)
 }
 
 func wkeResize(wke wkeHandle, w, h uint32) {
-	r, _, err := _wkeResize.Call(uintptr(wke), uintptr(w), uintptr(h))
-	if r == 0 && showError {
-		fmt.Println("wkeResize", err)
-	}
+	_wkeResize.Call(uintptr(wke), uintptr(w), uintptr(h))
 }
 
 func wkeLoadURL(wke wkeHandle, url string) {
-	ptr := []byte(url)
-	r, _, err := _wkeLoadURL.Call(uintptr(wke), uintptr(unsafe.Pointer(&ptr[0])))
-	if r == 0 && showError {
-		fmt.Println("wkeLoadURL", err)
-	}
+	ptr := toCallStr(url)
+	_wkeLoadURL.Call(uintptr(wke), uintptr(unsafe.Pointer(&ptr[0])))
 }
 
 func wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param unsafe.Pointer) {
-	r, _, err := _wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
-	if r == 0 && showError {
-		fmt.Println("wkeOnPaintBitUpdated", err)
-	}
+	_wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 }
 
 func wkeSetHandle(wke wkeHandle, handle uintptr) {
-	r, _, err := _wkeSetHandle.Call(uintptr(wke), handle)
-	if r == 0 && showError {
-		fmt.Println("wkeSetHandle", err)
-	}
+	_wkeSetHandle.Call(uintptr(wke), handle)
 }
 
 func wkeCreateWebView() wkeHandle {
-	r, _, err := _wkeCreateWebView.Call()
-	if r == 0 && showError {
-		fmt.Println("wkeCreateWebView", err)
-	}
+	r, _, _ := _wkeCreateWebView.Call()
 	return wkeHandle(r)
 }
 
@@ -461,4 +424,13 @@ func toBool(b bool) byte {
 	} else {
 		return 0
 	}
+}
+
+func toCallStr(str string) []byte {
+	buf := []byte(str)
+	rs := make([]byte, len(str)+1)
+	for i, v := range buf {
+		rs[i] = v
+	}
+	return rs
 }

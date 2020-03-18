@@ -55,10 +55,10 @@ func (_this *wkeRequestEvArgs) GetMethod() string {
 
 func (_this *wkeRequestEvArgs) wkeSetData(data []byte) {
 	if data == nil || len(data) == 0 {
-		var buf = [1]byte{0}
-		wkeNetSetData(_this.job, &buf[0], 1)
+		var buf = []byte{0}
+		wkeNetSetData(_this.job, buf, 1)
 	} else {
-		wkeNetSetData(_this.job, &data[0], uint32(len(data)))
+		wkeNetSetData(_this.job, data, uint32(len(data)))
 	}
 }
 

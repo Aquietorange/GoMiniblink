@@ -16,6 +16,7 @@ type winMiniblink struct {
 	initUri   string
 	initSize  mb.Rect
 	onRequest func(args mb.RequestEvArgs)
+	_fns      []mb.GoFunc
 }
 
 func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
@@ -87,6 +88,14 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	return _this
 }
 
+func (_this *winMiniblink) BindFunc(fn mb.GoFunc) {
+	if _this.IsCreate() {
+		_this.wke.BindFunc(fn)
+	} else {
+		_this._fns = append(_this._fns, fn)
+	}
+}
+
 func (_this *winMiniblink) initWke() {
 	if vip.Exists() {
 		//todo
@@ -104,6 +113,11 @@ func (_this *winMiniblink) initWke() {
 	})
 	if _this.initSize.Width > 0 && _this.initSize.Height > 0 {
 		_this.wke.Resize(_this.initSize.Width, _this.initSize.Height)
+	}
+	if len(_this._fns) > 0 {
+		for _, fn := range _this._fns {
+			_this.BindFunc(fn)
+		}
 	}
 	if _this.initUri != "" {
 		_this.LoadUri(_this.initUri)

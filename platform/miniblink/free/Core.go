@@ -44,7 +44,7 @@ func (_this *Core) Init(window plat.IWindow) *Core {
 	return _this
 }
 
-func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
+func toJsValue(core *Core, es jsExecState, value interface{}) jsValue {
 	if value == nil {
 		return jsUndefined()
 	}
@@ -89,7 +89,7 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		arr := jsEmptyArray(es)
 		jsSetLength(es, arr, uint32(length))
 		for i := 0; i < length; i++ {
-			v := toJsValue(core, rv.Index(i).Interface(), es)
+			v := toJsValue(core, es, rv.Index(i).Interface())
 			jsSetAt(es, arr, uint32(i), v)
 		}
 		return arr
@@ -98,7 +98,7 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		kv := rv.MapRange()
 		for kv.Next() && kv.Key().Kind() == reflect.String {
 			k := kv.Key().Interface().(string)
-			v := toJsValue(core, kv.Value().Interface(), es)
+			v := toJsValue(core, es, kv.Value().Interface())
 			jsSet(es, obj, k, v)
 		}
 		return obj
@@ -106,7 +106,7 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		obj := jsEmptyObject(es)
 		for i := 0; i < rv.NumField(); i++ {
 			f := rv.Field(i).Type().Name()
-			v := toJsValue(core, rv.Field(i).Interface(), es)
+			v := toJsValue(core, es, rv.Field(i).Interface())
 			jsSet(es, obj, f, v)
 		}
 		return obj
@@ -119,13 +119,12 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		var call = func(fnes jsExecState, obj, args jsValue, count uint32) jsValue {
 			arr := make([]reflect.Value, count)
 			for i := uint32(0); i < count; i++ {
-				jv := jsGetAt(fnes, args, i)
-				gv := toGoValue(core, jv, fnes)
-				arr[i] = reflect.ValueOf(gv)
+				jv := jsArg(fnes, i)
+				arr[i] = reflect.ValueOf(toGoValue(core, fnes, jv))
 			}
 			rs := rv.Call(arr)
 			if len(rs) > 0 {
-				return toJsValue(core, rs[0].Interface(), fnes)
+				return toJsValue(core, fnes, rs[0].Interface())
 			}
 			return 0
 		}
@@ -136,10 +135,10 @@ func toJsValue(core *Core, value interface{}, es jsExecState) jsValue {
 		_ref[int64(jsFn.callAsFunction)] = call
 		return jsFunction(es, &jsFn)
 	}
-	panic("不支持的go类型：" + rv.Kind().String())
+	panic("不支持的go类型：" + rv.Kind().String() + "(" + rv.Type().String() + ")")
 }
 
-func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
+func toGoValue(core *Core, es jsExecState, value jsValue) interface{} {
 	switch jsTypeOf(value) {
 	case jsType_NULL, jsType_UNDEFINED:
 		return nil
@@ -154,7 +153,7 @@ func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
 		ps := make([]interface{}, length)
 		for i := 0; i < length; i++ {
 			v := jsGetAt(es, value, uint32(i))
-			ps[i] = toGoValue(core, v, es)
+			ps[i] = toGoValue(core, es, v)
 		}
 		return ps
 	case jsType_OBJECT:
@@ -162,7 +161,7 @@ func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
 		keys := jsGetKeys(es, value)
 		for _, k := range keys {
 			v := jsGet(es, value, k)
-			ps[k] = toGoValue(core, v, es)
+			ps[k] = toGoValue(core, es, v)
 		}
 		return ps
 	case jsType_FUNCTION:
@@ -172,28 +171,28 @@ func toGoValue(core *Core, value jsValue, es jsExecState) interface{} {
 			jses := wkeGlobalExec(core.wke)
 			ps := make([]jsValue, len(param))
 			for i, v := range param {
-				ps[i] = toJsValue(core, v, jses)
+				ps[i] = toJsValue(core, jses, v)
 			}
 			fn := jsGetGlobal(jses, name)
-			ret := jsCall(jses, fn, jsUndefined(), ps, len(ps))
+			rs := jsCall(jses, fn, jsUndefined(), ps, len(ps))
 			jsSetGlobal(jses, name, jsUndefined())
-			return toGoValue(core, ret, jses)
+			return toGoValue(core, jses, rs)
 		})
 	default:
 		panic("不支持的js类型：" + strconv.Itoa(int(value)))
 	}
 }
 
-func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
+func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) uintptr {
 	count := jsArgCount(es)
 	ps := make([]interface{}, count)
 	for i := 0; i < int(count); i++ {
 		value := jsArg(es, uint32(i))
-		ps[count] = toGoValue(_this, value, es)
+		ps[i] = toGoValue(_this, es, value)
 	}
-	if fn, ok := _jsFns[*(*int64)(unsafe.Pointer(state))]; ok {
+	if fn, ok := _jsFns[int64(state)]; ok {
 		ret := fn.OnExecute(ps)
-		return toJsValue(_this, ret, es)
+		return uintptr(toJsValue(_this, es, ret))
 	}
 	return 0
 }
@@ -201,7 +200,7 @@ func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
 func (_this *Core) BindFunc(fn mb.GoFunc) {
 	id := mb.NewId()
 	_jsFns[id] = &fn
-	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, unsafe.Pointer(&id), 0)
+	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, uintptr(id), 0)
 }
 
 func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
@@ -343,7 +342,7 @@ func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
 	h := wkeGetHeight(_this.wke)
 	if w > 0 && h > 0 {
 		view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-		wkePaint(_this.wke, &view.Pix[0], 0)
+		wkePaint(_this.wke, view.Pix, 0)
 		draw.Draw(bmp, image.Rect(0, 0, bound.Width, bound.Height), view, image.Pt(bound.X, bound.Y), draw.Src)
 	}
 	return bmp
