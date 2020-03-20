@@ -82,7 +82,7 @@ func (_this *Provider) SetIcon(file string) {
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
 		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
-		LpfnWndProc:   syscall.NewCallbackCDecl(_this.classMsgProc),
+		LpfnWndProc:   syscall.NewCallback(_this.classMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
 		HIcon:         _this.defIcon,

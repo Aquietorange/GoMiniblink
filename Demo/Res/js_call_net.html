@@ -2,7 +2,7 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>demo</title>
     <style>
         * {
@@ -50,30 +50,32 @@
             padding-left: 15px;
             font-size: 18px;
         }
-        fieldset>button {
+
+        fieldset > button {
             width: 80px;
         }
-        body > ol>li {
+
+        body > ol > li {
             display: block;
             padding-left: 25px;
         }
     </style>
     <script>
-        window.onload = function() {
+        window.onload = function () {
             document.getElementById("btnFunc1").addEventListener("click",
-                function() {
+                function () {
                     var result = Func1(2, 3);
                     alert(result);
                 });
             document.getElementById("btnFunc2").addEventListener("click",
                 function () {
-                    Func2(function(n1, n2) {
+                    Func2(function (n1, n2) {
                         alert(n1 * n2);
                     });
                 });
             document.getElementById("btnFunc3").addEventListener("click",
                 function () {
-                    var result = Func3({ n1: 4, n2: 5 });
+                    var result = Func3({n1: 4, n2: 5});
                     alert(result);
                 });
             document.getElementById("btnFunc4").addEventListener("click",
@@ -139,22 +141,22 @@
     </ul>
     <button id="btnFunc3">执行</button>
 </fieldset>
-    <fieldset>
-        <legend>传参数量并不是和绑定必须相同</legend>
-        <ol>
-            <li>.NET定义</li>
-            <li>[NetFunc]</li>
-            <li>private object Func4(string name, int age, int? year) {</li>
-            <li class="sj-1">return $"name={name}, age={age}, year={year}";</li>
-            <li>}</li>
-        </ol>
-        <ul>
-            <li>JS调用</li>
-            <li>var result = Func4("韩梅梅");</li>
-            <li>alert(result);</li>
-        </ul>
-        <button id="btnFunc4">执行</button>
-    </fieldset>
+<fieldset>
+    <legend>传参数量并不是和绑定必须相同</legend>
+    <ol>
+        <li>.NET定义</li>
+        <li>[NetFunc]</li>
+        <li>private object Func4(string name, int age, int? year) {</li>
+        <li class="sj-1">return $"name={name}, age={age}, year={year}";</li>
+        <li>}</li>
+    </ol>
+    <ul>
+        <li>JS调用</li>
+        <li>var result = Func4("韩梅梅");</li>
+        <li>alert(result);</li>
+    </ul>
+    <button id="btnFunc4">执行</button>
+</fieldset>
 <fieldset>
     <legend>返回值是一个.NET委托</legend>
     <ol>

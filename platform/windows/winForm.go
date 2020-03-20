@@ -120,7 +120,7 @@ func (_this *winForm) Create() {
 			_this.app.hInstance,
 			_this.createParams,
 			_this.app.defOwner,
-			syscall.NewCallbackCDecl(_this.formWndProc),
+			syscall.NewCallback(_this.formWndProc),
 			nil)
 		if hWnd == 0 {
 			panic("创建失败")
