@@ -12,6 +12,7 @@ type IProvider interface {
 	GetScreen() mb.Screen
 	ModifierKeys() map[mb.Keys]bool
 	MouseIsDown() map[mb.MouseButtons]bool
+	AppDir() string
 
 	NewForm() IForm
 	NewControl() IControl

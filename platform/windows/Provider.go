@@ -2,6 +2,7 @@ package windows
 
 import (
 	"os"
+	"path/filepath"
 	mb "qq2564874169/goMiniblink"
 	"qq2564874169/goMiniblink/platform"
 	"qq2564874169/goMiniblink/platform/windows/win32"
@@ -32,6 +33,11 @@ func (_this *Provider) Init() *Provider {
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.msClick = new(mouseClickWorker).init()
 	return _this
+}
+
+func (_this *Provider) AppDir() string {
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	return dir
 }
 
 func (_this *Provider) ModifierKeys() map[mb.Keys]bool {

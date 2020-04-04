@@ -1,9 +1,7 @@
-package free
-
-import core "qq2564874169/goMiniblink/platform/miniblink"
+package miniblink
 
 type wkeRequestEvArgs struct {
-	wke    core.ICore
+	wke    ICore
 	job    wkeNetJob
 	url    string
 	cancel bool
@@ -11,7 +9,7 @@ type wkeRequestEvArgs struct {
 	state  int //1=before,2=async,3=post,4=net,5=valid
 }
 
-func (_this *wkeRequestEvArgs) init(wke core.ICore, url string, job wkeNetJob) *wkeRequestEvArgs {
+func (_this *wkeRequestEvArgs) init(wke ICore, url string, job wkeNetJob) *wkeRequestEvArgs {
 	_this.wke = wke
 	_this.url = url
 	_this.job = job

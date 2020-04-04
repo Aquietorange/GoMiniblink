@@ -914,9 +914,9 @@ public:
     ITERATOR1(const char*, wkeWebViewName, wkeWebView webView, "") \
     ITERATOR2(void, wkeSetWebViewName, wkeWebView webView, const char* name, "") \
     \
-    ITERATOR1(bool, wkeIsLoaded, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsLoadFailed, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsLoadComplete, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoaded, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoadFailed, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoadComplete, wkeWebView webView, "") \
     \
     ITERATOR1(const utf8*, wkeGetSource, wkeWebView webView, "") \
     ITERATOR1(const utf8*, wkeTitle, wkeWebView webView, "") \
@@ -932,15 +932,15 @@ public:
     ITERATOR1(void, wkePaste, wkeWebView webView, "") \
     ITERATOR1(void, wkeDelete, wkeWebView webView, "") \
     \
-    ITERATOR1(bool, wkeCookieEnabled, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeCookieEnabled, wkeWebView webView, "") \
     ITERATOR1(float, wkeMediaVolume, wkeWebView webView, "") \
     \
-    ITERATOR5(bool, wkeMouseEvent, wkeWebView webView, unsigned int message, int x, int y, unsigned int flags, "") \
-    ITERATOR4(bool, wkeContextMenuEvent, wkeWebView webView, int x, int y, unsigned int flags, "") \
-    ITERATOR5(bool, wkeMouseWheel, wkeWebView webView, int x, int y, int delta, unsigned int flags, "") \
-    ITERATOR4(bool, wkeKeyUp, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
-    ITERATOR4(bool, wkeKeyDown, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
-    ITERATOR4(bool, wkeKeyPress, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR5(BOOL, wkeMouseEvent, wkeWebView webView, unsigned int message, int x, int y, unsigned int flags, "") \
+    ITERATOR4(BOOL, wkeContextMenuEvent, wkeWebView webView, int x, int y, unsigned int flags, "") \
+    ITERATOR5(BOOL, wkeMouseWheel, wkeWebView webView, int x, int y, int delta, unsigned int flags, "") \
+    ITERATOR4(BOOL, wkeKeyUp, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR4(BOOL, wkeKeyDown, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR4(BOOL, wkeKeyPress, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
     \
     ITERATOR1(void, wkeFocus, wkeWebView webView, "") \
     ITERATOR1(void, wkeUnfocus, wkeWebView webView, "") \
@@ -961,7 +961,7 @@ public:
     ITERATOR2(const wchar_t*, jsToStringW, jsExecState es, jsValue v, "") \
     \
     ITERATOR1(void, wkeConfigure, const wkeSettings* settings, "") \
-    ITERATOR0(bool, wkeIsInitialize, "") \
+    ITERATOR0(BOOL, wkeIsInitialize, "") \
     \
     ITERATOR2(void, wkeSetViewSettings, wkeWebView webView, const wkeViewSettings* settings, "") \
     ITERATOR3(void, wkeSetDebugConfig, wkeWebView webView, const char* debugString, const char* param, "") \
@@ -999,7 +999,7 @@ public:
     ITERATOR2(void, wkeSetHandle, wkeWebView webView, HWND wnd, "") \
     ITERATOR3(void, wkeSetHandleOffset, wkeWebView webView, int x, int y, "") \
     \
-    ITERATOR1(bool, wkeIsTransparent, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsTransparent, wkeWebView webView, "") \
     ITERATOR2(void, wkeSetTransparent, wkeWebView webView, bool transparent, "") \
     \
     ITERATOR2(void, wkeSetUserAgent, wkeWebView webView, const utf8* userAgent, "") \
@@ -1024,19 +1024,19 @@ public:
     ITERATOR1(const utf8*, wkeGetURL, wkeWebView webView, "") \
     ITERATOR2(const utf8*, wkeGetFrameUrl, wkeWebView webView, wkeWebFrameHandle frameId, "") \
     \
-    ITERATOR1(bool, wkeIsLoading, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsLoadingSucceeded, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsLoadingFailed, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsLoadingCompleted, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsDocumentReady, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoading, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoadingSucceeded, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoadingFailed, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsLoadingCompleted, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsDocumentReady, wkeWebView webView, "") \
     ITERATOR1(void, wkeStopLoading, wkeWebView webView, "") \
     ITERATOR1(void, wkeReload, wkeWebView webView, "") \
     ITERATOR2(void, wkeGoToOffset, wkeWebView webView, int offset, "") \
     ITERATOR2(void, wkeGoToIndex, wkeWebView webView, int index, "") \
     \
     ITERATOR1(int, wkeGetWebviewId, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsWebviewAlive, int id, "") \
-    ITERATOR1(bool, wkeIsWebviewValid, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsWebviewAlive, int id, "") \
+    ITERATOR1(BOOL, wkeIsWebviewValid, wkeWebView webView, "") \
     \
     ITERATOR3(const utf8*, wkeGetDocumentCompleteURL, wkeWebView webView, wkeWebFrameHandle frameId, const utf8* partialURL, "") \
     \
@@ -1053,7 +1053,7 @@ public:
     ITERATOR1(int, wkeGetContentHeight, wkeWebView webView, "") \
     \
     ITERATOR2(void, wkeSetDirty, wkeWebView webView, bool dirty, "") \
-    ITERATOR1(bool, wkeIsDirty, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsDirty, wkeWebView webView, "") \
     ITERATOR5(void, wkeAddDirtyArea, wkeWebView webView, int x, int y, int w, int h, "") \
     ITERATOR1(void, wkeLayoutIfNeeded, wkeWebView webView, "") \
     ITERATOR11(void, wkePaint2, wkeWebView webView, void* bits, int bufWid, int bufHei, int xDst, int yDst, int w, int h, int xSrc, int ySrc, bool bCopyAlpha, "") \
@@ -1063,10 +1063,10 @@ public:
     ITERATOR1(void, wkeUnlockViewDC, wkeWebView webView, "") \
     ITERATOR1(HWND, wkeGetHostHWND, wkeWebView webView, "") \
     \
-    ITERATOR1(bool, wkeCanGoBack, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeGoBack, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeCanGoForward, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeGoForward, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeCanGoBack, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeGoBack, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeCanGoForward, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeGoForward, wkeWebView webView, "") \
     \
     ITERATOR1(void, wkeEditorSelectAll, wkeWebView webView, "") \
     ITERATOR1(void, wkeEditorUnSelect, wkeWebView webView, "") \
@@ -1083,7 +1083,7 @@ public:
     ITERATOR3(void, wkeVisitAllCookie, wkeWebView webView, void* params, wkeCookieVisitor visitor, "") \
     ITERATOR2(void, wkePerformCookieCommand, wkeWebView webView, wkeCookieCommand command, "") \
     ITERATOR2(void, wkeSetCookieEnabled, wkeWebView webView, bool enable, "") \
-    ITERATOR1(bool, wkeIsCookieEnabled, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsCookieEnabled, wkeWebView webView, "") \
     ITERATOR2(void, wkeSetCookieJarPath, wkeWebView webView, const WCHAR* path, "") \
     ITERATOR2(void, wkeSetCookieJarFullPath, wkeWebView webView, const WCHAR* path, "") \
     ITERATOR1(void, wkeClearCookie, wkeWebView webView, "") \
@@ -1093,18 +1093,19 @@ public:
     ITERATOR2(void, wkeSetMediaVolume, wkeWebView webView, float volume, "") \
     ITERATOR1(float, wkeGetMediaVolume, wkeWebView webView, "") \
     \
-    ITERATOR5(bool, wkeFireMouseEvent, wkeWebView webView, unsigned int message, int x, int y, unsigned int flags, "") \
-    ITERATOR4(bool, wkeFireContextMenuEvent, wkeWebView webView, int x, int y, unsigned int flags, "") \
-    ITERATOR5(bool, wkeFireMouseWheelEvent, wkeWebView webView, int x, int y, int delta, unsigned int flags, "") \
-    ITERATOR4(bool, wkeFireKeyUpEvent, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
-    ITERATOR4(bool, wkeFireKeyDownEvent, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
-    ITERATOR4(bool, wkeFireKeyPressEvent, wkeWebView webView, unsigned int charCode, unsigned int flags, bool systemKey, "") \
-    ITERATOR6(bool, wkeFireWindowsMessage, wkeWebView webView, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result, "") \
+    ITERATOR5(BOOL, wkeFireMouseEvent, wkeWebView webView, unsigned int message, int x, int y, unsigned int flags, "") \
+    ITERATOR4(BOOL, wkeFireContextMenuEvent, wkeWebView webView, int x, int y, unsigned int flags, "") \
+    ITERATOR5(BOOL, wkeFireMouseWheelEvent, wkeWebView webView, int x, int y, int delta, unsigned int flags, "") \
+    ITERATOR4(BOOL, wkeFireKeyUpEvent, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR4(BOOL, wkeFireKeyDownEvent, wkeWebView webView, unsigned int virtualKeyCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR4(BOOL, wkeFireKeyPressEvent, wkeWebView webView, unsigned int charCode, unsigned int flags, bool systemKey, "") \
+    ITERATOR6(BOOL, wkeFireWindowsMessage, wkeWebView webView, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result, "") \
     \
     ITERATOR1(void, wkeSetFocus, wkeWebView webView, "") \
     ITERATOR1(void, wkeKillFocus, wkeWebView webView, "") \
     \
     ITERATOR1(wkeRect, wkeGetCaretRect, wkeWebView webView, "") \
+    ITERATOR1(wkeRect*, wkeGetCaretRect2, wkeWebView webView, "给一些不方便获取返回结构体的语言调用") \
     \
     ITERATOR2(jsValue, wkeRunJS, wkeWebView webView, const utf8* script, "") \
     ITERATOR2(jsValue, wkeRunJSW, wkeWebView webView, const wchar_t* script, "") \
@@ -1114,7 +1115,7 @@ public:
     \
     ITERATOR1(void, wkeSleep, wkeWebView webView, "") \
     ITERATOR1(void, wkeWake, wkeWebView webView, "") \
-    ITERATOR1(bool, wkeIsAwake, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsAwake, wkeWebView webView, "") \
     \
     ITERATOR2(void, wkeSetZoomFactor, wkeWebView webView, float factor, "") \
     ITERATOR1(float, wkeGetZoomFactor, wkeWebView webView, "") \
@@ -1180,7 +1181,7 @@ public:
     ITERATOR3(void, wkeOnOtherLoad, wkeWebView webView, wkeOnOtherLoadCallback callback, void* param, "") \
     ITERATOR3(void, wkeOnContextMenuItemClick, wkeWebView webView, wkeOnContextMenuItemClickCallback callback, void* param, "") \
     \
-    ITERATOR1(bool, wkeIsProcessingUserGesture, wkeWebView webView, "") \
+    ITERATOR1(BOOL, wkeIsProcessingUserGesture, wkeWebView webView, "") \
     \
     ITERATOR2(void, wkeNetSetMIMEType, wkeNetJob jobPtr, const char* type, "设置response的mime") \
     ITERATOR2(const char*, wkeNetGetMIMEType, wkeNetJob jobPtr, wkeString mime, "获取response的mime") \
@@ -1221,8 +1222,8 @@ public:
     ITERATOR1(wkePostBodyElement*, wkeNetCreatePostBodyElement, wkeWebView webView, "") \
     ITERATOR1(void, wkeNetFreePostBodyElement, wkePostBodyElement* element, "") \
     \
-    ITERATOR2(bool, wkeIsMainFrame, wkeWebView webView, wkeWebFrameHandle frameId, "") \
-    ITERATOR2(bool, wkeIsWebRemoteFrame, wkeWebView webView, wkeWebFrameHandle frameId, "") \
+    ITERATOR2(BOOL, wkeIsMainFrame, wkeWebView webView, wkeWebFrameHandle frameId, "") \
+    ITERATOR2(BOOL, wkeIsWebRemoteFrame, wkeWebView webView, wkeWebFrameHandle frameId, "") \
     ITERATOR1(wkeWebFrameHandle, wkeWebFrameGetMainFrame, wkeWebView webView, "") \
     ITERATOR4(jsValue, wkeRunJsByFrame, wkeWebView webView, wkeWebFrameHandle frameId, const utf8* script, bool isInClosure, "") \
     ITERATOR3(void, wkeInsertCSSByFrame, wkeWebView webView, wkeWebFrameHandle frameId, const utf8* cssText, "") \
@@ -1269,7 +1270,7 @@ public:
     \
     ITERATOR1(wkeWebView, wkeGetWebViewByNData, void* ndata, "") \
     \
-    ITERATOR5(bool, wkeRegisterEmbedderCustomElement, wkeWebView webView, wkeWebFrameHandle frameId, const char* name, void* options, void* outResult, "") \
+    ITERATOR5(BOOL, wkeRegisterEmbedderCustomElement, wkeWebView webView, wkeWebFrameHandle frameId, const char* name, void* options, void* outResult, "") \
     \
     ITERATOR3(void, wkeSetMediaPlayerFactory, wkeWebView webView, wkeMediaPlayerFactory factory, wkeOnIsMediaPlayerSupportsMIMEType callback, "") \
     \
@@ -1298,21 +1299,22 @@ public:
     ITERATOR2(jsValue, jsArg, jsExecState es, int argIdx, "") \
     \
     ITERATOR1(jsType, jsTypeOf, jsValue v, "") \
-    ITERATOR1(bool, jsIsNumber, jsValue v, "") \
-    ITERATOR1(bool, jsIsString, jsValue v, "") \
-    ITERATOR1(bool, jsIsBoolean, jsValue v, "") \
-    ITERATOR1(bool, jsIsObject, jsValue v, "") \
-    ITERATOR1(bool, jsIsFunction, jsValue v, "") \
-    ITERATOR1(bool, jsIsUndefined, jsValue v, "") \
-    ITERATOR1(bool, jsIsNull, jsValue v, "") \
-    ITERATOR1(bool, jsIsArray, jsValue v, "") \
-    ITERATOR1(bool, jsIsTrue, jsValue v, "") \
-    ITERATOR1(bool, jsIsFalse, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsNumber, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsString, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsBoolean, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsObject, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsFunction, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsUndefined, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsNull, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsArray, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsTrue, jsValue v, "") \
+    ITERATOR1(BOOL, jsIsFalse, jsValue v, "") \
     \
     ITERATOR2(int, jsToInt, jsExecState es, jsValue v, "") \
     ITERATOR2(float, jsToFloat, jsExecState es, jsValue v, "") \
     ITERATOR2(double, jsToDouble, jsExecState es, jsValue v, "") \
-    ITERATOR2(bool, jsToBoolean, jsExecState es, jsValue v, "") \
+    ITERATOR2(const char*, jsToDoubleString, jsExecState es, jsValue v, "") \
+    ITERATOR2(BOOL, jsToBoolean, jsExecState es, jsValue v, "") \
     ITERATOR3(jsValue, jsArrayBuffer, jsExecState es, const char* buffer, size_t size, "") \
     ITERATOR2(wkeMemBuf*, jsGetArrayBuffer, jsExecState es, jsValue value, "") \
     ITERATOR2(const utf8*, jsToTempString, jsExecState es, jsValue v, "") \
@@ -1344,8 +1346,8 @@ public:
     ITERATOR3(jsValue, jsGetAt, jsExecState es, jsValue object, int index, "") \
     ITERATOR4(void, jsSetAt, jsExecState es, jsValue object, int index, jsValue v, "") \
     ITERATOR2(jsKeys*, jsGetKeys, jsExecState es, jsValue object, "") \
-    ITERATOR2(bool, jsIsJsValueValid, jsExecState es, jsValue object, "") \
-    ITERATOR1(bool, jsIsValidExecState, jsExecState es, "") \
+    ITERATOR2(BOOL, jsIsJsValueValid, jsExecState es, jsValue object, "") \
+    ITERATOR1(BOOL, jsIsValidExecState, jsExecState es, "") \
     ITERATOR3(void, jsDeleteObjectProp, jsExecState es, jsValue object, const char* prop, "") \
     \
     ITERATOR2(int, jsGetLength, jsExecState es, jsValue object, "") \
@@ -1365,8 +1367,8 @@ public:
     ITERATOR3(void, jsSetGlobal, jsExecState es, const char* prop, jsValue v, "") \
     \
     ITERATOR0(void, jsGC, "") \
-    ITERATOR2(bool, jsAddRef, jsExecState es, jsValue val, "") \
-    ITERATOR2(bool, jsReleaseRef, jsExecState es, jsValue val, "") \
+    ITERATOR2(BOOL, jsAddRef, jsExecState es, jsValue val, "") \
+    ITERATOR2(BOOL, jsReleaseRef, jsExecState es, jsValue val, "") \
     ITERATOR1(jsExceptionInfo*, jsGetLastErrorIfException, jsExecState es, "") \
     ITERATOR2(jsValue, jsThrowException, jsExecState es, const utf8* exception, "") \
     ITERATOR1(const utf8*, jsGetCallstack, jsExecState es, "")
@@ -1387,16 +1389,24 @@ WKE_FOR_EACH_DEFINE_FUNCTION(WKE_DEFINE_ITERATOR0, WKE_DEFINE_ITERATOR1, WKE_DEF
 
 typedef void (WKE_CALL_TYPE *FN_wkeInitializeEx)(const wkeSettings* settings);
 
-__declspec(selectany) const wchar_t* kWkeDllPath = L"node.dll";
+__declspec(selectany) const wchar_t* s_wkeDllPath = L"node.dll";
+__declspec(selectany) HMODULE s_wkeMainDllHandle = NULL;
+
+inline void wkeSetWkeDllHandle(const HMODULE mainDllHandle)
+{
+    s_wkeMainDllHandle = mainDllHandle;
+}
 
 inline void wkeSetWkeDllPath(const wchar_t* dllPath)
 {
-    kWkeDllPath = dllPath;
+    s_wkeDllPath = dllPath;
 }
 
 inline int wkeInitializeEx(const wkeSettings* settings)
 {
-    HMODULE hMod = LoadLibraryW(kWkeDllPath);
+    HMODULE hMod = s_wkeMainDllHandle;
+    if (!hMod)
+        hMod = LoadLibraryW(s_wkeDllPath);
     if (hMod) {
         FN_wkeInitializeEx wkeInitializeExFunc = (FN_wkeInitializeEx)GetProcAddress(hMod, "wkeInitializeEx");
         wkeInitializeExFunc(settings);

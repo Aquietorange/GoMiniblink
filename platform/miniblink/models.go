@@ -1,4 +1,4 @@
-package free
+package miniblink
 
 type jsData struct {
 	name [100]uint16

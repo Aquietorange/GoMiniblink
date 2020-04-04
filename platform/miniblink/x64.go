@@ -1,4 +1,4 @@
-package free
+package miniblink
 
 import (
 	"image"
@@ -6,7 +6,6 @@ import (
 	"math"
 	mb "qq2564874169/goMiniblink"
 	plat "qq2564874169/goMiniblink/platform"
-	core "qq2564874169/goMiniblink/platform/miniblink"
 	"qq2564874169/goMiniblink/platform/windows/win32"
 	"reflect"
 	"strconv"
@@ -15,7 +14,7 @@ import (
 	"unsafe"
 )
 
-var _jsFns = make(map[int64]*mb.GoFunc)
+var _jsFns = make(map[uintptr]*mb.GoFunc)
 var _ref = make(map[int64]interface{})
 
 type Core struct {
@@ -23,8 +22,8 @@ type Core struct {
 	owner plat.IWindow
 	wke   wkeHandle
 
-	onPaint   core.PaintCallback
-	onRequest core.RequestCallback
+	onPaint   PaintCallback
+	onRequest RequestCallback
 
 	//_jsFunc map[string]wkeJsNativeFunction
 }
@@ -174,7 +173,7 @@ func toGoValue(core *Core, es jsExecState, value jsValue) interface{} {
 				ps[i] = toJsValue(core, jses, v)
 			}
 			fn := jsGetGlobal(jses, name)
-			rs := jsCall(jses, fn, jsUndefined(), ps, len(ps))
+			rs := jsCall(jses, fn, jsUndefined(), ps)
 			jsSetGlobal(jses, name, jsUndefined())
 			return toGoValue(core, jses, rs)
 		})
@@ -183,24 +182,24 @@ func toGoValue(core *Core, es jsExecState, value jsValue) interface{} {
 	}
 }
 
-func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) uintptr {
+func (_this *Core) jsFuncCallback(es jsExecState, state uintptr) jsValue {
 	count := jsArgCount(es)
 	ps := make([]interface{}, count)
 	for i := 0; i < int(count); i++ {
 		value := jsArg(es, uint32(i))
 		ps[i] = toGoValue(_this, es, value)
 	}
-	if fn, ok := _jsFns[int64(state)]; ok {
-		ret := fn.OnExecute(ps)
-		return uintptr(toJsValue(_this, es, ret))
+	if fn, ok := _jsFns[state]; ok {
+		rs := fn.OnExecute(ps)
+		return toJsValue(_this, es, rs)
 	}
 	return 0
 }
 
-func (_this *Core) BindFunc(fn mb.GoFunc) {
-	id := mb.NewId()
+func (_this *Core) BindGoFunc(fn mb.GoFunc) {
+	id := uintptr(unsafe.Pointer(&fn))
 	_jsFns[id] = &fn
-	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, uintptr(id), 0)
+	wkeJsBindFunction(fn.Name, _this.jsFuncCallback, id, 0)
 }
 
 func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
@@ -213,7 +212,7 @@ func (_this *Core) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) ui
 	return uintptr(toBool(e.OnBegin()))
 }
 
-func (_this *Core) SetOnRequest(callback core.RequestCallback) {
+func (_this *Core) SetOnRequest(callback RequestCallback) {
 	_this.onRequest = callback
 }
 
@@ -349,7 +348,7 @@ func (_this *Core) GetImage(bound mb.Bound) *image.RGBA {
 }
 
 func (_this *Core) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
-	e := core.PaintUpdateArgs{
+	e := PaintUpdateArgs{
 		Wke: uintptr(wke),
 		Clip: mb.Bound{
 			Point: mb.Point{
@@ -386,7 +385,7 @@ func (_this *Core) Resize(width, height int) {
 	wkeResize(_this.wke, uint32(width), uint32(height))
 }
 
-func (_this *Core) SetOnPaint(callback core.PaintCallback) {
+func (_this *Core) SetOnPaint(callback PaintCallback) {
 	_this.onPaint = callback
 }
 

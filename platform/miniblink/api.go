@@ -1,8 +1,9 @@
-package free
+package miniblink
 
 import (
 	"fmt"
 	"golang.org/x/sys/windows"
+	"strconv"
 	"syscall"
 	"unsafe"
 )
@@ -62,8 +63,7 @@ var (
 	_jsArg                  *windows.LazyProc
 	_jsTypeOf               *windows.LazyProc
 	_jsToTempString         *windows.LazyProc
-	_jsToDouble             *windows.LazyProc
-	_jsToFloat              *windows.LazyProc
+	_jsToDoubleString       *windows.LazyProc
 	_jsToInt                *windows.LazyProc
 	_jsToBoolean            *windows.LazyProc
 	_jsGetLength            *windows.LazyProc
@@ -96,7 +96,6 @@ func init() {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
 	_jsToInt = lib.NewProc("jsToInt")
-	_jsToFloat = lib.NewProc("jsToFloat")
 	_jsSet = lib.NewProc("jsSet")
 	_jsEmptyObject = lib.NewProc("jsEmptyObject")
 	_jsFunction = lib.NewProc("jsFunction")
@@ -118,7 +117,7 @@ func init() {
 	_jsGetAt = lib.NewProc("jsGetAt")
 	_jsGetLength = lib.NewProc("jsGetLength")
 	_jsToBoolean = lib.NewProc("jsToBoolean")
-	_jsToDouble = lib.NewProc("jsToDouble")
+	_jsToDoubleString = lib.NewProc("jsToDoubleString")
 	_jsToTempString = lib.NewProc("jsToTempString")
 	_jsTypeOf = lib.NewProc("jsTypeOf")
 	_jsArg = lib.NewProc("jsArg")
@@ -153,13 +152,25 @@ func init() {
 	}
 }
 
+func _toInt64(low, high int32) int64 {
+	var l = int64(high)<<32 + int64(low)
+	return *((*int64)(unsafe.Pointer(&l)))
+}
+
+func _toLH(value jsValue) (low, high int32) {
+	if is64 {
+		return 0, 0
+	}
+	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
+}
+
 func jsSet(es jsExecState, obj jsValue, name string, value jsValue) {
 	ptr := []byte(name)
 	if is64 {
 		_jsSet.Call(uintptr(es), uintptr(obj), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
 	} else {
-		l1, h1 := jsvToLH(obj)
-		l2, h2 := jsvToLH(value)
+		l1, h1 := _toLH(obj)
+		l2, h2 := _toLH(value)
 		_jsSet.Call(uintptr(es), uintptr(l1), uintptr(h1), uintptr(unsafe.Pointer(&ptr[0])), uintptr(l2), uintptr(h2))
 	}
 }
@@ -178,8 +189,8 @@ func jsSetAt(es jsExecState, array jsValue, index uint32, value jsValue) {
 	if is64 {
 		_jsSetAt.Call(uintptr(es), uintptr(array), uintptr(index), uintptr(value))
 	} else {
-		l1, h1 := jsvToLH(array)
-		l2, h2 := jsvToLH(value)
+		l1, h1 := _toLH(array)
+		l2, h2 := _toLH(value)
 		_jsSetAt.Call(uintptr(es), uintptr(l1), uintptr(h1), uintptr(index), uintptr(l2), uintptr(h2))
 	}
 }
@@ -188,7 +199,7 @@ func jsSetLength(es jsExecState, array jsValue, length uint32) {
 	if is64 {
 		_jsSetLength.Call(uintptr(es), uintptr(array), uintptr(length))
 	} else {
-		l, h := jsvToLH(array)
+		l, h := _toLH(array)
 		_jsSetLength.Call(uintptr(es), uintptr(l), uintptr(h), uintptr(length))
 	}
 }
@@ -220,16 +231,20 @@ func jsBoolean(value bool) jsValue {
 }
 
 func jsInt(value int32) jsValue {
-	r, _, _ := _jsInt.Call(uintptr(value))
-	return jsValue(r)
+	fmt.Println(value)
+	l, h, _ := _jsInt.Call(uintptr(value))
+	fmt.Println(l, h)
+	n := _toInt64(int32(l), int32(h))
+	fmt.Println(n)
+	return jsValue(n)
 }
 
-func jsCall(es jsExecState, fn, thisObject jsValue, args []jsValue, argCount int) jsValue {
+func jsCall(es jsExecState, fn, thisObject jsValue, args []jsValue) jsValue {
 	var ptr = uintptr(0)
 	if len(args) > 0 {
 		ptr = uintptr(unsafe.Pointer(&args[0]))
 	}
-	r, _, _ := _jsCall.Call(uintptr(es), uintptr(fn), uintptr(thisObject), ptr, uintptr(argCount))
+	r, _, _ := _jsCall.Call(uintptr(es), uintptr(fn), uintptr(thisObject), ptr, uintptr(len(args)))
 	return jsValue(r)
 }
 
@@ -249,7 +264,7 @@ func jsSetGlobal(es jsExecState, name string, value jsValue) {
 	if is64 {
 		_jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		_jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(l), uintptr(h))
 	}
 }
@@ -259,7 +274,7 @@ func jsGetKeys(es jsExecState, value jsValue) []string {
 	if is64 {
 		rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(value))
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(l), uintptr(h))
 	}
 	keys := *((*jsKeys)(unsafe.Pointer(rs)))
@@ -277,7 +292,7 @@ func jsGet(es jsExecState, value jsValue, name string) jsValue {
 		r, _, _ := _jsGet.Call(uintptr(es), uintptr(value), uintptr(unsafe.Pointer(&ptr[0])))
 		return jsValue(r)
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsGet.Call(uintptr(es), uintptr(l), uintptr(h), uintptr(unsafe.Pointer(&ptr[0])))
 		return jsValue(r)
 	}
@@ -288,7 +303,7 @@ func jsGetAt(es jsExecState, value jsValue, index uint32) jsValue {
 		r, _, _ := _jsGetAt.Call(uintptr(es), uintptr(value), uintptr(index))
 		return jsValue(r)
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsGetAt.Call(uintptr(es), uintptr(l), uintptr(h), uintptr(index))
 		return jsValue(r)
 	}
@@ -299,7 +314,7 @@ func jsGetLength(es jsExecState, value jsValue) int {
 		r, _, _ := _jsGetLength.Call(uintptr(es), uintptr(value))
 		return int(r)
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsGetLength.Call(uintptr(es), uintptr(l), uintptr(h))
 		return int(r)
 	}
@@ -315,34 +330,23 @@ func jsToBoolean(es jsExecState, value jsValue) bool {
 		r, _, _ := _jsToBoolean.Call(uintptr(es), uintptr(value))
 		return byte(r) != 0
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsToBoolean.Call(uintptr(es), uintptr(l), uintptr(h))
 		return byte(r) != 0
 	}
 }
 
 func jsToDouble(es jsExecState, value jsValue) float64 {
+	var r uintptr
 	if is64 {
-		r, _, _ := _jsToDouble.Call(uintptr(es), uintptr(value))
-		return float64(r)
+		r, _, _ = _jsToDoubleString.Call(uintptr(es), uintptr(value))
 	} else {
-		l, h := jsvToLH(value)
-		r1, r2, _ := _jsToDouble.Call(uintptr(es), uintptr(l), uintptr(h))
-		fmt.Println(int32(r1), int32(r2))
-		return toFloat64(int32(r2), int32(r1))
+		l, h := _toLH(value)
+		r, _, _ = _jsToDoubleString.Call(uintptr(es), uintptr(l), uintptr(h))
 	}
-}
-
-func toFloat64(low, high int32) float64 {
-	var l = int64(high)<<32 + int64(low)
-	return *((*float64)(unsafe.Pointer(&l)))
-}
-
-func jsvToLH(value jsValue) (low, high int32) {
-	if is64 {
-		return 0, 0
-	}
-	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
+	str := wkePtrToUtf8(r)
+	n, _ := strconv.ParseFloat(str, 10)
+	return n
 }
 
 func jsToTempString(es jsExecState, value jsValue) string {
@@ -350,7 +354,7 @@ func jsToTempString(es jsExecState, value jsValue) string {
 		r, _, _ := _jsToTempString.Call(uintptr(es), uintptr(value))
 		return wkePtrToUtf8(r)
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsToTempString.Call(uintptr(es), uintptr(l), uintptr(h))
 		return wkePtrToUtf8(r)
 	}
@@ -361,7 +365,7 @@ func jsTypeOf(value jsValue) jsType {
 		r, _, _ := _jsTypeOf.Call(uintptr(value))
 		return jsType(r)
 	} else {
-		l, h := jsvToLH(value)
+		l, h := _toLH(value)
 		r, _, _ := _jsTypeOf.Call(uintptr(l), uintptr(h))
 		return jsType(r)
 	}

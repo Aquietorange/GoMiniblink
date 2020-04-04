@@ -27,7 +27,7 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 }
 
 func (_this *MiniblinkBrowser) BindFunc(name string, fn mb.GoFuncFn, state interface{}) {
-	_this.impl.BindFunc(mb.GoFunc{
+	_this.impl.BindGoFunc(mb.GoFunc{
 		Name:  name,
 		State: state,
 		Fn:    fn,

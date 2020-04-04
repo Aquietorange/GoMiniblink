@@ -1,4 +1,4 @@
-package free
+package miniblink
 
 import (
 	mb "qq2564874169/goMiniblink"

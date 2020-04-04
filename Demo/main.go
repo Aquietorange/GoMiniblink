@@ -26,8 +26,8 @@ func main() {
 		mb.SetSize(740, 420)
 		mb.SetLocation(20, 20)
 		mb.SetAnchor(goMiniblink.AnchorStyle_Right | goMiniblink.AnchorStyle_Bottom | goMiniblink.AnchorStyle_Top | goMiniblink.AnchorStyle_Left)
-		mb.ResourceLoader = append(mb.ResourceLoader, new(forms.FileLoader).Init(`D:\Source\GoMiniblink\Demo\Res`, "loc.res"))
-		//mb.ResourceLoader = append(mb.ResourceLoader, new(forms.FileLoader).Init(`D:\Res`, "loc.res"))
+		resDir := forms.Provider.AppDir() + "\\Res"
+		mb.ResourceLoader = append(mb.ResourceLoader, new(forms.FileLoader).Init(resDir, "loc.res"))
 		mb.BindFunc("Func1", func(context goMiniblink.GoFuncContext) interface{} {
 			n1 := context.Param[0].(float64)
 			n2 := context.Param[1].(float64)

@@ -4,8 +4,6 @@ import (
 	mb "qq2564874169/goMiniblink"
 	plat "qq2564874169/goMiniblink/platform"
 	core "qq2564874169/goMiniblink/platform/miniblink"
-	"qq2564874169/goMiniblink/platform/miniblink/free"
-	"qq2564874169/goMiniblink/platform/miniblink/vip"
 	"qq2564874169/goMiniblink/platform/windows/win32"
 )
 
@@ -88,20 +86,16 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	return _this
 }
 
-func (_this *winMiniblink) BindFunc(fn mb.GoFunc) {
+func (_this *winMiniblink) BindGoFunc(fn mb.GoFunc) {
 	if _this.IsCreate() {
-		_this.wke.BindFunc(fn)
+		_this.wke.BindGoFunc(fn)
 	} else {
 		_this._fns = append(_this._fns, fn)
 	}
 }
 
 func (_this *winMiniblink) initWke() {
-	if vip.Exists() {
-		//todo
-	} else {
-		_this.wke = new(free.Core).Init(_this)
-	}
+	_this.wke = new(core.Core).Init(_this)
 	_this.wke.SetOnPaint(func(args core.PaintUpdateArgs) {
 		g := _this.CreateGraphics()
 		g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
@@ -116,7 +110,7 @@ func (_this *winMiniblink) initWke() {
 	}
 	if len(_this._fns) > 0 {
 		for _, fn := range _this._fns {
-			_this.BindFunc(fn)
+			_this.BindGoFunc(fn)
 		}
 	}
 	if _this.initUri != "" {

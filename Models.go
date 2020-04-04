@@ -1,6 +1,8 @@
 package goMiniblink
 
-import "image"
+import (
+	"image"
+)
 
 type JsFunc func(param ...interface{}) interface{}
 
