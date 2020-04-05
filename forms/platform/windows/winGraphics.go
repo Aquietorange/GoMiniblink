@@ -1,0 +1,53 @@
+package windows
+
+import (
+	"image"
+	f "qq2564874169/goMiniblink/forms"
+	w "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	"unsafe"
+)
+
+type winGraphics struct {
+	onClose func(g *winGraphics)
+	dc      w.HDC
+}
+
+func (_this *winGraphics) init(hdc w.HDC) *winGraphics {
+	_this.dc = hdc
+	return _this
+}
+
+func (_this *winGraphics) Close() {
+	if _this.onClose != nil {
+		_this.onClose(_this)
+		_this.onClose = nil
+	}
+}
+
+func (_this *winGraphics) DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int) f.Graphics {
+	var head w.BITMAPV5HEADER
+	head.BiSize = uint32(unsafe.Sizeof(head))
+	head.BiWidth = int32(width)
+	head.BiHeight = int32(height * -1)
+	head.BiBitCount = 32
+	head.BiPlanes = 1
+	head.BiCompression = w.BI_RGB
+
+	var lpBits unsafe.Pointer
+	bmp := w.CreateDIBSection(_this.dc, &head.BITMAPINFOHEADER, w.DIB_RGB_COLORS, &lpBits, 0, 0)
+	bits := (*[1 << 30]byte)(lpBits)
+	stride := width * 4
+	for y := 0; y < height; y++ {
+		for x := 0; x < width*4; x++ {
+			sp := src.Stride*(ySrc+y) + xSrc*4 + x
+			dp := stride*y + x
+			bits[dp] = src.Pix[sp]
+		}
+	}
+	memDc := w.CreateCompatibleDC(_this.dc)
+	w.SelectObject(memDc, w.HGDIOBJ(bmp))
+	w.BitBlt(_this.dc, int32(xDst), int32(yDst), int32(width), int32(height), memDc, 0, 0, w.SRCCOPY)
+	w.DeleteDC(memDc)
+	w.DeleteObject(w.HGDIOBJ(bmp))
+	return _this
+}
