@@ -21,7 +21,11 @@ func main() {
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 	frm.EvLoad["add_child"] = func(target interface{}) {
-
+		c := new(controls.Control).Init()
+		c.SetSize(100, 100)
+		c.SetLocation(15, 15)
+		c.SetBgColor(0xCCCCCC)
+		frm.AddChild(c)
 	}
 	controls.Run(frm)
 }

@@ -224,6 +224,10 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	return _this
 }
 
+func (_this *BaseUI) CreateGraphics() f.Graphics {
+	return _this.CreateGraphics()
+}
+
 func (_this *BaseUI) SetCursor(cursor f.CursorType) {
 	_this.impl.SetCursor(cursor)
 }
