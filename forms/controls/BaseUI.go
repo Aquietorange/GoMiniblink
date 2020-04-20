@@ -42,7 +42,7 @@ type BaseUI struct {
 	EvPaint map[string]func(target interface{}, e f.PaintEvArgs)
 	OnPaint func(e f.PaintEvArgs)
 
-	Handle uintptr
+	OnSetCursor func() bool
 
 	instance interface{}
 	impl     p.IWindow
@@ -79,6 +79,18 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.OnMouseUp = _this.defOnMouseUp
 	_this.OnMouseWheel = _this.defOnMouseWheel
 	_this.OnMouseClick = _this.defOnMouseClick
+
+	var bakOnCursor p.WindowSetCursorProc
+	bakOnCursor = _this.impl.SetOnCursor(func() bool {
+		b := false
+		if bakOnCursor != nil {
+			b = bakOnCursor()
+		}
+		if !b && _this.OnSetCursor != nil && _this.OnSetCursor() {
+			b = true
+		}
+		return b
+	})
 
 	var bakKeyPress p.WindowKeyPressProc
 	bakKeyPress = _this.impl.SetOnKeyPress(func(e *f.KeyPressEvArgs) bool {

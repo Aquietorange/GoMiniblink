@@ -32,23 +32,6 @@ func (_this *free4x64) SetOnRequest(func(e RequestEvArgs)) {
 
 }
 
-func (_this *free4x64) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
-	bx, by := int(rect.x), int(rect.y)
-	bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
-	bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
-	stride := int(width) * 4
-	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
-	for y := 0; y < bh; y++ {
-		for x := 0; x < bw*4; x++ {
-			sp := bmp.Stride*y + x
-			dp := stride*(by+y) + bx*4 + x
-			bmp.Pix[sp] = pixs[dp]
-		}
-	}
-	_this._view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
-	return 0
-}
-
 func (_this *free4x64) mbInit() {
 	_this._view.OnResize = _this.viewResize
 	_this._view.OnPaint = _this.viewPaint
@@ -56,6 +39,7 @@ func (_this *free4x64) mbInit() {
 	_this._view.OnMouseDown = _this.viewMouseDown
 	_this._view.OnMouseUp = _this.viewMouseUp
 	_this._view.OnMouseWheel = _this.viewMouseWheel
+	_this._view.OnSetCursor = _this.viewSetCursor
 
 	_this._wke = createWebView(_this)
 	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
@@ -65,6 +49,10 @@ func (_this *free4x64) mbInit() {
 
 func (_this *free4x64) LoadUri(uri string) {
 	mbApi.wkeLoadURL(_this._wke, uri)
+}
+
+func (_this *free4x64) viewSetCursor() bool {
+
 }
 
 func (_this *free4x64) viewMouseWheel(e f.MouseEvArgs) {
@@ -164,6 +152,23 @@ func (_this *free4x64) viewPaint(e f.PaintEvArgs) {
 		mbApi.wkePaint(_this._wke, view.Pix, 0)
 		e.Graphics.DrawImage(view, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
 	}
+}
+
+func (_this *free4x64) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
+	bx, by := int(rect.x), int(rect.y)
+	bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
+	bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
+	stride := int(width) * 4
+	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
+	for y := 0; y < bh; y++ {
+		for x := 0; x < bw*4; x++ {
+			sp := bmp.Stride*y + x
+			dp := stride*(by+y) + bx*4 + x
+			bmp.Pix[sp] = pixs[dp]
+		}
+	}
+	_this._view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+	return 0
 }
 
 func (_this *free4x64) viewResize(e f.Rect) {
