@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
@@ -151,4 +152,35 @@ var seed uint32 = 0
 func seq() uint32 {
 	seed++
 	return seed
+}
+
+func toBool(b bool) byte {
+	if b {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+func toCallStr(str string) []byte {
+	buf := []byte(str)
+	rs := make([]byte, len(str)+1)
+	for i, v := range buf {
+		rs[i] = v
+	}
+	return rs
+}
+
+func wkePtrToUtf8(ptr uintptr) string {
+	var seq []byte
+	for {
+		b := *((*byte)(unsafe.Pointer(ptr)))
+		if b != 0 {
+			seq = append(seq, b)
+			ptr++
+		} else {
+			break
+		}
+	}
+	return string(seq)
 }

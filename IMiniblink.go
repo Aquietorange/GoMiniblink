@@ -1,7 +1,7 @@
 package GoMiniblink
 
 type IMiniblink interface {
-	BindGoFunc(fn GoFunc)
+	BindFunc(fn GoFunc)
 	SetOnRequest(func(e RequestEvArgs))
 	LoadUri(uri string)
 	GetHandle() wkeHandle

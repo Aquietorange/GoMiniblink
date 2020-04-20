@@ -11,6 +11,7 @@ type MouseEvArgs struct {
 	X, Y, Delta int
 	IsDouble    bool
 	Time        time.Time
+	IsHandle    bool
 }
 
 type PaintEvArgs struct {

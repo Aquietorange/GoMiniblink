@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 func main() {
-	fmt.Println(getCurrentDirectory())
+	fmt.Println(strconv.FormatFloat(123.45678987654321, 'f', 15, 64))
 }
 
 func getCurrentDirectory() string {

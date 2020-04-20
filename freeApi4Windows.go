@@ -52,7 +52,7 @@ type freeApiForWindows struct {
 	_jsUndefined            *windows.LazyProc
 	_jsInt                  *windows.LazyProc
 	_jsBoolean              *windows.LazyProc
-	_jsDouble               *windows.LazyProc
+	_jsDoubleString         *windows.LazyProc
 	_jsString               *windows.LazyProc
 	_jsEmptyArray           *windows.LazyProc
 	_jsSetLength            *windows.LazyProc
@@ -80,7 +80,7 @@ func (_this *freeApiForWindows) init() *freeApiForWindows {
 	_this._jsSetLength = lib.NewProc("jsSetLength")
 	_this._jsEmptyArray = lib.NewProc("jsEmptyArray")
 	_this._jsString = lib.NewProc("jsString")
-	_this._jsDouble = lib.NewProc("jsDouble")
+	_this._jsDoubleString = lib.NewProc("jsDoubleString")
 	_this._jsBoolean = lib.NewProc("jsBoolean")
 	_this._jsInt = lib.NewProc("jsInt")
 	_this._jsUndefined = lib.NewProc("jsUndefined")
@@ -169,18 +169,19 @@ func (_this *freeApiForWindows) jsEmptyArray(es jsExecState) jsValue {
 }
 
 func (_this *freeApiForWindows) jsString(es jsExecState, value string) jsValue {
-	ptr := _this.toCallStr(value)
+	ptr := toCallStr(value)
 	r, _, _ := _this._jsString.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
 
 func (_this *freeApiForWindows) jsDouble(value float64) jsValue {
-	r, _, _ := _this._jsDouble.Call(uintptr(value))
+	ptr := toCallStr(strconv.FormatFloat(value, 'f', 9, 64))
+	r, _, _ := _this._jsDoubleString.Call(uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
 
 func (_this *freeApiForWindows) jsBoolean(value bool) jsValue {
-	r, _, _ := _this._jsBoolean.Call(uintptr(_this.toBool(value)))
+	r, _, _ := _this._jsBoolean.Call(uintptr(toBool(value)))
 	return jsValue(r)
 }
 
@@ -204,13 +205,13 @@ func (_this *freeApiForWindows) wkeGlobalExec(wke wkeHandle) jsExecState {
 }
 
 func (_this *freeApiForWindows) jsGetGlobal(es jsExecState, name string) jsValue {
-	ptr := _this.toCallStr(name)
+	ptr := toCallStr(name)
 	r, _, _ := _this._jsGetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
 
 func (_this *freeApiForWindows) jsSetGlobal(es jsExecState, name string, value jsValue) {
-	ptr := _this.toCallStr(name)
+	ptr := toCallStr(name)
 	_this._jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
 }
 
@@ -226,7 +227,7 @@ func (_this *freeApiForWindows) jsGetKeys(es jsExecState, value jsValue) []strin
 }
 
 func (_this *freeApiForWindows) jsGet(es jsExecState, value jsValue, name string) jsValue {
-	ptr := _this.toCallStr(name)
+	ptr := toCallStr(name)
 	r, _, _ := _this._jsGet.Call(uintptr(es), uintptr(value), uintptr(unsafe.Pointer(&ptr[0])))
 	return jsValue(r)
 }
@@ -253,14 +254,14 @@ func (_this *freeApiForWindows) jsToBoolean(es jsExecState, value jsValue) bool 
 
 func (_this *freeApiForWindows) jsToDouble(es jsExecState, value jsValue) float64 {
 	r, _, _ := _this._jsToDoubleString.Call(uintptr(es), uintptr(value))
-	str := _this.wkePtrToUtf8(r)
+	str := wkePtrToUtf8(r)
 	n, _ := strconv.ParseFloat(str, 10)
 	return n
 }
 
 func (_this *freeApiForWindows) jsToTempString(es jsExecState, value jsValue) string {
 	r, _, _ := _this._jsToTempString.Call(uintptr(es), uintptr(value))
-	return _this.wkePtrToUtf8(r)
+	return wkePtrToUtf8(r)
 }
 
 func (_this *freeApiForWindows) jsTypeOf(value jsValue) jsType {
@@ -279,7 +280,7 @@ func (_this *freeApiForWindows) jsArgCount(es jsExecState) uint32 {
 }
 
 func (_this *freeApiForWindows) wkeJsBindFunction(name string, fn wkeJsNativeFunction, param unsafe.Pointer, argCount uint32) {
-	ptr := _this.toCallStr(name)
+	ptr := toCallStr(name)
 	_this._wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), uintptr(param), uintptr(argCount))
 }
 
@@ -322,7 +323,7 @@ func (_this *freeApiForWindows) wkeFireKeyPressEvent(wke wkeHandle, code int, fl
 		uintptr(wke),
 		uintptr(code),
 		uintptr(flags),
-		uintptr(_this.toBool(isSysKey)))
+		uintptr(toBool(isSysKey)))
 	return byte(ret) != 0
 }
 
@@ -331,7 +332,7 @@ func (_this *freeApiForWindows) wkeFireKeyDownEvent(wke wkeHandle, code, flags u
 		uintptr(wke),
 		uintptr(code),
 		uintptr(flags),
-		uintptr(_this.toBool(isSysKey)))
+		uintptr(toBool(isSysKey)))
 	return byte(ret) != 0
 }
 
@@ -340,7 +341,7 @@ func (_this *freeApiForWindows) wkeFireKeyUpEvent(wke wkeHandle, code, flags uin
 		uintptr(wke),
 		uintptr(code),
 		uintptr(flags),
-		uintptr(_this.toBool(isSysKey)))
+		uintptr(toBool(isSysKey)))
 	return byte(ret) != 0
 }
 
@@ -388,7 +389,7 @@ func (_this *freeApiForWindows) wkeResize(wke wkeHandle, w, h uint32) {
 }
 
 func (_this *freeApiForWindows) wkeLoadURL(wke wkeHandle, url string) {
-	ptr := _this.toCallStr(url)
+	ptr := toCallStr(url)
 	_this._wkeLoadURL.Call(uintptr(wke), uintptr(unsafe.Pointer(&ptr[0])))
 }
 
@@ -403,35 +404,4 @@ func (_this *freeApiForWindows) wkeSetHandle(wke wkeHandle, handle uintptr) {
 func (_this *freeApiForWindows) wkeCreateWebView() wkeHandle {
 	r, _, _ := _this._wkeCreateWebView.Call()
 	return wkeHandle(r)
-}
-
-func (_this *freeApiForWindows) toBool(b bool) byte {
-	if b {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-func (_this *freeApiForWindows) toCallStr(str string) []byte {
-	buf := []byte(str)
-	rs := make([]byte, len(str)+1)
-	for i, v := range buf {
-		rs[i] = v
-	}
-	return rs
-}
-
-func (_this *freeApiForWindows) wkePtrToUtf8(ptr uintptr) string {
-	var seq []byte
-	for {
-		b := *((*byte)(unsafe.Pointer(ptr)))
-		if b != 0 {
-			seq = append(seq, b)
-			ptr++
-		} else {
-			break
-		}
-	}
-	return string(seq)
 }

@@ -1,9 +1,8 @@
 ﻿/*
 *
 * wolar@qq.com
-* http://miniblink.net
+* http://miniblink.net 文档地址
 * https://github.com/weolar/miniblink49
-* https://weolar.github.io/miniblink/doc-main.html api文档地址
 * licence Apache-2.0
 *
 */
@@ -978,6 +977,7 @@ public:
     ITERATOR2(void, wkeSetMemoryCacheEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetMouseEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetTouchEnabled, wkeWebView webView, bool b, "") \
+    ITERATOR2(void, wkeSetSystemTouchEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetContextMenuEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetNavigationToNewWindowEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetCspCheckEnable, wkeWebView webView, bool b, "") \
@@ -1324,6 +1324,7 @@ public:
     ITERATOR1(jsValue, jsInt, int n, "") \
     ITERATOR1(jsValue, jsFloat, float f, "") \
     ITERATOR1(jsValue, jsDouble, double d, "") \
+    ITERATOR1(jsValue, jsDoubleString, const char* str, "") \
     ITERATOR1(jsValue, jsBoolean, bool b, "") \
     \
     ITERATOR0(jsValue, jsUndefined, "") \

@@ -89,7 +89,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnKeyPress(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakKeyUp p.WindowKeyUpProc
@@ -101,7 +101,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnKeyUp(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakKeyDown p.WindowKeyDownProc
@@ -113,7 +113,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnKeyDown(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakPaint p.WindowPaintProc
@@ -137,7 +137,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnMouseClick(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakMouseWheel p.WindowMouseWheelProc
@@ -149,7 +149,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnMouseWheel(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakMouseUp p.WindowMouseUpProc
@@ -161,7 +161,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnMouseUp(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakMouseDown p.WindowMouseDownProc
@@ -173,7 +173,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnMouseDown(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakMouseMove p.WindowMouseMoveProc
@@ -185,7 +185,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		if !b {
 			_this.OnMouseMove(e)
 		}
-		return b
+		return b || e.IsHandle
 	})
 
 	var bakResize p.WindowResizeProc
@@ -225,7 +225,7 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 }
 
 func (_this *BaseUI) CreateGraphics() f.Graphics {
-	return _this.CreateGraphics()
+	return _this.impl.CreateGraphics()
 }
 
 func (_this *BaseUI) SetCursor(cursor f.CursorType) {

@@ -1,6 +1,8 @@
 package main
 
 import (
+	GoMiniblink "qq2564874169/goMiniblink"
+	f "qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/controls"
 	"qq2564874169/goMiniblink/forms/platform/windows"
 )
@@ -21,11 +23,12 @@ func main() {
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 	frm.EvLoad["add_child"] = func(target interface{}) {
-		c := new(controls.Control).Init()
-		c.SetSize(100, 100)
-		c.SetLocation(15, 15)
-		c.SetBgColor(0xCCCCCC)
-		frm.AddChild(c)
+		mb := new(GoMiniblink.MiniblinkBrowser).Init()
+		mb.SetSize(750, 425)
+		mb.SetLocation(15, 15)
+		mb.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
+		mb.LoadUri("https://www.baidu.com")
+		frm.AddChild(mb)
 	}
 	controls.Run(frm)
 }

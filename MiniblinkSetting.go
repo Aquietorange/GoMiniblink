@@ -26,7 +26,7 @@ func destroyWebView(handle wkeHandle) {
 	}
 }
 
-func BindGoFunc(fn GoFunc) {
+func BindFunc(fn GoFunc) {
 	fn.jsFunc = func(es jsExecState, param uintptr) jsValue {
 		handle := mbApi.jsGetWebView(es)
 		if mb, ok := views[handle]; ok {
