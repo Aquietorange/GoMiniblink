@@ -2,6 +2,12 @@ package controls
 
 import f "qq2564874169/goMiniblink/forms"
 
+func (_this *BaseUI) defOnLostFocus() {
+	for _, v := range _this.EvLostFocus {
+		v(_this.instance)
+	}
+}
+
 func (_this *BaseUI) defOnFocus() {
 	for _, v := range _this.EvFocus {
 		v(_this.instance)

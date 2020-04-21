@@ -110,20 +110,16 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 	case w.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := w.GET_X_LPARAM(lParam), w.GET_Y_LPARAM(lParam)
-			if _this.onResize(f.Rect{
-				Width:  int(w),
-				Height: int(h),
-			}) {
+			rect := f.Rect{Width: int(w), Height: int(h)}
+			if _this.onResize(rect) {
 				ret = 1
 			}
 		}
 	case w.WM_MOVE:
 		if _this.onMove != nil {
 			x, y := w.GET_X_LPARAM(lParam), w.GET_Y_LPARAM(lParam)
-			if _this.onMove(f.Point{
-				X: int(x),
-				Y: int(y),
-			}) {
+			pos := f.Point{X: int(x), Y: int(y)}
+			if _this.onMove(pos) {
 				ret = 1
 			}
 		}

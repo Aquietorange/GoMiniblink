@@ -62,6 +62,7 @@ type freeApiForWindows struct {
 	_jsSet                  *windows.LazyProc
 	_wkeDestroyWebView      *windows.LazyProc
 	_jsGetWebView           *windows.LazyProc
+	_wkeKillFocus           *windows.LazyProc
 }
 
 func (_this *freeApiForWindows) init() *freeApiForWindows {
@@ -72,6 +73,7 @@ func (_this *freeApiForWindows) init() *freeApiForWindows {
 	} else {
 		lib = windows.NewLazyDLL("miniblink_x86.dll")
 	}
+	_this._wkeKillFocus = lib.NewProc("wkeKillFocus")
 	_this._jsToInt = lib.NewProc("jsToInt")
 	_this._jsSet = lib.NewProc("jsSet")
 	_this._jsEmptyObject = lib.NewProc("jsEmptyObject")
@@ -129,6 +131,10 @@ func (_this *freeApiForWindows) init() *freeApiForWindows {
 		fmt.Println("初始化失败", err)
 	}
 	return _this
+}
+
+func (_this *freeApiForWindows) wkeKillFocus(wke wkeHandle) {
+	_this._wkeKillFocus.Call(uintptr(wke))
 }
 
 func (_this *freeApiForWindows) jsGetWebView(es jsExecState) wkeHandle {
@@ -305,8 +311,7 @@ func (_this *freeApiForWindows) wkeNetSetData(job wkeNetJob, buf []byte) {
 	if len(buf) == 0 {
 		buf = []byte{0}
 	}
-	length := len(buf)
-	_this._wkeNetSetData.Call(uintptr(job), uintptr(unsafe.Pointer(&buf[0])), uintptr(length))
+	_this._wkeNetSetData.Call(uintptr(job), uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
 }
 
 func (_this *freeApiForWindows) wkeGetCaretRect(wke wkeHandle) wkeRect {

@@ -16,12 +16,14 @@ func init() {
 }
 
 type free4x64 struct {
-	_view *c.Control
-	_wke  wkeHandle
+	_view      *c.Control
+	_wke       wkeHandle
+	_onRequest RequestCallback
 }
 
 func (_this *free4x64) init(control *c.Control) *free4x64 {
 	_this._view = control
+	_this.setView()
 	_this.mbInit()
 	return _this
 }
@@ -30,28 +32,122 @@ func (_this *free4x64) BindFunc(fn GoFunc) {
 
 }
 
-func (_this *free4x64) SetOnRequest(func(e RequestEvArgs)) {
-
+func (_this *free4x64) SetOnRequest(callback RequestCallback) {
+	_this._onRequest = callback
 }
 
 func (_this *free4x64) mbInit() {
-	_this._view.OnFocus = _this.viewFocus
-	_this._view.OnResize = _this.viewResize
-	_this._view.OnPaint = _this.viewPaint
-	_this._view.OnMouseMove = _this.viewMouseMove
-	_this._view.OnMouseDown = _this.viewMouseDown
-	_this._view.OnMouseUp = _this.viewMouseUp
-	_this._view.OnMouseWheel = _this.viewMouseWheel
-	_this._view.OnSetCursor = _this.viewSetCursor
-	_this._view.OnKeyDown = _this.viewKeyDown
-	_this._view.OnKeyUp = _this.viewKeyUp
-	_this._view.OnKeyPress = _this.viewKeyPress
-	_this._view.OnImeStartComposition = _this.viewImeStart
-
 	_this._wke = createWebView(_this)
 	_this.viewResize(_this._view.GetSize())
 	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
 	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, nil)
+	mbApi.wkeOnLoadUrlBegin(_this._wke, _this.onUrlBegin, nil)
+}
+
+func (_this *free4x64) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
+	if _this._onRequest == nil {
+		return uintptr(toBool(false))
+	}
+	url := wkePtrToUtf8(utf8ptr)
+	e := new(freeRequestEvArgs).init(_this, url, job)
+	_this._onRequest(e)
+	return uintptr(toBool(e.onBegin()))
+}
+
+func (_this *free4x64) setView() {
+	bakFocus := _this._view.OnFocus
+	_this._view.OnFocus = func() {
+		_this.viewFocus()
+		if bakFocus != nil {
+			bakFocus()
+		}
+	}
+	bakLostFocus := _this._view.OnLostFocus
+	_this._view.OnLostFocus = func() {
+		_this.viewLostFocus()
+		if bakLostFocus != nil {
+			bakLostFocus()
+		}
+	}
+	bakResize := _this._view.OnResize
+	_this._view.OnResize = func(e f.Rect) {
+		_this.viewResize(e)
+		if bakResize != nil {
+			bakResize(e)
+		}
+	}
+	bakPaint := _this._view.OnPaint
+	_this._view.OnPaint = func(e f.PaintEvArgs) {
+		_this.viewPaint(e)
+		if bakPaint != nil {
+			bakPaint(e)
+		}
+	}
+	bakMouseMove := _this._view.OnMouseMove
+	_this._view.OnMouseMove = func(e *f.MouseEvArgs) {
+		_this.viewMouseMove(e)
+		if bakMouseMove != nil {
+			bakMouseMove(e)
+		}
+	}
+	bakMouseDown := _this._view.OnMouseDown
+	_this._view.OnMouseDown = func(e *f.MouseEvArgs) {
+		_this.viewMouseDown(e)
+		if bakMouseDown != nil {
+			bakMouseDown(e)
+		}
+	}
+	bakMouseUp := _this._view.OnMouseUp
+	_this._view.OnMouseUp = func(e *f.MouseEvArgs) {
+		_this.viewMouseUp(e)
+		if bakMouseUp != nil {
+			bakMouseUp(e)
+		}
+	}
+	bakMouseWheel := _this._view.OnMouseWheel
+	_this._view.OnMouseWheel = func(e *f.MouseEvArgs) {
+		_this.viewMouseWheel(e)
+		if bakMouseWheel != nil {
+			bakMouseWheel(e)
+		}
+	}
+	bakSetCursor := _this._view.OnSetCursor
+	_this._view.OnSetCursor = func() bool {
+		b := _this.viewSetCursor()
+		if !b && bakSetCursor != nil {
+			b = bakSetCursor()
+		}
+		return b
+	}
+	bakKeyDown := _this._view.OnKeyDown
+	_this._view.OnKeyDown = func(e *f.KeyEvArgs) {
+		_this.viewKeyDown(e)
+		if bakKeyDown != nil {
+			bakKeyDown(e)
+		}
+	}
+	bakKeyUp := _this._view.OnKeyUp
+	_this._view.OnKeyUp = func(e *f.KeyEvArgs) {
+		_this.viewKeyUp(e)
+		if bakKeyUp != nil {
+			bakKeyUp(e)
+		}
+	}
+	bakKeyPress := _this._view.OnKeyPress
+	_this._view.OnKeyPress = func(e *f.KeyPressEvArgs) {
+		_this.viewKeyPress(e)
+		if bakKeyPress != nil {
+			bakKeyPress(e)
+		}
+	}
+	bakImeStart := _this._view.OnImeStartComposition
+	_this._view.OnImeStartComposition = func() bool {
+		b := _this.viewImeStart()
+		if !b && bakImeStart != nil {
+			b = bakImeStart()
+		}
+		return b
+	}
 }
 
 func (_this *free4x64) viewImeStart() bool {
@@ -250,6 +346,10 @@ func (_this *free4x64) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rec
 
 func (_this *free4x64) viewResize(e f.Rect) {
 	mbApi.wkeResize(_this._wke, uint32(e.Width), uint32(e.Height))
+}
+
+func (_this *free4x64) viewLostFocus() {
+	mbApi.wkeKillFocus(_this._wke)
 }
 
 func (_this *free4x64) viewFocus() {

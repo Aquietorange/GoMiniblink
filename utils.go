@@ -1,6 +1,7 @@
 package GoMiniblink
 
 import (
+	"os"
 	"reflect"
 	"strconv"
 	"syscall"
@@ -183,4 +184,15 @@ func wkePtrToUtf8(ptr uintptr) string {
 		}
 	}
 	return string(seq)
+}
+
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

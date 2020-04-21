@@ -45,6 +45,9 @@ type BaseUI struct {
 	EvFocus map[string]func(target interface{})
 	OnFocus func()
 
+	EvLostFocus map[string]func(target interface{})
+	OnLostFocus func()
+
 	OnSetCursor           func() bool
 	OnImeStartComposition func() bool
 
@@ -59,32 +62,46 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.impl = impl
 
 	_this.EvKeyPress = make(map[string]func(target interface{}, e *f.KeyPressEvArgs))
-	_this.EvKeyDown = make(map[string]func(target interface{}, e *f.KeyEvArgs))
-	_this.EvKeyUp = make(map[string]func(target interface{}, e *f.KeyEvArgs))
-	_this.EvPaint = make(map[string]func(target interface{}, e f.PaintEvArgs))
-	_this.EvLoad = make(map[string]func(target interface{}))
-	_this.EvResize = make(map[string]func(target interface{}, e f.Rect))
-	_this.EvMove = make(map[string]func(target interface{}, e f.Point))
-	_this.EvMouseMove = make(map[string]func(target interface{}, e *f.MouseEvArgs))
-	_this.EvMouseDown = make(map[string]func(target interface{}, e *f.MouseEvArgs))
-	_this.EvMouseUp = make(map[string]func(target interface{}, e *f.MouseEvArgs))
-	_this.EvMouseWheel = make(map[string]func(target interface{}, e *f.MouseEvArgs))
-	_this.EvMouseClick = make(map[string]func(target interface{}, e *f.MouseEvArgs))
-	_this.EvFocus = make(map[string]func(target interface{}))
-
-	_this.OnFocus = _this.defOnFocus
 	_this.OnKeyPress = _this.defOnKeyPress
-	_this.OnKeyUp = _this.defOnKeyUp
+
+	_this.EvKeyDown = make(map[string]func(target interface{}, e *f.KeyEvArgs))
 	_this.OnKeyDown = _this.defOnKeyDown
+
+	_this.EvKeyUp = make(map[string]func(target interface{}, e *f.KeyEvArgs))
+	_this.OnKeyUp = _this.defOnKeyUp
+
+	_this.EvPaint = make(map[string]func(target interface{}, e f.PaintEvArgs))
 	_this.OnPaint = _this.defOnPaint
+
+	_this.EvLoad = make(map[string]func(target interface{}))
 	_this.OnLoad = _this.defOnLoad
+
+	_this.EvResize = make(map[string]func(target interface{}, e f.Rect))
 	_this.OnResize = _this.defOnResize
+
+	_this.EvMove = make(map[string]func(target interface{}, e f.Point))
 	_this.OnMove = _this.defOnMove
+
+	_this.EvMouseMove = make(map[string]func(target interface{}, e *f.MouseEvArgs))
 	_this.OnMouseMove = _this.defOnMouseMove
+
+	_this.EvMouseDown = make(map[string]func(target interface{}, e *f.MouseEvArgs))
 	_this.OnMouseDown = _this.defOnMouseDown
+
+	_this.EvMouseUp = make(map[string]func(target interface{}, e *f.MouseEvArgs))
 	_this.OnMouseUp = _this.defOnMouseUp
+
+	_this.EvMouseWheel = make(map[string]func(target interface{}, e *f.MouseEvArgs))
 	_this.OnMouseWheel = _this.defOnMouseWheel
+
+	_this.EvMouseClick = make(map[string]func(target interface{}, e *f.MouseEvArgs))
 	_this.OnMouseClick = _this.defOnMouseClick
+
+	_this.EvFocus = make(map[string]func(target interface{}))
+	_this.OnFocus = _this.defOnFocus
+
+	_this.EvLostFocus = make(map[string]func(target interface{}))
+	_this.OnLostFocus = _this.defOnLostFocus
 
 	var bakImeStart p.WindowImeStartCompositionProc
 	bakImeStart = _this.impl.SetOnImeStartComposition(func() bool {
@@ -94,6 +111,18 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 		}
 		if !b && _this.OnImeStartComposition != nil && _this.OnImeStartComposition() {
 			b = true
+		}
+		return b
+	})
+
+	var bakLostFocus p.WindowLostFocusProc
+	bakLostFocus = _this.impl.SetOnLostFocus(func() bool {
+		b := false
+		if bakLostFocus != nil {
+			b = bakLostFocus()
+		}
+		if !b && _this.OnLostFocus != nil {
+			_this.OnLostFocus()
 		}
 		return b
 	})

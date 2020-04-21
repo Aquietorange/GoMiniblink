@@ -111,6 +111,7 @@ type freeApi interface {
 	wkeNetSetData(job wkeNetJob, buf []byte)
 	wkeGetCaretRect(wke wkeHandle) wkeRect
 	wkeSetFocus(wke wkeHandle)
+	wkeKillFocus(wke wkeHandle)
 	wkeFireKeyPressEvent(wke wkeHandle, code int, flags uint32, isSysKey bool) bool
 	wkeFireKeyDownEvent(wke wkeHandle, code, flags uint32, isSysKey bool) bool
 	wkeFireKeyUpEvent(wke wkeHandle, code, flags uint32, isSysKey bool) bool
