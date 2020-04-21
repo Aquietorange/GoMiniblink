@@ -8,13 +8,6 @@ import (
 )
 
 func main() {
-	//src := 0xDB7093
-	//s := miniblink.IntToRGBA(src)
-	//println(uint32(src))
-	//r, g, b, _ := s.RGBA()
-	//println(r, g, b)
-	//rgb := uint32(uint8(r)) | (uint32(uint8(g)) << 8) | uint32(uint8(b))<<16
-	//println(rgb)
 	controls.App = new(windows.Provider).Init()
 	controls.App.SetIcon("app.ico")
 	controls.App.SetBgColor(0x00FF)
