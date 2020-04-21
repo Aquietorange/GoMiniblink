@@ -1,11 +1,13 @@
 package GoMiniblink
 
 import (
+	"fmt"
 	"image"
 	"math"
 	f "qq2564874169/goMiniblink/forms"
 	c "qq2564874169/goMiniblink/forms/controls"
 	"qq2564874169/goMiniblink/forms/platform/windows/win32"
+	"strconv"
 	"unsafe"
 )
 
@@ -52,7 +54,29 @@ func (_this *free4x64) LoadUri(uri string) {
 }
 
 func (_this *free4x64) viewSetCursor() bool {
-
+	cur := mbApi.wkeGetCursorInfoType(_this._wke)
+	newCur := f.CursorType_Default
+	switch cur {
+	case wkeCursorType_Pointer:
+		newCur = f.CursorType_ARROW
+	case wkeCursorType_Hand:
+		newCur = f.CursorType_HAND
+	case wkeCursorType_IBeam:
+		newCur = f.CursorType_IBEAM
+	case wkeCursorType_ColumnResize:
+		newCur = f.CursorType_SIZEWE
+	case wkeCursorType_RowResize:
+		newCur = f.CursorType_SIZENS
+	case wkeCursorType_Cross:
+		newCur = f.CursorType_CROSS
+	default:
+		fmt.Println("未实现的指针类型：" + strconv.Itoa(int(cur)))
+	}
+	if newCur != f.CursorType_Default {
+		_this._view.SetCursor(newCur)
+		return true
+	}
+	return false
 }
 
 func (_this *free4x64) viewMouseWheel(e f.MouseEvArgs) {
