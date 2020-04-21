@@ -24,25 +24,29 @@ type BaseUI struct {
 	EvMove map[string]func(target interface{}, e f.Point)
 	OnMove func(e f.Point)
 
-	EvMouseMove map[string]func(target interface{}, e f.MouseEvArgs)
-	OnMouseMove func(e f.MouseEvArgs)
+	EvMouseMove map[string]func(target interface{}, e *f.MouseEvArgs)
+	OnMouseMove func(e *f.MouseEvArgs)
 
-	EvMouseDown map[string]func(target interface{}, e f.MouseEvArgs)
-	OnMouseDown func(e f.MouseEvArgs)
+	EvMouseDown map[string]func(target interface{}, e *f.MouseEvArgs)
+	OnMouseDown func(e *f.MouseEvArgs)
 
-	EvMouseUp map[string]func(target interface{}, e f.MouseEvArgs)
-	OnMouseUp func(e f.MouseEvArgs)
+	EvMouseUp map[string]func(target interface{}, e *f.MouseEvArgs)
+	OnMouseUp func(e *f.MouseEvArgs)
 
-	EvMouseWheel map[string]func(target interface{}, e f.MouseEvArgs)
-	OnMouseWheel func(e f.MouseEvArgs)
+	EvMouseWheel map[string]func(target interface{}, e *f.MouseEvArgs)
+	OnMouseWheel func(e *f.MouseEvArgs)
 
-	EvMouseClick map[string]func(target interface{}, e f.MouseEvArgs)
-	OnMouseClick func(e f.MouseEvArgs)
+	EvMouseClick map[string]func(target interface{}, e *f.MouseEvArgs)
+	OnMouseClick func(e *f.MouseEvArgs)
 
 	EvPaint map[string]func(target interface{}, e f.PaintEvArgs)
 	OnPaint func(e f.PaintEvArgs)
 
-	OnSetCursor func() bool
+	EvFocus map[string]func(target interface{})
+	OnFocus func()
+
+	OnSetCursor           func() bool
+	OnImeStartComposition func() bool
 
 	instance interface{}
 	impl     p.IWindow
@@ -61,12 +65,14 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.EvLoad = make(map[string]func(target interface{}))
 	_this.EvResize = make(map[string]func(target interface{}, e f.Rect))
 	_this.EvMove = make(map[string]func(target interface{}, e f.Point))
-	_this.EvMouseMove = make(map[string]func(target interface{}, args f.MouseEvArgs))
-	_this.EvMouseDown = make(map[string]func(target interface{}, args f.MouseEvArgs))
-	_this.EvMouseUp = make(map[string]func(target interface{}, args f.MouseEvArgs))
-	_this.EvMouseWheel = make(map[string]func(target interface{}, args f.MouseEvArgs))
-	_this.EvMouseClick = make(map[string]func(target interface{}, args f.MouseEvArgs))
+	_this.EvMouseMove = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseDown = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseUp = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseWheel = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseClick = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvFocus = make(map[string]func(target interface{}))
 
+	_this.OnFocus = _this.defOnFocus
 	_this.OnKeyPress = _this.defOnKeyPress
 	_this.OnKeyUp = _this.defOnKeyUp
 	_this.OnKeyDown = _this.defOnKeyDown
@@ -79,6 +85,30 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	_this.OnMouseUp = _this.defOnMouseUp
 	_this.OnMouseWheel = _this.defOnMouseWheel
 	_this.OnMouseClick = _this.defOnMouseClick
+
+	var bakImeStart p.WindowImeStartCompositionProc
+	bakImeStart = _this.impl.SetOnImeStartComposition(func() bool {
+		b := false
+		if bakImeStart != nil {
+			b = bakImeStart()
+		}
+		if !b && _this.OnImeStartComposition != nil && _this.OnImeStartComposition() {
+			b = true
+		}
+		return b
+	})
+
+	var bakFocus p.WindowFocusProc
+	bakFocus = _this.impl.SetOnFocus(func() bool {
+		b := false
+		if bakFocus != nil {
+			b = bakFocus()
+		}
+		if !b && _this.OnFocus != nil {
+			_this.OnFocus()
+		}
+		return b
+	})
 
 	var bakOnCursor p.WindowSetCursorProc
 	bakOnCursor = _this.impl.SetOnCursor(func() bool {
@@ -93,39 +123,33 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	})
 
 	var bakKeyPress p.WindowKeyPressProc
-	bakKeyPress = _this.impl.SetOnKeyPress(func(e *f.KeyPressEvArgs) bool {
-		b := false
+	bakKeyPress = _this.impl.SetOnKeyPress(func(e *f.KeyPressEvArgs) {
 		if bakKeyPress != nil {
-			b = bakKeyPress(e)
+			bakKeyPress(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnKeyPress(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakKeyUp p.WindowKeyUpProc
-	bakKeyUp = _this.impl.SetOnKeyUp(func(e *f.KeyEvArgs) bool {
-		b := false
+	bakKeyUp = _this.impl.SetOnKeyUp(func(e *f.KeyEvArgs) {
 		if bakKeyUp != nil {
-			b = bakKeyUp(e)
+			bakKeyUp(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnKeyUp(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakKeyDown p.WindowKeyDownProc
-	bakKeyDown = _this.impl.SetOnKeyDown(func(e *f.KeyEvArgs) bool {
-		b := false
+	bakKeyDown = _this.impl.SetOnKeyDown(func(e *f.KeyEvArgs) {
 		if bakKeyDown != nil {
-			b = bakKeyDown(e)
+			bakKeyDown(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnKeyDown(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakPaint p.WindowPaintProc
@@ -141,63 +165,53 @@ func (_this *BaseUI) init(instance interface{}, impl p.IWindow) *BaseUI {
 	})
 
 	var bakMouseClick p.WindowMouseClickProc
-	bakMouseClick = _this.impl.SetOnMouseClick(func(e f.MouseEvArgs) bool {
-		b := false
+	bakMouseClick = _this.impl.SetOnMouseClick(func(e *f.MouseEvArgs) {
 		if bakMouseClick != nil {
-			b = bakMouseClick(e)
+			bakMouseClick(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnMouseClick(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakMouseWheel p.WindowMouseWheelProc
-	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e f.MouseEvArgs) bool {
-		b := false
+	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e *f.MouseEvArgs) {
 		if bakMouseWheel != nil {
-			b = bakMouseWheel(e)
+			bakMouseWheel(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnMouseWheel(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakMouseUp p.WindowMouseUpProc
-	bakMouseUp = _this.impl.SetOnMouseUp(func(e f.MouseEvArgs) bool {
-		b := false
+	bakMouseUp = _this.impl.SetOnMouseUp(func(e *f.MouseEvArgs) {
 		if bakMouseUp != nil {
-			b = bakMouseUp(e)
+			bakMouseUp(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnMouseUp(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakMouseDown p.WindowMouseDownProc
-	bakMouseDown = _this.impl.SetOnMouseDown(func(e f.MouseEvArgs) bool {
-		b := false
+	bakMouseDown = _this.impl.SetOnMouseDown(func(e *f.MouseEvArgs) {
 		if bakMouseDown != nil {
-			b = bakMouseDown(e)
+			bakMouseDown(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnMouseDown(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakMouseMove p.WindowMouseMoveProc
-	bakMouseMove = _this.impl.SetOnMouseMove(func(e f.MouseEvArgs) bool {
-		b := false
+	bakMouseMove = _this.impl.SetOnMouseMove(func(e *f.MouseEvArgs) {
 		if bakMouseMove != nil {
-			b = bakMouseMove(e)
+			bakMouseMove(e)
 		}
-		if !b {
+		if !e.IsHandle {
 			_this.OnMouseMove(e)
 		}
-		return b || e.IsHandle
 	})
 
 	var bakResize p.WindowResizeProc

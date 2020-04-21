@@ -46,12 +46,12 @@ type WindowCreateProc func(handle uintptr) bool
 type WindowDestroyProc func()
 type WindowResizeProc func(e f.Rect) bool
 type WindowMoveProc func(e f.Point) bool
-type WindowMouseMoveProc func(e f.MouseEvArgs) bool
-type WindowMouseDownProc func(e f.MouseEvArgs) bool
-type WindowMouseUpProc func(e f.MouseEvArgs) bool
-type WindowMouseWheelProc func(e f.MouseEvArgs) bool
-type WindowMouseClickProc func(e f.MouseEvArgs) bool
+type WindowMouseMoveProc func(e *f.MouseEvArgs)
+type WindowMouseDownProc func(e *f.MouseEvArgs)
+type WindowMouseUpProc func(e *f.MouseEvArgs)
+type WindowMouseWheelProc func(e *f.MouseEvArgs)
+type WindowMouseClickProc func(e *f.MouseEvArgs)
 type WindowPaintProc func(e f.PaintEvArgs) bool
-type WindowKeyDownProc func(e *f.KeyEvArgs) bool
-type WindowKeyUpProc func(e *f.KeyEvArgs) bool
-type WindowKeyPressProc func(e *f.KeyPressEvArgs) bool
+type WindowKeyDownProc func(e *f.KeyEvArgs)
+type WindowKeyUpProc func(e *f.KeyEvArgs)
+type WindowKeyPressProc func(e *f.KeyPressEvArgs)

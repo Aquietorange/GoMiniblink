@@ -140,7 +140,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 				Value: wParam,
 				IsSys: msg == w.WM_SYSKEYDOWN,
 			}
-			if _this.onKeyDown(&e) || e.IsHandle {
+			if _this.onKeyDown(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -152,7 +152,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 				Value: wParam,
 				IsSys: msg == w.WM_SYSKEYUP,
 			}
-			if _this.onKeyUp(&e) || e.IsHandle {
+			if _this.onKeyUp(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -163,7 +163,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 				Value:   wParam,
 				IsSys:   msg == w.WM_SYSCHAR,
 			}
-			if _this.onKeyPress(&e) || e.IsHandle {
+			if _this.onKeyPress(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -214,7 +214,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 			if wp&w.MK_RBUTTON != 0 {
 				e.Button |= f.MouseButtons_Right
 			}
-			if _this.onMouseMove(e) {
+			if _this.onMouseMove(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -235,7 +235,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 			case w.WM_MBUTTONDOWN:
 				e.Button |= f.MouseButtons_Middle
 			}
-			if _this.onMouseDown(e) {
+			if _this.onMouseDown(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -256,7 +256,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 			case w.WM_MBUTTONDOWN:
 				e.Button |= f.MouseButtons_Middle
 			}
-			if _this.onMouseUp(e) {
+			if _this.onMouseUp(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -278,7 +278,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 			if lp&w.MK_RBUTTON != 0 {
 				e.Button |= f.MouseButtons_Right
 			}
-			if _this.onMouseWheel(e) {
+			if _this.onMouseWheel(&e); e.IsHandle {
 				ret = 1
 			}
 		}
@@ -315,7 +315,7 @@ func (_this *winBase) execCmd(wParam, lParam uintptr) int {
 		_this.invokeMap.Delete(lParam)
 	case cmd_mouse_click:
 		e := *((*f.MouseEvArgs)(unsafe.Pointer(lParam)))
-		_this.onMouseClick(e)
+		_this.onMouseClick(&e)
 	default:
 		return 0
 	}

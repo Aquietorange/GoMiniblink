@@ -2,6 +2,12 @@ package controls
 
 import f "qq2564874169/goMiniblink/forms"
 
+func (_this *BaseUI) defOnFocus() {
+	for _, v := range _this.EvFocus {
+		v(_this.instance)
+	}
+}
+
 func (_this *BaseUI) defOnKeyPress(e *f.KeyPressEvArgs) {
 	for _, v := range _this.EvKeyPress {
 		v(_this.instance, e)
@@ -26,31 +32,31 @@ func (_this *BaseUI) defOnPaint(e f.PaintEvArgs) {
 	}
 }
 
-func (_this *BaseUI) defOnMouseClick(e f.MouseEvArgs) {
+func (_this *BaseUI) defOnMouseClick(e *f.MouseEvArgs) {
 	for _, v := range _this.EvMouseClick {
 		v(_this.instance, e)
 	}
 }
 
-func (_this *BaseUI) defOnMouseWheel(e f.MouseEvArgs) {
+func (_this *BaseUI) defOnMouseWheel(e *f.MouseEvArgs) {
 	for _, v := range _this.EvMouseWheel {
 		v(_this.instance, e)
 	}
 }
 
-func (_this *BaseUI) defOnMouseUp(e f.MouseEvArgs) {
+func (_this *BaseUI) defOnMouseUp(e *f.MouseEvArgs) {
 	for _, v := range _this.EvMouseUp {
 		v(_this.instance, e)
 	}
 }
 
-func (_this *BaseUI) defOnMouseDown(e f.MouseEvArgs) {
+func (_this *BaseUI) defOnMouseDown(e *f.MouseEvArgs) {
 	for _, v := range _this.EvMouseDown {
 		v(_this.instance, e)
 	}
 }
 
-func (_this *BaseUI) defOnMouseMove(e f.MouseEvArgs) {
+func (_this *BaseUI) defOnMouseMove(e *f.MouseEvArgs) {
 	for _, v := range _this.EvMouseMove {
 		v(_this.instance, e)
 	}

@@ -6,7 +6,7 @@ import (
 	"math"
 	f "qq2564874169/goMiniblink/forms"
 	c "qq2564874169/goMiniblink/forms/controls"
-	"qq2564874169/goMiniblink/forms/platform/windows/win32"
+	w "qq2564874169/goMiniblink/forms/platform/windows/win32"
 	"strconv"
 	"unsafe"
 )
@@ -35,6 +35,7 @@ func (_this *free4x64) SetOnRequest(func(e RequestEvArgs)) {
 }
 
 func (_this *free4x64) mbInit() {
+	_this._view.OnFocus = _this.viewFocus
 	_this._view.OnResize = _this.viewResize
 	_this._view.OnPaint = _this.viewPaint
 	_this._view.OnMouseMove = _this.viewMouseMove
@@ -42,11 +43,63 @@ func (_this *free4x64) mbInit() {
 	_this._view.OnMouseUp = _this.viewMouseUp
 	_this._view.OnMouseWheel = _this.viewMouseWheel
 	_this._view.OnSetCursor = _this.viewSetCursor
+	_this._view.OnKeyDown = _this.viewKeyDown
+	_this._view.OnKeyUp = _this.viewKeyUp
+	_this._view.OnKeyPress = _this.viewKeyPress
+	_this._view.OnImeStartComposition = _this.viewImeStart
 
 	_this._wke = createWebView(_this)
+	_this.viewResize(_this._view.GetSize())
 	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
 	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, nil)
-	_this.viewResize(_this._view.GetSize())
+}
+
+func (_this *free4x64) viewImeStart() bool {
+	rect := mbApi.wkeGetCaretRect(_this._wke)
+	comp := w.COMPOSITIONFORM{
+		DwStyle: w.CFS_POINT | w.CFS_FORCE_POSITION,
+		Pos: w.POINT{
+			X: rect.x,
+			Y: rect.y,
+		},
+	}
+	h := w.HWND(_this._view.GetHandle())
+	imc := w.ImmGetContext(h)
+	w.ImmSetCompositionWindow(imc, &comp)
+	w.ImmReleaseContext(h, imc)
+	return true
+}
+
+func (_this *free4x64) viewKeyPress(e *f.KeyPressEvArgs) {
+	if mbApi.wkeFireKeyPressEvent(_this._wke, int([]rune(e.KeyChar)[0]), uint32(wkeKeyFlags_Repeat), e.IsSys) {
+		e.IsHandle = true
+	}
+}
+
+func (_this *free4x64) viewKeyUp(e *f.KeyEvArgs) {
+	if _this.viewKeyEvent(e, false) {
+		e.IsHandle = true
+	}
+}
+
+func (_this *free4x64) viewKeyDown(e *f.KeyEvArgs) {
+	if _this.viewKeyEvent(e, true) {
+		e.IsHandle = true
+	}
+}
+
+func (_this *free4x64) viewKeyEvent(e *f.KeyEvArgs, isDown bool) bool {
+	flags := int(wkeKeyFlags_Repeat)
+	switch e.Key {
+	case f.Keys_Insert, f.Keys_Delete, f.Keys_Home, f.Keys_End, f.Keys_PageUp,
+		f.Keys_PageDown, f.Keys_Left, f.Keys_Right, f.Keys_Up, f.Keys_Down:
+		flags |= int(wkeKeyFlags_Extend)
+	}
+	if isDown {
+		return mbApi.wkeFireKeyDownEvent(_this._wke, uint32(e.Value), uint32(flags), e.IsSys)
+	} else {
+		return mbApi.wkeFireKeyUpEvent(_this._wke, uint32(e.Value), uint32(flags), e.IsSys)
+	}
 }
 
 func (_this *free4x64) LoadUri(uri string) {
@@ -70,7 +123,7 @@ func (_this *free4x64) viewSetCursor() bool {
 	case wkeCursorType_Cross:
 		newCur = f.CursorType_CROSS
 	default:
-		fmt.Println("未实现的指针类型：" + strconv.Itoa(int(cur)))
+		fmt.Println("未实现的鼠标指针类型：" + strconv.Itoa(int(cur)))
 	}
 	if newCur != f.CursorType_Default {
 		_this._view.SetCursor(newCur)
@@ -79,7 +132,7 @@ func (_this *free4x64) viewSetCursor() bool {
 	return false
 }
 
-func (_this *free4x64) viewMouseWheel(e f.MouseEvArgs) {
+func (_this *free4x64) viewMouseWheel(e *f.MouseEvArgs) {
 	flags := wkeMouseFlags_None
 	keys := c.App.ModifierKeys()
 	if s, ok := keys[f.Keys_Ctrl]; ok && s {
@@ -102,15 +155,15 @@ func (_this *free4x64) viewMouseWheel(e f.MouseEvArgs) {
 	}
 }
 
-func (_this *free4x64) viewMouseUp(e f.MouseEvArgs) {
-	_this.viewMouseClick(e, false)
+func (_this *free4x64) viewMouseUp(e *f.MouseEvArgs) {
+	_this.viewMouseEvent(e, false)
 }
 
-func (_this *free4x64) viewMouseDown(e f.MouseEvArgs) {
-	_this.viewMouseClick(e, true)
+func (_this *free4x64) viewMouseDown(e *f.MouseEvArgs) {
+	_this.viewMouseEvent(e, true)
 }
 
-func (_this *free4x64) viewMouseClick(e f.MouseEvArgs, isDown bool) {
+func (_this *free4x64) viewMouseEvent(e *f.MouseEvArgs, isDown bool) {
 	flags := wkeMouseFlags_None
 	keys := c.App.ModifierKeys()
 	if s, ok := keys[f.Keys_Ctrl]; ok && s {
@@ -123,31 +176,31 @@ func (_this *free4x64) viewMouseClick(e f.MouseEvArgs, isDown bool) {
 	if e.Button&f.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
 		if e.IsDouble {
-			msg = win32.WM_LBUTTONDBLCLK
+			msg = w.WM_LBUTTONDBLCLK
 		} else if isDown {
-			msg = win32.WM_LBUTTONDOWN
+			msg = w.WM_LBUTTONDOWN
 		} else {
-			msg = win32.WM_LBUTTONUP
+			msg = w.WM_LBUTTONUP
 		}
 	}
 	if e.Button&f.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 		if e.IsDouble {
-			msg = win32.WM_RBUTTONDBLCLK
+			msg = w.WM_RBUTTONDBLCLK
 		} else if isDown {
-			msg = win32.WM_RBUTTONDOWN
+			msg = w.WM_RBUTTONDOWN
 		} else {
-			msg = win32.WM_RBUTTONUP
+			msg = w.WM_RBUTTONUP
 		}
 	}
 	if e.Button&f.MouseButtons_Middle != 0 {
 		flags |= wkeMouseFlags_MBUTTON
 		if e.IsDouble {
-			msg = win32.WM_MBUTTONDBLCLK
+			msg = w.WM_MBUTTONDBLCLK
 		} else if isDown {
-			msg = win32.WM_MBUTTONDOWN
+			msg = w.WM_MBUTTONDOWN
 		} else {
-			msg = win32.WM_MBUTTONUP
+			msg = w.WM_MBUTTONUP
 		}
 	}
 	if msg != 0 && mbApi.wkeFireMouseEvent(_this._wke, int32(msg), int32(e.X), int32(e.Y), int32(flags)) {
@@ -155,7 +208,7 @@ func (_this *free4x64) viewMouseClick(e f.MouseEvArgs, isDown bool) {
 	}
 }
 
-func (_this *free4x64) viewMouseMove(e f.MouseEvArgs) {
+func (_this *free4x64) viewMouseMove(e *f.MouseEvArgs) {
 	flags := wkeMouseFlags_None
 	if e.Button&f.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
@@ -163,7 +216,7 @@ func (_this *free4x64) viewMouseMove(e f.MouseEvArgs) {
 	if e.Button&f.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 	}
-	if mbApi.wkeFireMouseEvent(_this._wke, int32(win32.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
+	if mbApi.wkeFireMouseEvent(_this._wke, int32(w.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
 		e.IsHandle = true
 	}
 }
@@ -197,6 +250,10 @@ func (_this *free4x64) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rec
 
 func (_this *free4x64) viewResize(e f.Rect) {
 	mbApi.wkeResize(_this._wke, uint32(e.Width), uint32(e.Height))
+}
+
+func (_this *free4x64) viewFocus() {
+	mbApi.wkeSetFocus(_this._wke)
 }
 
 func (_this *free4x64) GetHandle() wkeHandle {
