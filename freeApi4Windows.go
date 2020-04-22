@@ -63,6 +63,7 @@ type freeApiForWindows struct {
 	_wkeDestroyWebView      *windows.LazyProc
 	_jsGetWebView           *windows.LazyProc
 	_wkeKillFocus           *windows.LazyProc
+	_jsEvalExW              *windows.LazyProc
 }
 
 func (_this *freeApiForWindows) init() *freeApiForWindows {
@@ -73,6 +74,7 @@ func (_this *freeApiForWindows) init() *freeApiForWindows {
 	} else {
 		lib = windows.NewLazyDLL("miniblink_x86.dll")
 	}
+	_this._jsEvalExW = lib.NewProc("jsEvalExW")
 	_this._wkeKillFocus = lib.NewProc("wkeKillFocus")
 	_this._jsToInt = lib.NewProc("jsToInt")
 	_this._jsSet = lib.NewProc("jsSet")
@@ -221,13 +223,34 @@ func (_this *freeApiForWindows) jsSetGlobal(es jsExecState, name string, value j
 	_this._jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
 }
 
+func (_this *freeApiForWindows) jsEvalExW(es jsExecState, js string, isInClosure bool) jsValue {
+	ptr := toCallStr(js)
+	rs, _, _ := _this._jsEvalExW.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(toBool(isInClosure)))
+	return jsValue(rs)
+}
+
 func (_this *freeApiForWindows) jsGetKeys(es jsExecState, value jsValue) []string {
-	rs, _, _ := _this._jsGetKeys.Call(uintptr(es), uintptr(value))
-	keys := *((*jsKeys)(unsafe.Pointer(rs)))
-	items := make([]string, keys.length)
-	for i := 0; i < int(keys.length); i++ {
-		items[i] = string(keys.first)
-		keys.first += unsafe.Sizeof(keys.first)
+	//rs, _, _ := _this._jsGetKeys.Call(uintptr(es), uintptr(value))
+	//keys := *((*jsKeys)(unsafe.Pointer(rs)))
+	//items := make([]string, keys.length)
+	//for i := 0; i < len(items); i++ {
+	//	items[i] = wkePtrToUtf8(*((*uintptr)(unsafe.Pointer(keys.first))))
+	//	keys.first += unsafe.Sizeof(uintptr(0))
+	//}
+	//return items
+
+	//_this._jsGetKeys.Call(uintptr(es), uintptr(value))
+	//return []string{"n1", "n2"}
+
+	json := _this.jsGetGlobal(es, "Object")
+	stringify := _this.jsGet(es, json, "keys")
+	rs := _this.jsCall(es, stringify, _this.jsUndefined(), []jsValue{value})
+	alen := _this.jsGetLength(es, rs)
+	items := make([]string, alen)
+	for i := 0; i < len(items); i++ {
+		v := _this.jsGetAt(es, rs, uint32(i))
+		str := _this.jsToTempString(es, v)
+		items[i] = str
 	}
 	return items
 }
@@ -285,21 +308,21 @@ func (_this *freeApiForWindows) jsArgCount(es jsExecState) uint32 {
 	return uint32(r)
 }
 
-func (_this *freeApiForWindows) wkeJsBindFunction(name string, fn wkeJsNativeFunction, param unsafe.Pointer, argCount uint32) {
+func (_this *freeApiForWindows) wkeJsBindFunction(name string, fn wkeJsNativeFunction, param uintptr, argCount uint32) {
 	ptr := toCallStr(name)
-	_this._wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), uintptr(param), uintptr(argCount))
+	_this._wkeJsBindFunction.Call(uintptr(unsafe.Pointer(&ptr[0])), syscall.NewCallbackCDecl(fn), param, uintptr(argCount))
 }
 
 func (_this *freeApiForWindows) wkeNetCancelRequest(job wkeNetJob) {
 	_this._wkeNetCancelRequest.Call(uintptr(job))
 }
 
-func (_this *freeApiForWindows) wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param unsafe.Pointer) {
-	_this._wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
+func (_this *freeApiForWindows) wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr) {
+	_this._wkeNetOnResponse.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 }
 
-func (_this *freeApiForWindows) wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param unsafe.Pointer) {
-	_this._wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
+func (_this *freeApiForWindows) wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr) {
+	_this._wkeOnLoadUrlBegin.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 }
 
 func (_this *freeApiForWindows) wkeNetGetRequestMethod(job wkeNetJob) wkeRequestType {
@@ -398,8 +421,8 @@ func (_this *freeApiForWindows) wkeLoadURL(wke wkeHandle, url string) {
 	_this._wkeLoadURL.Call(uintptr(wke), uintptr(unsafe.Pointer(&ptr[0])))
 }
 
-func (_this *freeApiForWindows) wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param unsafe.Pointer) {
-	_this._wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
+func (_this *freeApiForWindows) wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param uintptr) {
+	_this._wkeOnPaintBitUpdated.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 }
 
 func (_this *freeApiForWindows) wkeSetHandle(wke wkeHandle, handle uintptr) {

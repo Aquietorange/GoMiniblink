@@ -64,7 +64,7 @@
         window.onload = function () {
             document.getElementById("btnFunc1").addEventListener("click",
                 function () {
-                    var result = Func1(2, 3);
+                    var result = Func1(2.2, 3.3);
                     alert(result);
                 });
             document.getElementById("btnFunc2").addEventListener("click",
@@ -76,11 +76,6 @@
             document.getElementById("btnFunc3").addEventListener("click",
                 function () {
                     var result = Func3({n1: 4, n2: 5});
-                    alert(result);
-                });
-            document.getElementById("btnFunc4").addEventListener("click",
-                function () {
-                    var result = Func4("韩梅梅");
                     alert(result);
                 });
             document.getElementById("btnFunc5").addEventListener("click",
@@ -140,22 +135,6 @@
         <li>alert(result);</li>
     </ul>
     <button id="btnFunc3">执行</button>
-</fieldset>
-<fieldset>
-    <legend>传参数量并不是和绑定必须相同</legend>
-    <ol>
-        <li>.NET定义</li>
-        <li>[NetFunc]</li>
-        <li>private object Func4(string name, int age, int? year) {</li>
-        <li class="sj-1">return $"name={name}, age={age}, year={year}";</li>
-        <li>}</li>
-    </ol>
-    <ul>
-        <li>JS调用</li>
-        <li>var result = Func4("韩梅梅");</li>
-        <li>alert(result);</li>
-    </ul>
-    <button id="btnFunc4">执行</button>
 </fieldset>
 <fieldset>
     <legend>返回值是一个.NET委托</legend>

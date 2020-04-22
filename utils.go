@@ -76,6 +76,7 @@ func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
 		}
 		return obj
 	case reflect.Func:
+		//todo crash
 		jsFn := jsData{}
 		name, _ := syscall.UTF16FromString("function")
 		for i := 0; i < len(name); i++ {
@@ -94,8 +95,9 @@ func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
 			return 0
 		}
 		jsFn.callAsFunction = syscall.NewCallbackCDecl(call)
-		jsFn.finalize = syscall.NewCallbackCDecl(func(ptr uintptr) {
+		jsFn.finalize = syscall.NewCallbackCDecl(func(ptr uintptr) uintptr {
 			delete(keepRef, ptr)
+			return 0
 		})
 		keepRef[jsFn.callAsFunction] = call
 		return mbApi.jsFunction(es, &jsFn)

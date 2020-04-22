@@ -40,8 +40,8 @@ func (_this *free4x64) mbInit() {
 	_this._wke = createWebView(_this)
 	_this.viewResize(_this._view.GetSize())
 	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
-	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, nil)
-	mbApi.wkeOnLoadUrlBegin(_this._wke, _this.onUrlBegin, nil)
+	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, 0)
+	mbApi.wkeOnLoadUrlBegin(_this._wke, _this.onUrlBegin, 0)
 }
 
 func (_this *free4x64) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {

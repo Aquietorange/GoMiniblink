@@ -1,7 +1,5 @@
 package GoMiniblink
 
-import "unsafe"
-
 type (
 	wkeHandle   uintptr
 	jsExecState uintptr
@@ -103,10 +101,10 @@ type freeApi interface {
 	jsTypeOf(value jsValue) jsType
 	jsArg(es jsExecState, index uint32) jsValue
 	jsArgCount(es jsExecState) uint32
-	wkeJsBindFunction(name string, fn wkeJsNativeFunction, param unsafe.Pointer, argCount uint32)
+	wkeJsBindFunction(name string, fn wkeJsNativeFunction, param uintptr, argCount uint32)
 	wkeNetCancelRequest(job wkeNetJob)
-	wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param unsafe.Pointer)
-	wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param unsafe.Pointer)
+	wkeNetOnResponse(wke wkeHandle, callback wkeNetResponseCallback, param uintptr)
+	wkeOnLoadUrlBegin(wke wkeHandle, callback wkeLoadUrlBeginCallback, param uintptr)
 	wkeNetGetRequestMethod(job wkeNetJob) wkeRequestType
 	wkeNetSetData(job wkeNetJob, buf []byte)
 	wkeGetCaretRect(wke wkeHandle) wkeRect
@@ -123,6 +121,7 @@ type freeApi interface {
 	wkeGetWidth(wke wkeHandle) uint32
 	wkeResize(wke wkeHandle, w, h uint32)
 	wkeLoadURL(wke wkeHandle, url string)
-	wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param unsafe.Pointer)
+	wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param uintptr)
 	wkeSetHandle(wke wkeHandle, handle uintptr)
+	jsEvalExW(es jsExecState, js string, isInClosure bool) jsValue
 }

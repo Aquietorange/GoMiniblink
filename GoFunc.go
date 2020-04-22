@@ -14,7 +14,7 @@ type GoFunc struct {
 	BindToSub bool
 	Func      func(context GoFuncContext) interface{}
 	State     interface{}
-	jsFunc    wkeJsNativeFunction
+	core      wkeJsNativeFunction
 }
 
 func (_this *GoFunc) Call(miniblink IMiniblink, param []interface{}) interface{} {

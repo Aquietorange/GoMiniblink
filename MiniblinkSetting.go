@@ -1,7 +1,5 @@
 package GoMiniblink
 
-import "unsafe"
-
 var (
 	views   map[wkeHandle]IMiniblink
 	keepRef map[uintptr]interface{}
@@ -27,7 +25,7 @@ func destroyWebView(handle wkeHandle) {
 }
 
 func BindFunc(fn GoFunc) {
-	fn.jsFunc = func(es jsExecState, param uintptr) jsValue {
+	fn.core = func(es jsExecState, param uintptr) jsValue {
 		handle := mbApi.jsGetWebView(es)
 		if mb, ok := views[handle]; ok {
 			arglen := mbApi.jsArgCount(es)
@@ -36,13 +34,13 @@ func BindFunc(fn GoFunc) {
 				value := mbApi.jsArg(es, i)
 				args[i] = toGoValue(mb, es, value)
 			}
-			g := *((*GoFunc)(unsafe.Pointer(param)))
+			g := keepRef[uintptr(uint32(param))].(GoFunc)
 			rs := g.Call(mb, args)
 			return toJsValue(mb, es, rs)
 		}
 		return mbApi.jsUndefined()
 	}
-	pm := unsafe.Pointer(&fn)
-	mbApi.wkeJsBindFunction(fn.Name, fn.jsFunc, pm, 0)
-	keepRef[uintptr(seq())] = fn
+	pm := seq()
+	mbApi.wkeJsBindFunction(fn.Name, fn.core, uintptr(pm), 0)
+	keepRef[uintptr(pm)] = fn
 }

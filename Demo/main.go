@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	g "qq2564874169/goMiniblink"
 	f "qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/controls"
@@ -21,7 +22,40 @@ func main() {
 		mb.SetLocation(15, 15)
 		mb.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
 		mb.ResourceLoader = append(mb.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
-		mb.LoadUri("https://local/control.html")
+		g.BindFunc(g.GoFunc{
+			Name: "Func1",
+			Func: func(context g.GoFuncContext) interface{} {
+				n1 := context.Param[0].(float64)
+				n2 := context.Param[1].(float64)
+				return n1 * n2
+			},
+		})
+		g.BindFunc(g.GoFunc{
+			Name: "Func2",
+			Func: func(context g.GoFuncContext) interface{} {
+				fn := context.Param[0].(g.JsFunc)
+				fn(1.2, 3.4)
+				return nil
+			},
+		})
+		g.BindFunc(g.GoFunc{
+			Name: "Func3",
+			Func: func(context g.GoFuncContext) interface{} {
+				data := context.Param[0].(map[string]interface{})
+				n1 := data["n1"].(float64)
+				n2 := data["n2"].(float64)
+				return n1 * n2
+			},
+		})
+		g.BindFunc(g.GoFunc{
+			Name: "Func5",
+			Func: func(context g.GoFuncContext) interface{} {
+				return func(name string) {
+					fmt.Println(name)
+				}
+			},
+		})
+		mb.LoadUri("https://local/js_call_net.html")
 		frm.AddChild(mb)
 	}
 	controls.Run(frm)
