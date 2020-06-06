@@ -230,29 +230,29 @@ func (_this *freeApiForWindows) jsEvalExW(es jsExecState, js string, isInClosure
 }
 
 func (_this *freeApiForWindows) jsGetKeys(es jsExecState, value jsValue) []string {
-	//rs, _, _ := _this._jsGetKeys.Call(uintptr(es), uintptr(value))
-	//keys := *((*jsKeys)(unsafe.Pointer(rs)))
-	//items := make([]string, keys.length)
-	//for i := 0; i < len(items); i++ {
-	//	items[i] = wkePtrToUtf8(*((*uintptr)(unsafe.Pointer(keys.first))))
-	//	keys.first += unsafe.Sizeof(uintptr(0))
-	//}
-	//return items
+	rs, _, _ := _this._jsGetKeys.Call(uintptr(es), uintptr(value))
+	keys := *((*jsKeys)(unsafe.Pointer(rs)))
+	items := make([]string, keys.length)
+	for i := 0; i < len(items); i++ {
+		items[i] = wkePtrToUtf8(*((*uintptr)(unsafe.Pointer(keys.first))))
+		keys.first += unsafe.Sizeof(uintptr(0))
+	}
+	return items
 
 	//_this._jsGetKeys.Call(uintptr(es), uintptr(value))
 	//return []string{"n1", "n2"}
 
-	json := _this.jsGetGlobal(es, "Object")
-	stringify := _this.jsGet(es, json, "keys")
-	rs := _this.jsCall(es, stringify, _this.jsUndefined(), []jsValue{value})
-	alen := _this.jsGetLength(es, rs)
-	items := make([]string, alen)
-	for i := 0; i < len(items); i++ {
-		v := _this.jsGetAt(es, rs, uint32(i))
-		str := _this.jsToTempString(es, v)
-		items[i] = str
-	}
-	return items
+	//json := _this.jsGetGlobal(es, "Object")
+	//stringify := _this.jsGet(es, json, "keys")
+	//rs := _this.jsCall(es, stringify, _this.jsUndefined(), []jsValue{value})
+	//alen := _this.jsGetLength(es, rs)
+	//items := make([]string, alen)
+	//for i := 0; i < len(items); i++ {
+	//	v := _this.jsGetAt(es, rs, uint32(i))
+	//	str := _this.jsToTempString(es, v)
+	//	items[i] = str
+	//}
+	//return items
 }
 
 func (_this *freeApiForWindows) jsGet(es jsExecState, value jsValue, name string) jsValue {

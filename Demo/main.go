@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	g "qq2564874169/goMiniblink"
 	f "qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/controls"
@@ -50,8 +49,8 @@ func main() {
 		g.BindFunc(g.GoFunc{
 			Name: "Func5",
 			Func: func(context g.GoFuncContext) interface{} {
-				return func(name string) {
-					fmt.Println(name)
+				return func(name string) string {
+					return "姓名：" + name
 				}
 			},
 		})

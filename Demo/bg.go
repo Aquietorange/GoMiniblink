@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
+	"syscall"
 )
 
 func main() {
-	fmt.Println(strconv.FormatFloat(123.45678987654321, 'f', 15, 64))
+	s := "abcd"
+	b, _ := syscall.UTF16FromString(s)
+	fmt.Println(b)
 }
 
 func getCurrentDirectory() string {

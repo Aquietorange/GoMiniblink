@@ -20,7 +20,7 @@ const (
 )
 
 type jsData struct {
-	name [100]uint16
+	name [50]uint16
 	propertyGet,
 	propertySet,
 	finalize,

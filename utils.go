@@ -76,11 +76,10 @@ func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
 		}
 		return obj
 	case reflect.Func:
-		//todo crash
 		jsFn := jsData{}
 		name, _ := syscall.UTF16FromString("function")
-		for i := 0; i < len(name); i++ {
-			jsFn.name[i] = name[i]
+		for i, v := range name {
+			jsFn.name[i] = v
 		}
 		var call = func(fnes jsExecState, obj, args jsValue, count uint32) jsValue {
 			arr := make([]reflect.Value, count)
@@ -96,10 +95,11 @@ func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
 		}
 		jsFn.callAsFunction = syscall.NewCallbackCDecl(call)
 		jsFn.finalize = syscall.NewCallbackCDecl(func(ptr uintptr) uintptr {
-			delete(keepRef, ptr)
+			jf := (*jsData)(unsafe.Pointer(ptr))
+			delete(keepRef, jf.callAsFunction)
 			return 0
 		})
-		keepRef[jsFn.callAsFunction] = call
+		keepRef[jsFn.callAsFunction] = jsFn
 		return mbApi.jsFunction(es, &jsFn)
 	}
 	panic("不支持的go类型：" + rv.Kind().String() + "(" + rv.Type().String() + ")")
