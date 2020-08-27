@@ -1,9 +1,8 @@
 ﻿/*
 *
 * wolar@qq.com
-* http://miniblink.net
+* http://miniblink.net 文档地址
 * https://github.com/weolar/miniblink49
-* https://weolar.github.io/miniblink/doc-main.html api文档地址
 * licence Apache-2.0
 *
 */
@@ -129,14 +128,15 @@ typedef struct _wkeProxy {
     char password[50];
 } wkeProxy;
 
-typedef enum _wkeSettingMask{
+typedef enum _wkeSettingMask {
     WKE_SETTING_PROXY = 1,
-    WKE_SETTING_PAINTCALLBACK_IN_OTHER_THREAD = 1 << 2,
+    WKE_SETTING_EXTENSION = 1 << 2, // 测试功能，请勿调用
 } wkeSettingMask;
 
 typedef struct _wkeSettings {
     wkeProxy proxy;
     unsigned int mask;
+    const char* extension;
 } wkeSettings;
 
 typedef struct _wkeViewSettings {
@@ -464,6 +464,7 @@ typedef struct _wkePrintSettings {
     BOOL isPrintPageHeadAndFooter;
     BOOL isPrintBackgroud;
     BOOL isLandscape;
+    BOOL isPrintToMultiPage;
 } wkePrintSettings;
 
 typedef struct _wkeScreenshotSettings {
@@ -978,6 +979,7 @@ public:
     ITERATOR2(void, wkeSetMemoryCacheEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetMouseEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetTouchEnabled, wkeWebView webView, bool b, "") \
+    ITERATOR2(void, wkeSetSystemTouchEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetContextMenuEnabled, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetNavigationToNewWindowEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetCspCheckEnable, wkeWebView webView, bool b, "") \
@@ -1324,6 +1326,7 @@ public:
     ITERATOR1(jsValue, jsInt, int n, "") \
     ITERATOR1(jsValue, jsFloat, float f, "") \
     ITERATOR1(jsValue, jsDouble, double d, "") \
+    ITERATOR1(jsValue, jsDoubleString, const char* str, "") \
     ITERATOR1(jsValue, jsBoolean, bool b, "") \
     \
     ITERATOR0(jsValue, jsUndefined, "") \

@@ -8,7 +8,7 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
-	BindGoFunc(fn mb.GoFunc)
+	BindJsFunc(fn mb.JsFuncBinding)
 	SetOnRequest(callback RequestCallback)
 	SetFocus()
 	GetCaretPos() mb.Point

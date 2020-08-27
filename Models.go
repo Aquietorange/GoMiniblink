@@ -6,22 +6,22 @@ import (
 
 type JsFunc func(param ...interface{}) interface{}
 
-type GoFuncContext struct {
+type GoFnContext struct {
 	Name  string
 	State interface{}
 	Param []interface{}
 }
 
-type GoFuncFn func(context GoFuncContext) interface{}
+type GoFn func(context GoFnContext) interface{}
 
-type GoFunc struct {
+type JsFuncBinding struct {
 	Name  string
 	State interface{}
-	Fn    GoFuncFn
+	Fn    GoFn
 }
 
-func (_this *GoFunc) OnExecute(param []interface{}) interface{} {
-	return _this.Fn(GoFuncContext{
+func (_this *JsFuncBinding) OnExecute(param []interface{}) interface{} {
+	return _this.Fn(GoFnContext{
 		Name:  _this.Name,
 		State: _this.State,
 		Param: param,

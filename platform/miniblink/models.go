@@ -1,7 +1,7 @@
 package miniblink
 
 type jsData struct {
-	name [100]uint16
+	name [100]byte
 	propertyGet,
 	propertySet,
 	finalize,
@@ -10,7 +10,7 @@ type jsData struct {
 
 type jsKeys struct {
 	length uint32
-	first  uintptr
+	keys   uintptr
 }
 
 type wkeRequestType int

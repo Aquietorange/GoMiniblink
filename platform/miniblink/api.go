@@ -86,6 +86,7 @@ var (
 	_jsFunction             *windows.LazyProc
 	_jsEmptyObject          *windows.LazyProc
 	_jsSet                  *windows.LazyProc
+	_jsGetWebView           *windows.LazyProc
 )
 
 func init() {
@@ -95,6 +96,7 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_jsGetWebView = lib.NewProc("jsGetWebView")
 	_jsToInt = lib.NewProc("jsToInt")
 	_jsSet = lib.NewProc("jsSet")
 	_jsEmptyObject = lib.NewProc("jsEmptyObject")
@@ -164,6 +166,11 @@ func _toLH(value jsValue) (low, high int32) {
 	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
 }
 
+func jsGetWebView(es jsExecState) wkeHandle {
+	r, _, _ := _jsGetWebView.Call(uintptr(es))
+	return wkeHandle(r)
+}
+
 func jsSet(es jsExecState, obj jsValue, name string, value jsValue) {
 	ptr := []byte(name)
 	if is64 {
@@ -231,11 +238,8 @@ func jsBoolean(value bool) jsValue {
 }
 
 func jsInt(value int32) jsValue {
-	fmt.Println(value)
 	l, h, _ := _jsInt.Call(uintptr(value))
-	fmt.Println(l, h)
 	n := _toInt64(int32(l), int32(h))
-	fmt.Println(n)
 	return jsValue(n)
 }
 
@@ -270,18 +274,26 @@ func jsSetGlobal(es jsExecState, name string, value jsValue) {
 }
 
 func jsGetKeys(es jsExecState, value jsValue) []string {
-	var rs uintptr
-	if is64 {
-		rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(value))
-	} else {
-		l, h := _toLH(value)
-		rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(l), uintptr(h))
-	}
-	keys := *((*jsKeys)(unsafe.Pointer(rs)))
-	items := make([]string, keys.length)
-	for i := 0; i < int(keys.length); i++ {
-		items[i] = string(keys.first)
-		keys.first += unsafe.Sizeof(keys.first)
+	//var rs uintptr
+	//if is64 {
+	//	rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(value))
+	//} else {
+	//	l, h := _toLH(value)
+	//	rs, _, _ = _jsGetKeys.Call(uintptr(es), uintptr(l), uintptr(h))
+	//}
+	//jskeys := *((*jsKeys)(unsafe.Pointer(rs)))
+	//items := make([]string, jskeys.length)
+	//for i := 0; i < cap(items); i++ {
+	//	items[i] = string(jskeys.keys)
+	//	jskeys.keys += unsafe.Sizeof(jskeys.keys)
+	//}
+	//return items
+	obj := jsGetGlobal(es, "Object")
+	fn := jsGet(es, obj, "keys")
+	rs := jsCall(es, fn, 0, []jsValue{value})
+	items := make([]string, jsGetLength(es, rs))
+	for i := 0; i < cap(items); i++ {
+		items[i] = jsToTempString(es, jsGetAt(es, rs, uint32(i)))
 	}
 	return items
 }

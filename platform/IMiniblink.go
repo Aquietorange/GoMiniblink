@@ -7,5 +7,5 @@ type IMiniblink interface {
 
 	SetOnRequest(func(e mb.RequestEvArgs))
 	LoadUri(uri string)
-	BindGoFunc(fn mb.GoFunc)
+	BindJsFunc(fn mb.JsFuncBinding)
 }

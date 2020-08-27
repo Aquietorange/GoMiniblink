@@ -14,7 +14,7 @@ type winMiniblink struct {
 	initUri   string
 	initSize  mb.Rect
 	onRequest func(args mb.RequestEvArgs)
-	_fns      []mb.GoFunc
+	_fns      []mb.JsFuncBinding
 }
 
 func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
@@ -86,16 +86,16 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	return _this
 }
 
-func (_this *winMiniblink) BindGoFunc(fn mb.GoFunc) {
+func (_this *winMiniblink) BindJsFunc(fn mb.JsFuncBinding) {
 	if _this.IsCreate() {
-		_this.wke.BindGoFunc(fn)
+		_this.wke.BindJsFunc(fn)
 	} else {
 		_this._fns = append(_this._fns, fn)
 	}
 }
 
 func (_this *winMiniblink) initWke() {
-	_this.wke = new(core.Core).Init(_this)
+	_this.wke = new(core.FreeVer).Init(_this)
 	_this.wke.SetOnPaint(func(args core.PaintUpdateArgs) {
 		g := _this.CreateGraphics()
 		g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
@@ -110,7 +110,7 @@ func (_this *winMiniblink) initWke() {
 	}
 	if len(_this._fns) > 0 {
 		for _, fn := range _this._fns {
-			_this.BindGoFunc(fn)
+			_this.BindJsFunc(fn)
 		}
 	}
 	if _this.initUri != "" {
