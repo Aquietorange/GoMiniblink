@@ -8,8 +8,12 @@ import (
 type ICore interface {
 	LoadUri(uri string)
 
+	SetWindowProp(name string, value interface{})
+	RunJs(script string) interface{}
 	BindJsFunc(fn mb.JsFuncBinding)
 	SetOnRequest(callback RequestCallback)
+	SetOnJsReady(callback JsReadyCallback)
+
 	SetFocus()
 	GetCaretPos() mb.Point
 	GetCursor() mb.CursorType
@@ -21,11 +25,14 @@ type ICore interface {
 	GetImage(bound mb.Bound) *image.RGBA
 	SetOnPaint(callback PaintCallback)
 	Resize(width, height int)
-	SafeInvoke(fn func(interface{}), state interface{})
+	Invoke(fn func(interface{}), state interface{})
+	//todo 差一个AsyncInvoke
 	GetHandle() uintptr
 }
 
-type RequestCallback func(args mb.RequestEvArgs)
+type RequestCallback func(args mb.RequestBeforeEvArgs)
+
+type JsReadyCallback func(args mb.JsReadyEvArgs)
 
 type PaintUpdateArgs struct {
 	Wke   uintptr

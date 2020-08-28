@@ -6,7 +6,19 @@ import (
 
 //todo 应该全是接口
 
-type RequestEvArgs interface {
+type FrameContext interface {
+	Id() uintptr
+	IsMain() bool
+	Url() string
+	IsRemote() bool
+	RunJs(script string) interface{}
+}
+
+type JsReadyEvArgs interface {
+	Frame() FrameContext
+}
+
+type RequestBeforeEvArgs interface {
 	GetUrl() string
 	GetMethod() string
 	SetData([]byte)

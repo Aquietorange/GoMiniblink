@@ -7,3 +7,5 @@ type wkeNetResponseCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeN
 type wkeLoadUrlBeginCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr
 
 type wkeJsNativeFunction func(es jsExecState, param uintptr) jsValue
+
+type wkeDidCreateScriptContextCallback func(wke wkeHandle, param uintptr, frame wkeFrame, context uintptr, exGroup, worldId int) uintptr

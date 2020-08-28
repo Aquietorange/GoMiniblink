@@ -13,7 +13,8 @@ type winMiniblink struct {
 	wke       core.ICore
 	initUri   string
 	initSize  mb.Rect
-	onRequest func(args mb.RequestEvArgs)
+	onRequest func(args mb.RequestBeforeEvArgs)
+	onJsReady func(args mb.JsReadyEvArgs)
 	_fns      []mb.JsFuncBinding
 }
 
@@ -86,6 +87,14 @@ func (_this *winMiniblink) init(provider *Provider) *winMiniblink {
 	return _this
 }
 
+func (_this *winMiniblink) SetWindowProp(name string, value interface{}) {
+	_this.wke.SetWindowProp(name, value)
+}
+
+func (_this *winMiniblink) RunJs(script string) interface{} {
+	return _this.wke.RunJs(script)
+}
+
 func (_this *winMiniblink) BindJsFunc(fn mb.JsFuncBinding) {
 	if _this.IsCreate() {
 		_this.wke.BindJsFunc(fn)
@@ -100,9 +109,14 @@ func (_this *winMiniblink) initWke() {
 		g := _this.CreateGraphics()
 		g.DrawImage(args.Image, 0, 0, args.Clip.Width, args.Clip.Height, args.Clip.X, args.Clip.Y).Close()
 	})
-	_this.wke.SetOnRequest(func(args mb.RequestEvArgs) {
+	_this.wke.SetOnRequest(func(args mb.RequestBeforeEvArgs) {
 		if _this.onRequest != nil {
 			_this.onRequest(args)
+		}
+	})
+	_this.wke.SetOnJsReady(func(args mb.JsReadyEvArgs) {
+		if _this.onJsReady != nil {
+			_this.onJsReady(args)
 		}
 	})
 	if _this.initSize.Width > 0 && _this.initSize.Height > 0 {
@@ -118,8 +132,12 @@ func (_this *winMiniblink) initWke() {
 	}
 }
 
-func (_this *winMiniblink) SetOnRequest(fn func(args mb.RequestEvArgs)) {
+func (_this *winMiniblink) SetOnRequest(fn func(args mb.RequestBeforeEvArgs)) {
 	_this.onRequest = fn
+}
+
+func (_this *winMiniblink) SetOnJsReady(fn func(args mb.JsReadyEvArgs)) {
+	_this.onJsReady = fn
 }
 
 func (_this *winMiniblink) LoadUri(uri string) {

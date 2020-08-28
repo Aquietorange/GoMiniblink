@@ -17,6 +17,7 @@ type (
 	wkeHandle   uintptr
 	jsExecState uintptr
 	jsValue     int64
+	wkeFrame    uintptr
 )
 
 type jsType uint32
@@ -36,57 +37,63 @@ var (
 	is64 bool
 	lib  *windows.LazyDLL
 
-	_wkeInitialize          *windows.LazyProc
-	_wkeCreateWebView       *windows.LazyProc
-	_wkeSetHandle           *windows.LazyProc
-	_wkeOnPaintBitUpdated   *windows.LazyProc
-	_wkeLoadURL             *windows.LazyProc
-	_wkeResize              *windows.LazyProc
-	_wkeNetOnResponse       *windows.LazyProc
-	_wkeOnLoadUrlBegin      *windows.LazyProc
-	_wkePaint               *windows.LazyProc
-	_wkeGetWidth            *windows.LazyProc
-	_wkeGetHeight           *windows.LazyProc
-	_wkeFireMouseEvent      *windows.LazyProc
-	_wkeFireMouseWheelEvent *windows.LazyProc
-	_wkeGetCursorInfoType   *windows.LazyProc
-	_wkeFireKeyUpEvent      *windows.LazyProc
-	_wkeFireKeyDownEvent    *windows.LazyProc
-	_wkeFireKeyPressEvent   *windows.LazyProc
-	_wkeGetCaretRect        *windows.LazyProc
-	_wkeSetFocus            *windows.LazyProc
-	_wkeNetGetRequestMethod *windows.LazyProc
-	_wkeNetSetData          *windows.LazyProc
-	_wkeNetCancelRequest    *windows.LazyProc
-	_wkeJsBindFunction      *windows.LazyProc
-	_jsArgCount             *windows.LazyProc
-	_jsArg                  *windows.LazyProc
-	_jsTypeOf               *windows.LazyProc
-	_jsToTempString         *windows.LazyProc
-	_jsToDoubleString       *windows.LazyProc
-	_jsToInt                *windows.LazyProc
-	_jsToBoolean            *windows.LazyProc
-	_jsGetLength            *windows.LazyProc
-	_jsGetAt                *windows.LazyProc
-	_jsGetKeys              *windows.LazyProc
-	_jsGet                  *windows.LazyProc
-	_jsSetGlobal            *windows.LazyProc
-	_jsGetGlobal            *windows.LazyProc
-	_wkeGlobalExec          *windows.LazyProc
-	_jsCall                 *windows.LazyProc
-	_jsUndefined            *windows.LazyProc
-	_jsInt                  *windows.LazyProc
-	_jsBoolean              *windows.LazyProc
-	_jsDouble               *windows.LazyProc
-	_jsFloat                *windows.LazyProc
-	_jsString               *windows.LazyProc
-	_jsEmptyArray           *windows.LazyProc
-	_jsSetLength            *windows.LazyProc
-	_jsSetAt                *windows.LazyProc
-	_jsFunction             *windows.LazyProc
-	_jsEmptyObject          *windows.LazyProc
-	_jsSet                  *windows.LazyProc
-	_jsGetWebView           *windows.LazyProc
+	_wkeInitialize               *windows.LazyProc
+	_wkeCreateWebView            *windows.LazyProc
+	_wkeSetHandle                *windows.LazyProc
+	_wkeOnPaintBitUpdated        *windows.LazyProc
+	_wkeLoadURL                  *windows.LazyProc
+	_wkeResize                   *windows.LazyProc
+	_wkeNetOnResponse            *windows.LazyProc
+	_wkeOnLoadUrlBegin           *windows.LazyProc
+	_wkePaint                    *windows.LazyProc
+	_wkeGetWidth                 *windows.LazyProc
+	_wkeGetHeight                *windows.LazyProc
+	_wkeFireMouseEvent           *windows.LazyProc
+	_wkeFireMouseWheelEvent      *windows.LazyProc
+	_wkeGetCursorInfoType        *windows.LazyProc
+	_wkeFireKeyUpEvent           *windows.LazyProc
+	_wkeFireKeyDownEvent         *windows.LazyProc
+	_wkeFireKeyPressEvent        *windows.LazyProc
+	_wkeGetCaretRect             *windows.LazyProc
+	_wkeSetFocus                 *windows.LazyProc
+	_wkeNetGetRequestMethod      *windows.LazyProc
+	_wkeNetSetData               *windows.LazyProc
+	_wkeNetCancelRequest         *windows.LazyProc
+	_wkeJsBindFunction           *windows.LazyProc
+	_jsArgCount                  *windows.LazyProc
+	_jsArg                       *windows.LazyProc
+	_jsTypeOf                    *windows.LazyProc
+	_jsToTempString              *windows.LazyProc
+	_jsToDoubleString            *windows.LazyProc
+	_jsToInt                     *windows.LazyProc
+	_jsToBoolean                 *windows.LazyProc
+	_jsGetLength                 *windows.LazyProc
+	_jsGetAt                     *windows.LazyProc
+	_jsGetKeys                   *windows.LazyProc
+	_jsGet                       *windows.LazyProc
+	_jsSetGlobal                 *windows.LazyProc
+	_jsGetGlobal                 *windows.LazyProc
+	_wkeGlobalExec               *windows.LazyProc
+	_jsCall                      *windows.LazyProc
+	_jsUndefined                 *windows.LazyProc
+	_jsInt                       *windows.LazyProc
+	_jsBoolean                   *windows.LazyProc
+	_jsDouble                    *windows.LazyProc
+	_jsFloat                     *windows.LazyProc
+	_jsString                    *windows.LazyProc
+	_jsEmptyArray                *windows.LazyProc
+	_jsSetLength                 *windows.LazyProc
+	_jsSetAt                     *windows.LazyProc
+	_jsFunction                  *windows.LazyProc
+	_jsEmptyObject               *windows.LazyProc
+	_jsSet                       *windows.LazyProc
+	_jsGetWebView                *windows.LazyProc
+	_wkeOnDidCreateScriptContext *windows.LazyProc
+	_wkeIsMainFrame              *windows.LazyProc
+	_wkeGetFrameUrl              *windows.LazyProc
+	_wkeIsWebRemoteFrame         *windows.LazyProc
+	_wkeGetGlobalExecByFrame     *windows.LazyProc
+	_jsEvalExW                   *windows.LazyProc
 )
 
 func init() {
@@ -96,6 +103,12 @@ func init() {
 	} else {
 		lib = windows.NewLazyDLL(file_x86_dll)
 	}
+	_jsEvalExW = lib.NewProc("jsEvalExW")
+	_wkeGetGlobalExecByFrame = lib.NewProc("wkeGetGlobalExecByFrame")
+	_wkeIsWebRemoteFrame = lib.NewProc("wkeIsWebRemoteFrame")
+	_wkeGetFrameUrl = lib.NewProc("wkeGetFrameUrl")
+	_wkeIsMainFrame = lib.NewProc("wkeIsMainFrame")
+	_wkeOnDidCreateScriptContext = lib.NewProc("wkeOnDidCreateScriptContext")
 	_jsGetWebView = lib.NewProc("jsGetWebView")
 	_jsToInt = lib.NewProc("jsToInt")
 	_jsSet = lib.NewProc("jsSet")
@@ -154,16 +167,37 @@ func init() {
 	}
 }
 
-func _toInt64(low, high int32) int64 {
-	var l = int64(high)<<32 + int64(low)
-	return *((*int64)(unsafe.Pointer(&l)))
+func jsEvalExW(es jsExecState, script string, inClosure bool) jsValue {
+	ptr := toCallStr(script)
+	r1, r2, _ := _jsEvalExW.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(toBool(inClosure)))
+	if is64 {
+		return jsValue(r1)
+	}
+	return jsValue(_toInt64(int32(r1), int32(r2)))
 }
 
-func _toLH(value jsValue) (low, high int32) {
-	if is64 {
-		return 0, 0
-	}
-	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
+func wkeGetGlobalExecByFrame(wke wkeHandle, frame wkeFrame) jsExecState {
+	r, _, _ := _wkeGetGlobalExecByFrame.Call(uintptr(wke), uintptr(frame))
+	return jsExecState(r)
+}
+
+func wkeIsWebRemoteFrame(wke wkeHandle, frame wkeFrame) bool {
+	r, _, _ := _wkeIsWebRemoteFrame.Call(uintptr(wke), uintptr(frame))
+	return r != 0
+}
+
+func wkeGetFrameUrl(wke wkeHandle, frame wkeFrame) string {
+	r, _, _ := _wkeGetFrameUrl.Call(uintptr(wke), uintptr(frame))
+	return wkePtrToUtf8(r)
+}
+
+func wkeIsMainFrame(wke wkeHandle, frame wkeFrame) bool {
+	r, _, _ := _wkeIsMainFrame.Call(uintptr(wke), uintptr(frame))
+	return r != 0
+}
+
+func wkeOnDidCreateScriptContext(wke wkeHandle, callback wkeDidCreateScriptContextCallback, param unsafe.Pointer) {
+	_wkeOnDidCreateScriptContext.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), uintptr(param))
 }
 
 func jsGetWebView(es jsExecState) wkeHandle {
@@ -531,4 +565,16 @@ func toCallStr(str string) []byte {
 		rs[i] = v
 	}
 	return rs
+}
+
+func _toInt64(low, high int32) int64 {
+	var l = int64(high)<<32 + int64(low)
+	return *((*int64)(unsafe.Pointer(&l)))
+}
+
+func _toLH(value jsValue) (low, high int32) {
+	if is64 {
+		return 0, 0
+	}
+	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
 }

@@ -7,7 +7,6 @@ import (
 	mb "qq2564874169/goMiniblink"
 	plat "qq2564874169/goMiniblink/platform"
 	"qq2564874169/goMiniblink/platform/windows/win32"
-	"strconv"
 	"unsafe"
 )
 
@@ -18,6 +17,7 @@ type FreeVer struct {
 
 	onPaint   PaintCallback
 	onRequest RequestCallback
+	onJsReady JsReadyCallback
 }
 
 func (_this *FreeVer) Init(window plat.IWindow) *FreeVer {
@@ -31,7 +31,30 @@ func (_this *FreeVer) Init(window plat.IWindow) *FreeVer {
 	wkeSetHandle(_this.wke, _this.owner.GetHandle())
 	wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, nil)
 	wkeOnLoadUrlBegin(_this.wke, _this.onUrlBegin, nil)
+	wkeOnDidCreateScriptContext(_this.wke, _this.onDidCreateScriptContext, nil)
 	return _this
+}
+
+func (_this *FreeVer) SetWindowProp(name string, value interface{}) {
+	es := wkeGlobalExec(_this.wke)
+	v := toJsValue(_this, es, value)
+	jsSetGlobal(es, name, v)
+}
+
+func (_this *FreeVer) onDidCreateScriptContext(wke wkeHandle, param uintptr, frame wkeFrame, context uintptr, exGroup, worldId int) uintptr {
+	if _this.onJsReady == nil {
+		return 0
+	}
+	args := new(wkeJsReadyEvArgs).init()
+	args.ctx = new(wkeFrameContext).init(_this, frame)
+	_this.onJsReady(args)
+	return 0
+}
+
+func (_this *FreeVer) RunJs(script string) interface{} {
+	es := wkeGlobalExec(wkeHandle(_this.GetHandle()))
+	rs := jsEvalExW(es, script, true)
+	return toGoValue(_this, es, rs)
 }
 
 func (_this *FreeVer) jsFuncCallback(es jsExecState, state uintptr) jsValue {
@@ -63,6 +86,10 @@ func (_this *FreeVer) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob)
 	_this.onRequest(e)
 	e.OnBegin()
 	return 0
+}
+
+func (_this *FreeVer) SetOnJsReady(callback JsReadyCallback) {
+	_this.onJsReady = callback
 }
 
 func (_this *FreeVer) SetOnRequest(callback RequestCallback) {
@@ -246,7 +273,7 @@ func (_this *FreeVer) LoadUri(uri string) {
 	wkeLoadURL(_this.wke, uri)
 }
 
-func (_this *FreeVer) SafeInvoke(fn func(interface{}), state interface{}) {
+func (_this *FreeVer) Invoke(fn func(interface{}), state interface{}) {
 	_this.owner.Invoke(fn, state)
 }
 
