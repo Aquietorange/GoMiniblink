@@ -49,6 +49,7 @@ type MiniblinkBrowser struct {
 }
 
 func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
+	_this.jsfns = make(map[string]g.JsFuncBinding)
 	_this.name = strconv.FormatInt(int64(uintptr(unsafe.Pointer(_this))), 10)
 	_this.impl = Provider.NewMiniblink()
 	_this.BaseControl.Init(_this.impl)
