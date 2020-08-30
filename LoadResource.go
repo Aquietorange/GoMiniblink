@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type ILoadResource interface {
+type LoadResource interface {
 	Domain() string
 	ByUri(uri *url2.URL) []byte
 }

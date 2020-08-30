@@ -1,17 +1,19 @@
 package GoMiniblink
 
+import "strconv"
+
 var (
-	views   map[wkeHandle]IMiniblink
-	keepRef map[uintptr]interface{}
+	views   map[wkeHandle]Miniblink
+	keepRef map[string]interface{}
 )
 
 func init() {
-	keepRef = make(map[uintptr]interface{})
-	views = make(map[wkeHandle]IMiniblink)
-	mbApi = new(freeApiForWindows).init()
+	keepRef = make(map[string]interface{})
+	views = make(map[wkeHandle]Miniblink)
+	mbApi = new(winFreeApi).init()
 }
 
-func createWebView(miniblink IMiniblink) wkeHandle {
+func createWebView(miniblink Miniblink) wkeHandle {
 	wke := mbApi.wkeCreateWebView()
 	views[wke] = miniblink
 	return wke
@@ -24,7 +26,7 @@ func destroyWebView(handle wkeHandle) {
 	}
 }
 
-func BindFunc(fn GoFunc) {
+func BindJsFunc(fn JsFnBinding) {
 	fn.core = func(es jsExecState, param uintptr) jsValue {
 		handle := mbApi.jsGetWebView(es)
 		if mb, ok := views[handle]; ok {
@@ -34,7 +36,7 @@ func BindFunc(fn GoFunc) {
 				value := mbApi.jsArg(es, i)
 				args[i] = toGoValue(mb, es, value)
 			}
-			g := keepRef[uintptr(uint32(param))].(GoFunc)
+			g := keepRef[strconv.FormatUint(uint64(param), 10)].(JsFnBinding)
 			rs := g.Call(mb, args)
 			return toJsValue(mb, es, rs)
 		}
@@ -42,5 +44,5 @@ func BindFunc(fn GoFunc) {
 	}
 	pm := seq()
 	mbApi.wkeJsBindFunction(fn.Name, fn.core, uintptr(pm), 0)
-	keepRef[uintptr(pm)] = fn
+	keepRef[strconv.FormatUint(pm, 10)] = fn
 }

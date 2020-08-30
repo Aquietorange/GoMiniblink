@@ -1,6 +1,7 @@
 package GoMiniblink
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -9,7 +10,23 @@ import (
 	"unsafe"
 )
 
-func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
+type fnJsData struct {
+	jsData
+	fnName string
+	fn     reflect.Value
+	mb     Miniblink
+}
+
+func (_this *fnJsData) init(name string) *fnJsData {
+	jdName := "function"
+	for i := 0; i < len(jdName); i++ {
+		_this.name[i] = jdName[i]
+	}
+	_this.fnName = name
+	return _this
+}
+
+func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
 	if value == nil {
 		return mbApi.jsUndefined()
 	}
@@ -76,36 +93,55 @@ func toJsValue(mb IMiniblink, es jsExecState, value interface{}) jsValue {
 		}
 		return obj
 	case reflect.Func:
-		jsFn := jsData{}
-		name, _ := syscall.UTF16FromString("function")
-		for i, v := range name {
-			jsFn.name[i] = v
-		}
-		var call = func(fnes jsExecState, obj, args jsValue, count uint32) jsValue {
-			arr := make([]reflect.Value, count)
-			for i := uint32(0); i < count; i++ {
-				jv := mbApi.jsArg(fnes, i)
-				arr[i] = reflect.ValueOf(toGoValue(mb, fnes, jv))
-			}
-			rs := rv.Call(arr)
-			if len(rs) > 0 {
-				return toJsValue(mb, fnes, rs[0].Interface())
-			}
-			return 0
-		}
-		jsFn.callAsFunction = syscall.NewCallbackCDecl(call)
-		jsFn.finalize = syscall.NewCallbackCDecl(func(ptr uintptr) uintptr {
-			jf := (*jsData)(unsafe.Pointer(ptr))
-			delete(keepRef, jf.callAsFunction)
-			return 0
-		})
-		keepRef[jsFn.callAsFunction] = jsFn
-		return mbApi.jsFunction(es, &jsFn)
+		rsName := "rs" + strconv.FormatUint(seq(), 10)
+		jsFn := new(fnJsData).init("tmpFn" + strconv.FormatUint(seq(), 10))
+		jsFn.fn = rv
+		jsFn.callAsFunction = syscall.NewCallbackCDecl(execTempFunc)
+		jsFn.finalize = syscall.NewCallbackCDecl(deleteTempFunc)
+		keepRef[jsFn.fnName] = jsFn
+		fv := mbApi.jsFunction(es, &jsFn.jsData)
+		mbApi.jsSetGlobal(es, jsFn.fnName, fv)
+		js := `return function(){
+                 var rs=%q;
+                 var fn=%q;
+                 var arr=Array.prototype.slice.call(arguments);
+                 var args=[fn,rs].concat(arr);
+                 window[fn].apply(null,args);
+                 return window.top[rs];
+               }`
+		js = fmt.Sprintf(js, rsName, jsFn.fnName)
+		return mbApi.jsEval(es, js)
 	}
 	panic("不支持的go类型：" + rv.Kind().String() + "(" + rv.Type().String() + ")")
 }
 
-func toGoValue(mb IMiniblink, es jsExecState, value jsValue) interface{} {
+func deleteTempFunc(ptr uintptr) uintptr {
+	data := (*fnJsData)(unsafe.Pointer(ptr))
+	delete(keepRef, data.fnName)
+	return 0
+}
+
+func execTempFunc(es jsExecState, _, _ jsValue, count uint32) uintptr {
+	wke := mbApi.jsGetWebView(es)
+	mb := views[wke]
+	arr := make([]reflect.Value, count)
+	for i := uint32(0); i < count; i++ {
+		jv := mbApi.jsArg(es, i)
+		arr[i] = reflect.ValueOf(toGoValue(mb, es, jv))
+	}
+	dataName := arr[0].String()
+	if v, ok := keepRef[dataName]; ok {
+		rsName := arr[1].String()
+		rs := v.(*fnJsData).fn.Call(arr[2:])
+		if len(rs) > 0 {
+			jv := toJsValue(mb, es, rs[0].Interface())
+			mbApi.jsSetGlobal(es, rsName, jv)
+		}
+	}
+	return 0
+}
+
+func toGoValue(mb Miniblink, es jsExecState, value jsValue) interface{} {
 	switch mbApi.jsTypeOf(value) {
 	case jsType_NULL, jsType_UNDEFINED:
 		return nil
@@ -150,9 +186,9 @@ func toGoValue(mb IMiniblink, es jsExecState, value jsValue) interface{} {
 	}
 }
 
-var seed uint32 = 0
+var seed uint64 = 0
 
-func seq() uint32 {
+func seq() uint64 {
 	seed++
 	return seed
 }
@@ -174,7 +210,7 @@ func toCallStr(str string) []byte {
 	return rs
 }
 
-func wkePtrToUtf8(ptr uintptr) string {
+func ptrToUtf8(ptr uintptr) string {
 	var seq []byte
 	for {
 		b := *((*byte)(unsafe.Pointer(ptr)))

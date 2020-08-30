@@ -1,6 +1,8 @@
 package GoMiniblink
 
 type (
+	wkeString   uintptr
+	wkeFrame    uintptr
 	wkeHandle   uintptr
 	jsExecState uintptr
 	jsValue     int64
@@ -20,7 +22,7 @@ const (
 )
 
 type jsData struct {
-	name [50]uint16
+	name [100]byte
 	propertyGet,
 	propertySet,
 	finalize,
@@ -65,10 +67,23 @@ const (
 	wkeMouseFlags_MBUTTON wkeMouseFlags = 0x10
 )
 
+type wkeConsoleLevel int
+
+const (
+	wkeConsoleLevel_Log          wkeConsoleLevel = 1
+	wkeConsoleLevel_Warning      wkeConsoleLevel = 2
+	wkeConsoleLevel_Error        wkeConsoleLevel = 3
+	wkeConsoleLevel_Debug        wkeConsoleLevel = 4
+	wkeConsoleLevel_Info         wkeConsoleLevel = 5
+	wkeConsoleLevel_RevokedError wkeConsoleLevel = 6
+)
+
 type wkePaintBitUpdatedCallback func(wke wkeHandle, param, buf uintptr, rect *wkeRect, width, height int32) uintptr
 type wkeNetResponseCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr
 type wkeLoadUrlBeginCallback func(wke wkeHandle, param, utf8Url uintptr, job wkeNetJob) uintptr
 type wkeJsNativeFunction func(es jsExecState, param uintptr) jsValue
+type wkeDidCreateScriptContextCallback func(wke wkeHandle, param uintptr, frame wkeFrame, context uintptr, exGroup, worldId int) uintptr
+type wkeConsoleCallback func(wke wkeHandle, param uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr
 
 var mbApi freeApi
 
@@ -123,5 +138,12 @@ type freeApi interface {
 	wkeLoadURL(wke wkeHandle, url string)
 	wkeOnPaintBitUpdated(wke wkeHandle, callback wkePaintBitUpdatedCallback, param uintptr)
 	wkeSetHandle(wke wkeHandle, handle uintptr)
-	jsEvalExW(es jsExecState, js string, isInClosure bool) jsValue
+	jsEval(es jsExecState, js string) jsValue
+	wkeGetGlobalExecByFrame(wke wkeHandle, frame wkeFrame) jsExecState
+	wkeIsWebRemoteFrame(wke wkeHandle, frame wkeFrame) bool
+	wkeGetFrameUrl(wke wkeHandle, frame wkeFrame) string
+	wkeIsMainFrame(wke wkeHandle, frame wkeFrame) bool
+	wkeOnDidCreateScriptContext(wke wkeHandle, callback wkeDidCreateScriptContextCallback, param uintptr)
+	wkeOnConsole(wke wkeHandle, callback wkeConsoleCallback, param uintptr)
+	wkeGetString(str wkeString) string
 }
