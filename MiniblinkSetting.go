@@ -1,6 +1,8 @@
 package GoMiniblink
 
-import "strconv"
+import (
+	"strconv"
+)
 
 var (
 	views   map[wkeHandle]Miniblink
@@ -27,7 +29,7 @@ func destroyWebView(handle wkeHandle) {
 }
 
 func BindJsFunc(fn JsFnBinding) {
-	fn.core = func(es jsExecState, param uintptr) jsValue {
+	fn.core = func(es jsExecState, param uintptr) uintptr {
 		handle := mbApi.jsGetWebView(es)
 		if mb, ok := views[handle]; ok {
 			arglen := mbApi.jsArgCount(es)
@@ -38,9 +40,11 @@ func BindJsFunc(fn JsFnBinding) {
 			}
 			g := keepRef[strconv.FormatUint(uint64(param), 10)].(JsFnBinding)
 			rs := g.Call(mb, args)
-			return toJsValue(mb, es, rs)
+			if rs != nil {
+				return uintptr(toJsValue(mb, es, rs))
+			}
 		}
-		return mbApi.jsUndefined()
+		return 0
 	}
 	pm := seq()
 	mbApi.wkeJsBindFunction(fn.Name, fn.core, uintptr(pm), 0)

@@ -96,7 +96,11 @@ func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
 		rsName := "rs" + strconv.FormatUint(seq(), 10)
 		jsFn := new(fnJsData).init("tmpFn" + strconv.FormatUint(seq(), 10))
 		jsFn.fn = rv
-		jsFn.callAsFunction = syscall.NewCallbackCDecl(execTempFunc)
+		if is64 {
+			jsFn.callAsFunction = syscall.NewCallbackCDecl(execTempFunc)
+		} else {
+			jsFn.callAsFunction = syscall.NewCallbackCDecl(execTempFunc_x86)
+		}
 		jsFn.finalize = syscall.NewCallbackCDecl(deleteTempFunc)
 		keepRef[jsFn.fnName] = jsFn
 		fv := mbApi.jsFunction(es, &jsFn.jsData)
@@ -120,7 +124,9 @@ func deleteTempFunc(ptr uintptr) uintptr {
 	delete(keepRef, data.fnName)
 	return 0
 }
-
+func execTempFunc_x86(es jsExecState, _, _, _ uintptr, count uint32) uintptr {
+	return execTempFunc(es, 0, 0, count)
+}
 func execTempFunc(es jsExecState, _, _ jsValue, count uint32) uintptr {
 	wke := mbApi.jsGetWebView(es)
 	mb := views[wke]
