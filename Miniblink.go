@@ -5,6 +5,7 @@ type JsReadyCallback func(args JsReadyEvArgs)
 type ConsoleCallback func(args ConsoleEvArgs)
 
 type Miniblink interface {
+	CallJsFunc(name string, param ...interface{}) interface{}
 	JsFunc(name string, fn GoFn, state interface{})
 	RunJs(script string) interface{}
 	SetOnConsole(callback ConsoleCallback)

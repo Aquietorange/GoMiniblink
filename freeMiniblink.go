@@ -60,6 +60,18 @@ func (_this *freeMiniblink) init(control *c.Control) *freeMiniblink {
 	return _this
 }
 
+func (_this *freeMiniblink) CallJsFunc(name string, param ...interface{}) interface{} {
+	es := mbApi.wkeGlobalExec(_this.GetHandle())
+	var ps []jsValue
+	for i := 0; i < len(param); i++ {
+		v := toJsValue(_this, es, param[i])
+		ps = append(ps, v)
+	}
+	fn := mbApi.jsGetGlobal(es, name)
+	rs := mbApi.jsCall(es, fn, mbApi.jsUndefined(), ps)
+	return toGoValue(_this, es, rs)
+}
+
 func (_this *freeMiniblink) JsFunc(name string, fn GoFn, state interface{}) {
 	_this._fnMap[name] = JsFnBinding{
 		Name:  name,

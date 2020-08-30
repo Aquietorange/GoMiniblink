@@ -9,5 +9,6 @@ type BaseUI interface {
 	SetSize(width, height int)
 	SetLocation(x, y int)
 	SetBgColor(color int)
+	IsInvoke() bool
 	Invoke(fn func(state interface{}), state interface{})
 }

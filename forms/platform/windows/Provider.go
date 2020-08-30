@@ -1,6 +1,7 @@
 package windows
 
 import (
+	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
 	"qq2564874169/goMiniblink/forms"
@@ -14,15 +15,16 @@ import (
 type windowsMsgProc func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
 
 type Provider struct {
-	hInstance  win32.HINSTANCE
-	className  string
-	mainId     win32.HWND
-	handleWnds map[win32.HWND]baseWindow
-	nameWnds   map[string]baseWindow
-	defOwner   win32.HWND
-	defIcon    win32.HICON
-	msClick    *mouseClickWorker
-	defBgColor int
+	hInstance    win32.HINSTANCE
+	className    string
+	mainId       win32.HWND
+	handleWnds   map[win32.HWND]baseWindow
+	nameWnds     map[string]baseWindow
+	defOwner     win32.HWND
+	defIcon      win32.HICON
+	msClick      *mouseClickWorker
+	defBgColor   int
+	mainThreadId uint32
 }
 
 func (_this *Provider) Init() *Provider {
@@ -31,6 +33,7 @@ func (_this *Provider) Init() *Provider {
 	_this.className = "goMiniblinkClass"
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.msClick = new(mouseClickWorker).init()
+	_this.mainThreadId = windows.GetCurrentThreadId()
 	return _this
 }
 

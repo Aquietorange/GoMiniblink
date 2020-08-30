@@ -6,46 +6,46 @@ import (
 )
 
 type FormBaseUI struct {
-	EvKeyDown map[string]func(target interface{}, e *f.KeyEvArgs)
+	EvKeyDown map[string]func(sender interface{}, e *f.KeyEvArgs)
 	OnKeyDown func(e *f.KeyEvArgs)
 
-	EvKeyUp map[string]func(target interface{}, e *f.KeyEvArgs)
+	EvKeyUp map[string]func(sender interface{}, e *f.KeyEvArgs)
 	OnKeyUp func(e *f.KeyEvArgs)
 
-	EvKeyPress map[string]func(target interface{}, e *f.KeyPressEvArgs)
+	EvKeyPress map[string]func(sender interface{}, e *f.KeyPressEvArgs)
 	OnKeyPress func(e *f.KeyPressEvArgs)
 
-	EvLoad map[string]func(target interface{})
+	EvLoad map[string]func(sender interface{})
 	OnLoad func()
 
-	EvResize map[string]func(target interface{}, e f.Rect)
+	EvResize map[string]func(sender interface{}, e f.Rect)
 	OnResize func(e f.Rect)
 
-	EvMove map[string]func(target interface{}, e f.Point)
+	EvMove map[string]func(sender interface{}, e f.Point)
 	OnMove func(e f.Point)
 
-	EvMouseMove map[string]func(target interface{}, e *f.MouseEvArgs)
+	EvMouseMove map[string]func(sender interface{}, e *f.MouseEvArgs)
 	OnMouseMove func(e *f.MouseEvArgs)
 
-	EvMouseDown map[string]func(target interface{}, e *f.MouseEvArgs)
+	EvMouseDown map[string]func(sender interface{}, e *f.MouseEvArgs)
 	OnMouseDown func(e *f.MouseEvArgs)
 
-	EvMouseUp map[string]func(target interface{}, e *f.MouseEvArgs)
+	EvMouseUp map[string]func(sender interface{}, e *f.MouseEvArgs)
 	OnMouseUp func(e *f.MouseEvArgs)
 
-	EvMouseWheel map[string]func(target interface{}, e *f.MouseEvArgs)
+	EvMouseWheel map[string]func(sender interface{}, e *f.MouseEvArgs)
 	OnMouseWheel func(e *f.MouseEvArgs)
 
-	EvMouseClick map[string]func(target interface{}, e *f.MouseEvArgs)
+	EvMouseClick map[string]func(sender interface{}, e *f.MouseEvArgs)
 	OnMouseClick func(e *f.MouseEvArgs)
 
-	EvPaint map[string]func(target interface{}, e f.PaintEvArgs)
+	EvPaint map[string]func(sender interface{}, e f.PaintEvArgs)
 	OnPaint func(e f.PaintEvArgs)
 
-	EvFocus map[string]func(target interface{})
+	EvFocus map[string]func(sender interface{})
 	OnFocus func()
 
-	EvLostFocus map[string]func(target interface{})
+	EvLostFocus map[string]func(sender interface{})
 	OnLostFocus func()
 
 	OnSetCursor           func() bool
@@ -321,4 +321,8 @@ func (_this *FormBaseUI) SetBgColor(color int) {
 
 func (_this *FormBaseUI) Invoke(fn func(state interface{}), state interface{}) {
 	_this.impl.Invoke(fn, state)
+}
+
+func (_this *FormBaseUI) IsInvoke() bool {
+	return _this.impl.IsInvoke()
 }

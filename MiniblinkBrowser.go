@@ -3,21 +3,22 @@ package GoMiniblink
 import (
 	url2 "net/url"
 	c "qq2564874169/goMiniblink/forms/controls"
+	"reflect"
 	"strings"
 )
 
 type MiniblinkBrowser struct {
 	c.Control
-	_mb      Miniblink
-	_initUri string
+	_mb     Miniblink
+	_fnlist map[string]reflect.Value
 
-	EvRequestBefore []func(sender *MiniblinkBrowser, e RequestEvArgs)
+	EvRequestBefore map[string]func(sender *MiniblinkBrowser, e RequestEvArgs)
 	OnRequestBefore func(e RequestEvArgs)
 
-	EvJsReady []func(sender *MiniblinkBrowser, e JsReadyEvArgs)
+	EvJsReady map[string]func(sender *MiniblinkBrowser, e JsReadyEvArgs)
 	OnJsReady func(e JsReadyEvArgs)
 
-	EvConsole []func(sender *MiniblinkBrowser, e ConsoleEvArgs)
+	EvConsole map[string]func(sender *MiniblinkBrowser, e ConsoleEvArgs)
 	OnConsole func(e ConsoleEvArgs)
 
 	ResourceLoader []LoadResource
@@ -25,6 +26,9 @@ type MiniblinkBrowser struct {
 
 func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.Control.Init()
+	_this.EvRequestBefore = make(map[string]func(sender *MiniblinkBrowser, e RequestEvArgs))
+	_this.EvJsReady = make(map[string]func(sender *MiniblinkBrowser, e JsReadyEvArgs))
+	_this.EvConsole = make(map[string]func(sender *MiniblinkBrowser, e ConsoleEvArgs))
 	_this.OnRequestBefore = _this.defOnRequestBefore
 	_this.OnJsReady = _this.defOnJsReady
 	_this.OnConsole = _this.defOnConsole
@@ -37,7 +41,7 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 			bakLoad()
 		}
 	}
-	_this.EvRequestBefore = append(_this.EvRequestBefore, _this.loadRes)
+	_this.EvRequestBefore["load_resource"] = _this.loadRes
 	return _this
 }
 
@@ -79,19 +83,21 @@ func (_this *MiniblinkBrowser) mbInit() {
 			_this.OnConsole(args)
 		}
 	})
-	if _this._initUri != "" {
-		_this.LoadUri(_this._initUri)
-	}
 }
 
 func (_this *MiniblinkBrowser) LoadUri(uri string) {
-	if _this._mb != nil {
-		_this._mb.LoadUri(uri)
-	} else {
-		_this._initUri = uri
-	}
+	_this._mb.LoadUri(uri)
 }
 
-func (_this *MiniblinkBrowser) BindJsFunc(name string, fn GoFn, state interface{}) {
+func (_this *MiniblinkBrowser) JsFunc(name string, fn GoFn, state interface{}) {
 	_this._mb.JsFunc(name, fn, state)
+}
+
+func (_this *MiniblinkBrowser) CallJsFunc(name string, param ...interface{}) interface{} {
+	return _this._mb.CallJsFunc(name, param)
+}
+
+func (_this *MiniblinkBrowser) RegisterJsFunc(container interface{}) {
+	prefix := "jsfn_"
+
 }

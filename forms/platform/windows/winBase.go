@@ -1,6 +1,7 @@
 package windows
 
 import (
+	"golang.org/x/sys/windows"
 	"image"
 	"image/draw"
 	f "qq2564874169/goMiniblink/forms"
@@ -49,6 +50,10 @@ func (_this *winBase) init(provider *Provider) *winBase {
 	return _this
 }
 
+func (_this *winBase) IsInvoke() bool {
+	return _this.app.mainThreadId == windows.GetCurrentThreadId()
+}
+
 func (_this *winBase) SetBgColor(color int) {
 	_this.bgColor = color
 }
@@ -80,6 +85,9 @@ func (_this *winBase) fireCreate(hWnd w.HWND) {
 }
 
 func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+	if _this.IsInvoke() == false {
+		return 0
+	}
 	var ret int
 	switch msg {
 	case w.WM_SHOWWINDOW:

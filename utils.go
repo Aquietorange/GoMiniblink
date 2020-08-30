@@ -93,7 +93,7 @@ func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
 		}
 		return obj
 	case reflect.Func:
-		rsName := "rs" + strconv.FormatUint(seq(), 10)
+		rsName := "tmpFnRs" + strconv.FormatUint(seq(), 10)
 		jsFn := new(fnJsData).init("tmpFn" + strconv.FormatUint(seq(), 10))
 		jsFn.fn = rv
 		if is64 {
@@ -174,7 +174,7 @@ func toGoValue(mb Miniblink, es jsExecState, value jsValue) interface{} {
 		}
 		return ps
 	case jsType_FUNCTION:
-		name := "func" + strconv.FormatInt(time.Now().UnixNano(), 32)
+		name := "pofn" + strconv.FormatUint(seq(), 10)
 		mbApi.jsSetGlobal(es, name, value)
 		return JsFunc(func(param ...interface{}) interface{} {
 			jses := mbApi.wkeGlobalExec(mb.GetHandle())

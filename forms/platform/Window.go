@@ -28,6 +28,7 @@ type Window interface {
 
 	GetProvider() Provider
 	Invoke(fn func(state interface{}), state interface{})
+	IsInvoke() bool
 	SetSize(w int, h int)
 	SetLocation(x int, y int)
 	Show()

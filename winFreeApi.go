@@ -217,9 +217,11 @@ func (_this *winFreeApi) jsSet(es jsExecState, obj jsValue, name string, value j
 	ptr := []byte(name)
 	if is64 {
 		_this._jsSet.Call(uintptr(es), uintptr(obj), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
+	} else {
+		ol, oh := _toLH(obj)
+		vl, vh := _toLH(value)
+		_this._jsSet.Call(uintptr(es), uintptr(ol), uintptr(oh), uintptr(unsafe.Pointer(&ptr[0])), uintptr(vl), uintptr(vh))
 	}
-	l, h := _toLH(value)
-	_this._jsSet.Call(uintptr(es), uintptr(obj), uintptr(unsafe.Pointer(&ptr[0])), uintptr(l), uintptr(h))
 }
 
 func (_this *winFreeApi) jsEmptyObject(es jsExecState) jsValue {
@@ -243,18 +245,20 @@ func (_this *winFreeApi) jsFunction(es jsExecState, data *jsData) jsValue {
 func (_this *winFreeApi) jsSetAt(es jsExecState, array jsValue, index uint32, value jsValue) {
 	if is64 {
 		_this._jsSetAt.Call(uintptr(es), uintptr(array), uintptr(index), uintptr(value))
+	} else {
+		al, ah := _toLH(array)
+		vl, vh := _toLH(value)
+		_this._jsSetAt.Call(uintptr(es), uintptr(al), uintptr(ah), uintptr(index), uintptr(vl), uintptr(vh))
 	}
-	l1, h1 := _toLH(array)
-	l2, h2 := _toLH(value)
-	_this._jsSetAt.Call(uintptr(es), uintptr(l1), uintptr(h1), uintptr(index), uintptr(l2), uintptr(h2))
 }
 
 func (_this *winFreeApi) jsSetLength(es jsExecState, array jsValue, length uint32) {
 	if is64 {
 		_this._jsSetLength.Call(uintptr(es), uintptr(array), uintptr(length))
+	} else {
+		l, h := _toLH(array)
+		_this._jsSetLength.Call(uintptr(es), uintptr(l), uintptr(h), uintptr(length))
 	}
-	l, h := _toLH(array)
-	_this._jsSetLength.Call(uintptr(es), uintptr(l), uintptr(h), uintptr(length))
 }
 
 func (_this *winFreeApi) jsEmptyArray(es jsExecState) jsValue {
@@ -313,7 +317,9 @@ func (_this *winFreeApi) jsCall(es jsExecState, fn, thisObject jsValue, args []j
 		r, _, _ := _this._jsCall.Call(uintptr(es), uintptr(fn), uintptr(thisObject), ptr, uintptr(len(args)))
 		return jsValue(r)
 	}
-	l, h, _ := _this._jsCall.Call(uintptr(es), uintptr(fn), uintptr(thisObject), ptr, uintptr(len(args)))
+	fl, fh := _toLH(fn)
+	ol, oh := _toLH(thisObject)
+	l, h, _ := _this._jsCall.Call(uintptr(es), uintptr(fl), uintptr(fh), uintptr(ol), uintptr(oh), ptr, uintptr(len(args)))
 	return _toJsValue(l, h)
 }
 
@@ -336,9 +342,10 @@ func (_this *winFreeApi) jsSetGlobal(es jsExecState, name string, value jsValue)
 	ptr := toCallStr(name)
 	if is64 {
 		_this._jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(value))
+	} else {
+		l, h := _toLH(value)
+		_this._jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(l), uintptr(h))
 	}
-	l, h := _toLH(value)
-	_this._jsSetGlobal.Call(uintptr(es), uintptr(unsafe.Pointer(&ptr[0])), uintptr(l), uintptr(h))
 }
 
 func (_this *winFreeApi) jsEval(es jsExecState, js string) jsValue {
@@ -391,7 +398,8 @@ func (_this *winFreeApi) jsGet(es jsExecState, value jsValue, name string) jsVal
 		r, _, _ := _this._jsGet.Call(uintptr(es), uintptr(value), uintptr(unsafe.Pointer(&ptr[0])))
 		return jsValue(r)
 	}
-	l, h, _ := _this._jsGet.Call(uintptr(es), uintptr(value), uintptr(unsafe.Pointer(&ptr[0])))
+	pl, ph := _toLH(value)
+	l, h, _ := _this._jsGet.Call(uintptr(es), uintptr(pl), uintptr(ph), uintptr(unsafe.Pointer(&ptr[0])))
 	return _toJsValue(l, h)
 }
 
