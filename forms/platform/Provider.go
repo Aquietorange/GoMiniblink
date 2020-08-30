@@ -4,8 +4,8 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
-type IProvider interface {
-	RunMain(form IForm)
+type Provider interface {
+	RunMain(form Form)
 	Exit(code int)
 	SetIcon(file string)
 	SetBgColor(color int)
@@ -14,6 +14,6 @@ type IProvider interface {
 	MouseIsDown() map[f.MouseButtons]bool
 	AppDir() string
 
-	NewForm() IForm
-	NewControl() IControl
+	NewForm() Form
+	NewControl() Control
 }

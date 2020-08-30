@@ -156,7 +156,7 @@ func (_this *Provider) Exit(code int) {
 	win32.PostQuitMessage(int32(code))
 }
 
-func (_this *Provider) RunMain(form platform.IForm) {
+func (_this *Provider) RunMain(form platform.Form) {
 	_, ok := form.(*winForm)
 	if ok == false {
 		panic("类型不正确")

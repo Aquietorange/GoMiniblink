@@ -15,7 +15,7 @@ type winForm struct {
 	createParams *w.DLGTEMPLATEEX
 	initTitle    string
 	initIcon     string
-	ctrls        []p.IControl
+	ctrls        []p.Control
 }
 
 func (_this *winForm) init(provider *Provider) *winForm {
@@ -35,7 +35,7 @@ func (_this *winForm) GetHandle() uintptr {
 	return uintptr(_this.handle)
 }
 
-func (_this *winForm) AddControl(control p.IControl) {
+func (_this *winForm) AddControl(control p.Control) {
 	_this.ctrls = append(_this.ctrls, control)
 	if _this.IsCreate() {
 		control.SetParent(_this)
@@ -44,7 +44,7 @@ func (_this *winForm) AddControl(control p.IControl) {
 	}
 }
 
-func (_this *winForm) RemoveControl(control p.IControl) {
+func (_this *winForm) RemoveControl(control p.Control) {
 	//if ctrl, ok := control.(*winControl); ok {
 	//	if ctrl.IsCreate() {
 	//

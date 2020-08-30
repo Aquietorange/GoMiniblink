@@ -24,7 +24,7 @@ func (_this *winControl) init(provider *Provider) *winControl {
 	return _this
 }
 
-func (_this *winControl) SetParent(window p.IWindow) {
+func (_this *winControl) SetParent(window p.Window) {
 	_this.createParams.Parent = win32.HWND(window.GetHandle())
 }
 

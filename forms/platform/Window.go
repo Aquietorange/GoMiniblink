@@ -4,7 +4,7 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
-type IWindow interface {
+type Window interface {
 	Create()
 	GetHandle() uintptr
 	SetOnCreate(proc WindowCreateProc) WindowCreateProc
@@ -26,7 +26,7 @@ type IWindow interface {
 	SetOnLostFocus(proc WindowLostFocusProc) WindowLostFocusProc
 	SetOnLoad(proc WindowLoadProc) WindowLoadProc
 
-	GetProvider() IProvider
+	GetProvider() Provider
 	Invoke(fn func(state interface{}), state interface{})
 	SetSize(w int, h int)
 	SetLocation(x int, y int)

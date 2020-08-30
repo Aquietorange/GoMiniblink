@@ -4,7 +4,7 @@ import p "qq2564874169/goMiniblink/forms/platform"
 
 type Control struct {
 	BaseControl
-	core p.IControl
+	core p.Control
 }
 
 func (_this *Control) Init() *Control {

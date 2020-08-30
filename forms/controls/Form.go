@@ -6,13 +6,13 @@ import (
 )
 
 type Form struct {
-	BaseUI
-	ChildContainer
+	FormBaseUI
+	DefChildContainer
 
 	EvState map[string]func(target interface{}, state f.FormState)
 	OnState func(state f.FormState)
 
-	impl          p.IForm
+	impl          p.Form
 	isInit        bool
 	title         string
 	showInTaskbar bool
@@ -21,7 +21,7 @@ type Form struct {
 	startPos      f.FormStartPosition
 }
 
-func (_this *Form) getImpl() p.IForm {
+func (_this *Form) getImpl() p.Form {
 	if _this.isInit == false {
 		panic("必须使用Init()初始化 ")
 	}
@@ -30,8 +30,8 @@ func (_this *Form) getImpl() p.IForm {
 
 func (_this *Form) Init() *Form {
 	_this.impl = App.NewForm()
-	_this.BaseUI.init(_this, _this.impl)
-	_this.ChildContainer.init(_this)
+	_this.FormBaseUI.init(_this, _this.impl)
+	_this.DefChildContainer.init(_this)
 	_this.EvState = make(map[string]func(interface{}, f.FormState))
 	_this.title = ""
 	_this.border = f.FormBorder_Default
@@ -43,7 +43,7 @@ func (_this *Form) Init() *Form {
 	return _this
 }
 
-func (_this *Form) toControls() p.IControls {
+func (_this *Form) toControls() p.Controls {
 	return _this.impl
 }
 

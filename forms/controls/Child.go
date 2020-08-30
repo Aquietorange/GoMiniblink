@@ -5,21 +5,28 @@ import (
 	p "qq2564874169/goMiniblink/forms/platform"
 )
 
-type IChildContainer interface {
-	IBaseUI
+type Child interface {
+	BaseUI
 
-	toControls() p.IControls
+	toControl() p.Control
+	getAnchor() f.AnchorStyle
 }
 
-type ChildContainer struct {
-	Childs map[uintptr]IChild
+type ChildContainer interface {
+	BaseUI
 
-	container IChildContainer
+	toControls() p.Controls
+}
+
+type DefChildContainer struct {
+	Childs map[uintptr]Child
+
+	container ChildContainer
 	logAnchor map[uintptr]f.Bound2
 }
 
-func (_this *ChildContainer) init(container IChildContainer) *ChildContainer {
-	_this.Childs = make(map[uintptr]IChild)
+func (_this *DefChildContainer) init(container ChildContainer) *DefChildContainer {
+	_this.Childs = make(map[uintptr]Child)
 	_this.logAnchor = make(map[uintptr]f.Bound2)
 	_this.container = container
 	var bakResize p.WindowResizeProc
@@ -36,7 +43,7 @@ func (_this *ChildContainer) init(container IChildContainer) *ChildContainer {
 	return _this
 }
 
-func (_this *ChildContainer) onAnchor(rect f.Rect) {
+func (_this *DefChildContainer) onAnchor(rect f.Rect) {
 	def := f.AnchorStyle_Left | f.AnchorStyle_Top
 	for _, n := range _this.Childs {
 		anc := n.getAnchor()
@@ -63,7 +70,7 @@ func (_this *ChildContainer) onAnchor(rect f.Rect) {
 	}
 }
 
-func (_this *ChildContainer) AddChild(child IChild) {
+func (_this *DefChildContainer) AddChild(child Child) {
 	if _, ok := _this.Childs[child.GetHandle()]; ok == false {
 		_this.container.toControls().AddControl(child.toControl())
 		_this.Childs[child.GetHandle()] = child
@@ -80,7 +87,7 @@ func (_this *ChildContainer) AddChild(child IChild) {
 	}
 }
 
-func (_this *ChildContainer) RemoveChild(child IChild) {
+func (_this *DefChildContainer) RemoveChild(child Child) {
 	if _, ok := _this.Childs[child.GetHandle()]; ok {
 		_this.container.toControls().RemoveControl(child.toControl())
 		delete(_this.Childs, child.GetHandle())

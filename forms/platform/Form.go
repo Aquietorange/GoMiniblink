@@ -4,8 +4,8 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
-type IForm interface {
-	IControls
+type Form interface {
+	Controls
 
 	ShowDialog()
 	SetTitle(title string)

@@ -322,7 +322,7 @@ func (_this *winBase) hWnd() w.HWND {
 	return _this.handle
 }
 
-func (_this *winBase) GetProvider() p.IProvider {
+func (_this *winBase) GetProvider() p.Provider {
 	return _this.app
 }
 
