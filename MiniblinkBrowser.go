@@ -12,13 +12,13 @@ type MiniblinkBrowser struct {
 	_mb     Miniblink
 	_fnlist map[string]reflect.Value
 
-	EvRequestBefore map[string]func(sender *MiniblinkBrowser, e RequestEvArgs)
+	EvRequestBefore map[string]func(sender interface{}, e RequestEvArgs)
 	OnRequestBefore func(e RequestEvArgs)
 
-	EvJsReady map[string]func(sender *MiniblinkBrowser, e JsReadyEvArgs)
+	EvJsReady map[string]func(sender interface{}, e JsReadyEvArgs)
 	OnJsReady func(e JsReadyEvArgs)
 
-	EvConsole map[string]func(sender *MiniblinkBrowser, e ConsoleEvArgs)
+	EvConsole map[string]func(sender interface{}, e ConsoleEvArgs)
 	OnConsole func(e ConsoleEvArgs)
 
 	ResourceLoader []LoadResource
@@ -26,9 +26,9 @@ type MiniblinkBrowser struct {
 
 func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.Control.Init()
-	_this.EvRequestBefore = make(map[string]func(sender *MiniblinkBrowser, e RequestEvArgs))
-	_this.EvJsReady = make(map[string]func(sender *MiniblinkBrowser, e JsReadyEvArgs))
-	_this.EvConsole = make(map[string]func(sender *MiniblinkBrowser, e ConsoleEvArgs))
+	_this.EvRequestBefore = make(map[string]func(interface{}, RequestEvArgs))
+	_this.EvJsReady = make(map[string]func(interface{}, JsReadyEvArgs))
+	_this.EvConsole = make(map[string]func(interface{}, ConsoleEvArgs))
 	_this.OnRequestBefore = _this.defOnRequestBefore
 	_this.OnJsReady = _this.defOnJsReady
 	_this.OnConsole = _this.defOnConsole
@@ -45,7 +45,7 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	return _this
 }
 
-func (_this *MiniblinkBrowser) loadRes(_ *MiniblinkBrowser, e RequestEvArgs) {
+func (_this *MiniblinkBrowser) loadRes(_ interface{}, e RequestEvArgs) {
 	if len(_this.ResourceLoader) == 0 {
 		return
 	}
@@ -97,7 +97,22 @@ func (_this *MiniblinkBrowser) CallJsFunc(name string, param ...interface{}) int
 	return _this._mb.CallJsFunc(name, param)
 }
 
-func (_this *MiniblinkBrowser) RegisterJsFunc(container interface{}) {
-	prefix := "jsfn_"
-
+func (_this *MiniblinkBrowser) JsFuncEx(name string, fn interface{}) {
+	p := reflect.TypeOf(fn)
+	if p.Kind() != reflect.Func {
+		return
+	}
+	_this.JsFunc(name, func(ctx GoFnContext) interface{} {
+		rt := reflect.TypeOf(ctx.State)
+		rv := reflect.ValueOf(ctx.State)
+		var args []reflect.Value
+		for i := 0; i < rt.NumIn() && i < len(ctx.Param); i++ {
+			args = append(args, reflect.ValueOf(ctx.Param[i]))
+		}
+		rs := rv.Call(args)
+		if rt.NumOut() > 0 {
+			return rs[0].Interface()
+		}
+		return nil
+	}, fn)
 }
