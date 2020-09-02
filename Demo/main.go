@@ -15,19 +15,17 @@ func main() {
 	controls.App.SetIcon("app.ico")
 	controls.App.SetBgColor(0x00FF)
 
-	var frm = new(controls.Form).Init()
+	frm := new(controls.Form).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
-	frm.EvLoad["add_child"] = func(target interface{}) {
+
+	frm.EvLoad[""] = func(sender interface{}) {
 		mb := new(g.MiniblinkBrowser).Init()
 		mb.SetSize(750, 425)
 		mb.SetLocation(15, 15)
 		mb.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
 		mb.ResourceLoader = append(mb.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
-		mb.EvLoad["bind_go_func"] = func(_ interface{}) {
-			mb.EvConsole["show_msg"] = func(_ interface{}, e g.ConsoleEvArgs) {
-				fmt.Println(e.Message())
-			}
+		mb.EvLoad["bind_func"] = func(_ interface{}) {
 			mb.JsFuncEx("Func1", func(n1, n2 float64) int {
 				return int(n1 * n2)
 			})
@@ -53,5 +51,6 @@ func main() {
 		}
 		frm.AddChild(mb)
 	}
+
 	controls.Run(frm)
 }

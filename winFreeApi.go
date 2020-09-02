@@ -89,6 +89,17 @@ type winFreeApi struct {
 	_wkeGetGlobalExecByFrame     *windows.LazyProc
 	_wkeOnConsole                *windows.LazyProc
 	_wkeGetString                *windows.LazyProc
+	_wkeNetSetHTTPHeaderField    *windows.LazyProc
+	_wkeNetChangeRequestUrl      *windows.LazyProc
+	_wkeNetHookRequest           *windows.LazyProc
+	_wkeNetHoldJobToAsynCommit   *windows.LazyProc
+	_wkeNetContinueJob           *windows.LazyProc
+	_wkeOnLoadUrlEnd             *windows.LazyProc
+	_wkeOnLoadUrlFail            *windows.LazyProc
+	_wkeNetGetUrlByJob           *windows.LazyProc
+	_wkeNetGetMIMEType           *windows.LazyProc
+	_wkeNetSetMIMEType           *windows.LazyProc
+	_wkeNetGetRawResponseHead    *windows.LazyProc
 }
 
 func (_this *winFreeApi) init() *winFreeApi {
@@ -99,6 +110,17 @@ func (_this *winFreeApi) init() *winFreeApi {
 	} else {
 		lib = windows.NewLazyDLL("miniblink_x86.dll")
 	}
+	_this._wkeNetGetRawResponseHead = lib.NewProc("wkeNetGetRawResponseHead")
+	_this._wkeNetSetMIMEType = lib.NewProc("wkeNetSetMIMEType")
+	_this._wkeNetGetMIMEType = lib.NewProc("wkeNetGetMIMEType")
+	_this._wkeNetGetUrlByJob = lib.NewProc("wkeNetGetUrlByJob")
+	_this._wkeOnLoadUrlFail = lib.NewProc("wkeOnLoadUrlFail")
+	_this._wkeOnLoadUrlEnd = lib.NewProc("wkeOnLoadUrlEnd")
+	_this._wkeNetContinueJob = lib.NewProc("wkeNetContinueJob")
+	_this._wkeNetHoldJobToAsynCommit = lib.NewProc("wkeNetHoldJobToAsynCommit")
+	_this._wkeNetHookRequest = lib.NewProc("wkeNetHookRequest")
+	_this._wkeNetChangeRequestUrl = lib.NewProc("wkeNetChangeRequestUrl")
+	_this._wkeNetSetHTTPHeaderField = lib.NewProc("wkeNetSetHTTPHeaderField")
 	_this._wkeGetString = lib.NewProc("wkeGetString")
 	_this._wkeOnConsole = lib.NewProc("wkeOnConsole")
 	_this._wkeGetGlobalExecByFrame = lib.NewProc("wkeGetGlobalExecByFrame")
@@ -165,6 +187,71 @@ func (_this *winFreeApi) init() *winFreeApi {
 		fmt.Println("初始化失败", err)
 	}
 	return _this
+}
+
+func (_this *winFreeApi) wkeNetGetRawResponseHead(job wkeNetJob) map[string]string {
+	r, _, _ := _this._wkeNetGetRawResponseHead.Call(uintptr(job))
+	var list []string
+	slist := *((*wkeSlist)(unsafe.Pointer(r)))
+	for slist.str != 0 {
+		list = append(list, ptrToUtf8(slist.str))
+		if slist.next == 0 {
+			break
+		} else {
+			slist = *((*wkeSlist)(unsafe.Pointer(slist.next)))
+		}
+	}
+	hMap := make(map[string]string)
+	for i := 0; i < len(list); i += 2 {
+		hMap[list[i]] = list[i+1]
+	}
+	return hMap
+}
+
+func (_this *winFreeApi) wkeNetSetMIMEType(job wkeNetJob, mime string) {
+	p := toCallStr(mime)
+	_this._wkeNetSetMIMEType.Call(uintptr(job), uintptr(unsafe.Pointer(&p[0])))
+}
+
+func (_this *winFreeApi) wkeNetGetMIMEType(job wkeNetJob) string {
+	r, _, _ := _this._wkeNetGetMIMEType.Call(uintptr(job))
+	return ptrToUtf8(r)
+}
+
+func (_this *winFreeApi) wkeNetGetUrlByJob(job wkeNetJob) string {
+	r, _, _ := _this._wkeNetGetUrlByJob.Call(uintptr(job))
+	return ptrToUtf8(r)
+}
+
+func (_this *winFreeApi) wkeOnLoadUrlFail(wke wkeHandle, callback wkeLoadUrlFailCallback, param uintptr) {
+	_this._wkeOnLoadUrlFail.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+}
+
+func (_this *winFreeApi) wkeOnLoadUrlEnd(wke wkeHandle, callback wkeLoadUrlEndCallback, param uintptr) {
+	_this._wkeOnLoadUrlEnd.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
+}
+
+func (_this *winFreeApi) wkeNetContinueJob(job wkeNetJob) {
+	_this._wkeNetContinueJob.Call(uintptr(job))
+}
+
+func (_this *winFreeApi) wkeNetHoldJobToAsynCommit(job wkeNetJob) {
+	_this._wkeNetHoldJobToAsynCommit.Call(uintptr(job))
+}
+
+func (_this *winFreeApi) wkeNetHookRequest(job wkeNetJob) {
+	_this._wkeNetHookRequest.Call(uintptr(job))
+}
+
+func (_this *winFreeApi) wkeNetChangeRequestUrl(job wkeNetJob, url string) {
+	p := toCallStr(url)
+	_this._wkeNetChangeRequestUrl.Call(uintptr(job), uintptr(unsafe.Pointer(&p[0])))
+}
+
+func (_this *winFreeApi) wkeNetSetHTTPHeaderField(job wkeNetJob, name, value string) {
+	np := toCallStr(name)
+	vp := toCallStr(value)
+	_this._wkeNetSetHTTPHeaderField.Call(uintptr(job), uintptr(unsafe.Pointer(&np[0])), uintptr(unsafe.Pointer(&vp[0])))
 }
 
 func (_this *winFreeApi) wkeGetString(str wkeString) string {

@@ -1,6 +1,7 @@
 package GoMiniblink
 
 import (
+	"image"
 	url2 "net/url"
 	c "qq2564874169/goMiniblink/forms/controls"
 	"reflect"
@@ -12,8 +13,8 @@ type MiniblinkBrowser struct {
 	_mb     Miniblink
 	_fnlist map[string]reflect.Value
 
-	EvRequestBefore map[string]func(sender interface{}, e RequestEvArgs)
-	OnRequestBefore func(e RequestEvArgs)
+	EvRequestBefore map[string]func(sender interface{}, e RequestBeforeEvArgs)
+	OnRequestBefore func(e RequestBeforeEvArgs)
 
 	EvJsReady map[string]func(sender interface{}, e JsReadyEvArgs)
 	OnJsReady func(e JsReadyEvArgs)
@@ -21,17 +22,22 @@ type MiniblinkBrowser struct {
 	EvConsole map[string]func(sender interface{}, e ConsoleEvArgs)
 	OnConsole func(e ConsoleEvArgs)
 
+	EvDocumentReady map[string]func(sender interface{}, e DocumentReadyEvArgs)
+	OnDocumentReady func(e DocumentReadyEvArgs)
+
 	ResourceLoader []LoadResource
 }
 
 func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.Control.Init()
-	_this.EvRequestBefore = make(map[string]func(interface{}, RequestEvArgs))
+	_this.EvRequestBefore = make(map[string]func(interface{}, RequestBeforeEvArgs))
 	_this.EvJsReady = make(map[string]func(interface{}, JsReadyEvArgs))
 	_this.EvConsole = make(map[string]func(interface{}, ConsoleEvArgs))
+	_this.EvDocumentReady = make(map[string]func(interface{}, DocumentReadyEvArgs))
 	_this.OnRequestBefore = _this.defOnRequestBefore
 	_this.OnJsReady = _this.defOnJsReady
 	_this.OnConsole = _this.defOnConsole
+	_this.OnDocumentReady = _this.defOnDocumentReady
 
 	bakLoad := _this.Control.OnLoad
 	_this.Control.OnLoad = func() {
@@ -45,10 +51,11 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	return _this
 }
 
-func (_this *MiniblinkBrowser) loadRes(_ interface{}, e RequestEvArgs) {
+func (_this *MiniblinkBrowser) loadRes(_ interface{}, e RequestBeforeEvArgs) {
 	if len(_this.ResourceLoader) == 0 {
 		return
 	}
+	e.EvResponse()
 	url, err := url2.Parse(e.Url())
 	if err != nil {
 		return
@@ -68,7 +75,7 @@ func (_this *MiniblinkBrowser) loadRes(_ interface{}, e RequestEvArgs) {
 }
 
 func (_this *MiniblinkBrowser) mbInit() {
-	_this._mb.SetOnRequest(func(args RequestEvArgs) {
+	_this._mb.SetOnRequestBefore(func(args RequestBeforeEvArgs) {
 		if _this.OnRequestBefore != nil {
 			_this.OnRequestBefore(args)
 		}
@@ -81,6 +88,11 @@ func (_this *MiniblinkBrowser) mbInit() {
 	_this._mb.SetOnConsole(func(args ConsoleEvArgs) {
 		if _this.OnConsole != nil {
 			_this.OnConsole(args)
+		}
+	})
+	_this._mb.SetOnDocumentReady(func(args DocumentReadyEvArgs) {
+		if _this.OnDocumentReady != nil {
+			_this.OnDocumentReady(args)
 		}
 	})
 }
@@ -115,4 +127,8 @@ func (_this *MiniblinkBrowser) JsFuncEx(name string, fn interface{}) {
 		}
 		return nil
 	}, fn)
+}
+
+func (_this *MiniblinkBrowser) ToBitmap() *image.RGBA {
+	return _this._mb.ToBitmap()
 }

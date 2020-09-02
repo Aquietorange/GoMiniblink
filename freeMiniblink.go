@@ -46,15 +46,18 @@ type freeMiniblink struct {
 	_fnMap     map[string]JsFnBinding
 	_jsIsReady bool
 	_frames    []FrameContext
+	_reqMap    map[wkeNetJob]*freeRequestBeforeEvArgs
 
-	_onRequest RequestCallback
-	_onJsReady JsReadyCallback
-	_onConsole ConsoleCallback
+	_onRequest     RequestBeforeCallback
+	_onJsReady     JsReadyCallback
+	_onConsole     ConsoleCallback
+	_documentReady DocumentReadyCallback
 }
 
 func (_this *freeMiniblink) init(control *c.Control) *freeMiniblink {
 	_this._view = control
 	_this._fnMap = make(map[string]JsFnBinding)
+	_this._reqMap = make(map[wkeNetJob]*freeRequestBeforeEvArgs)
 	_this.setView()
 	_this.mbInit()
 	return _this
@@ -113,6 +116,10 @@ func (_this *freeMiniblink) RunJs(script string) interface{} {
 	return toGoValue(_this, es, rs)
 }
 
+func (_this *freeMiniblink) SetOnDocumentReady(callback DocumentReadyCallback) {
+	_this._documentReady = callback
+}
+
 func (_this *freeMiniblink) SetOnConsole(callback ConsoleCallback) {
 	_this._onConsole = callback
 }
@@ -121,7 +128,7 @@ func (_this *freeMiniblink) SetOnJsReady(callback JsReadyCallback) {
 	_this._onJsReady = callback
 }
 
-func (_this *freeMiniblink) SetOnRequest(callback RequestCallback) {
+func (_this *freeMiniblink) SetOnRequestBefore(callback RequestBeforeCallback) {
 	_this._onRequest = callback
 }
 
@@ -131,6 +138,8 @@ func (_this *freeMiniblink) mbInit() {
 	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
 	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, 0)
 	mbApi.wkeOnLoadUrlBegin(_this._wke, _this.onUrlBegin, 0)
+	mbApi.wkeOnLoadUrlEnd(_this._wke, _this.onUrlEnd, 0)
+	mbApi.wkeOnLoadUrlFail(_this._wke, _this.onUrlFail, 0)
 	mbApi.wkeOnDidCreateScriptContext(_this._wke, _this.onDidCreateScriptContext, 0)
 	mbApi.wkeOnConsole(_this._wke, _this.onConsole, 0)
 }
@@ -167,8 +176,7 @@ func (_this *freeMiniblink) onConsole(wke wkeHandle, param uintptr, level int32,
 
 func (_this *freeMiniblink) onDidCreateScriptContext(_ wkeHandle, _ uintptr, frame wkeFrame, _ uintptr, _, _ int) uintptr {
 	_this._jsIsReady = true
-	args := new(wkeJsReadyEvArgs).init()
-	args.ctx = new(freeFrameContext).init(_this, frame)
+	args := new(wkeJsReadyEvArgs).init(_this, frame)
 	_this._frames = append(_this._frames, args.ctx)
 	args.ctx.RunJs(_this.getJsBindingScript(args.ctx.IsMain()))
 	if _this._onJsReady == nil {
@@ -178,14 +186,37 @@ func (_this *freeMiniblink) onDidCreateScriptContext(_ wkeHandle, _ uintptr, fra
 	return 0
 }
 
-func (_this *freeMiniblink) onUrlBegin(_ wkeHandle, _, utf8ptr uintptr, job wkeNetJob) uintptr {
+func (_this *freeMiniblink) onUrlBegin(_ wkeHandle, _, _ uintptr, job wkeNetJob) uintptr {
 	if _this._onRequest == nil {
-		return uintptr(toBool(false))
+		return 0
 	}
-	url := ptrToUtf8(utf8ptr)
-	e := new(freeRequestEvArgs).init(_this, url, job)
+	e := new(freeRequestBeforeEvArgs).init(_this, job)
+	e.EvFinish().AddEx(func() {
+		delete(_this._reqMap, job)
+	})
 	_this._onRequest(e)
-	return uintptr(toBool(e.onBegin()))
+	e.onBegin()
+	_this._reqMap[job] = e
+	return 0
+}
+
+func (_this *freeMiniblink) onUrlEnd(_ wkeHandle, _, _ uintptr, job wkeNetJob, buf uintptr, len int32) uintptr {
+	if req, ok := _this._reqMap[job]; ok {
+		data := (*[1 << 30]byte)(unsafe.Pointer(buf))
+		rs := make([]byte, int(len))
+		for i := int32(0); i < len; i++ {
+			rs[i] = data[i]
+		}
+		req.onResponse(rs)
+	}
+	return 0
+}
+
+func (_this *freeMiniblink) onUrlFail(_ wkeHandle, _, _ uintptr, job wkeNetJob) uintptr {
+	if req, ok := _this._reqMap[job]; ok {
+		req.onFail()
+	}
+	return 0
 }
 
 func (_this *freeMiniblink) setView() {
@@ -451,13 +482,20 @@ func (_this *freeMiniblink) viewMouseMove(e *f.MouseEvArgs) {
 	}
 }
 
-func (_this *freeMiniblink) viewPaint(e f.PaintEvArgs) {
+func (_this *freeMiniblink) ToBitmap() *image.RGBA {
 	w := mbApi.wkeGetWidth(_this._wke)
 	h := mbApi.wkeGetHeight(_this._wke)
-	if w > 0 && h > 0 {
-		view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-		mbApi.wkePaint(_this._wke, view.Pix, 0)
-		e.Graphics.DrawImage(view, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
+	w = uint32(math.Max(float64(w), 0))
+	h = uint32(math.Max(float64(h), 0))
+	view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+	mbApi.wkePaint(_this._wke, view.Pix, 0)
+	return view
+}
+
+func (_this *freeMiniblink) viewPaint(e f.PaintEvArgs) {
+	img := _this.ToBitmap()
+	if img.Bounds().Empty() == false {
+		e.Graphics.DrawImage(img, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
 	}
 }
 

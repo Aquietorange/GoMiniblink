@@ -8,6 +8,11 @@ type (
 	jsValue     int64
 )
 
+type wkeSlist struct {
+	str  uintptr
+	next uintptr
+}
+
 type jsType uint32
 
 const (
@@ -84,6 +89,8 @@ type wkeLoadUrlBeginCallback func(wke wkeHandle, param, utf8Url uintptr, job wke
 type wkeJsNativeFunction func(es jsExecState, param uintptr) uintptr
 type wkeDidCreateScriptContextCallback func(wke wkeHandle, param uintptr, frame wkeFrame, context uintptr, exGroup, worldId int) uintptr
 type wkeConsoleCallback func(wke wkeHandle, param uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr
+type wkeLoadUrlEndCallback func(wke wkeHandle, param, url uintptr, job wkeNetJob, buf uintptr, len int32) uintptr
+type wkeLoadUrlFailCallback func(wke wkeHandle, param, url uintptr, job wkeNetJob) uintptr
 
 var mbApi freeApi
 
@@ -146,4 +153,15 @@ type freeApi interface {
 	wkeOnDidCreateScriptContext(wke wkeHandle, callback wkeDidCreateScriptContextCallback, param uintptr)
 	wkeOnConsole(wke wkeHandle, callback wkeConsoleCallback, param uintptr)
 	wkeGetString(str wkeString) string
+	wkeNetSetHTTPHeaderField(job wkeNetJob, name, value string)
+	wkeNetChangeRequestUrl(job wkeNetJob, url string)
+	wkeNetHookRequest(job wkeNetJob)
+	wkeNetHoldJobToAsynCommit(job wkeNetJob)
+	wkeNetContinueJob(job wkeNetJob)
+	wkeOnLoadUrlEnd(wke wkeHandle, callback wkeLoadUrlEndCallback, param uintptr)
+	wkeOnLoadUrlFail(wke wkeHandle, callback wkeLoadUrlFailCallback, param uintptr)
+	wkeNetGetUrlByJob(job wkeNetJob) string
+	wkeNetGetMIMEType(job wkeNetJob) string
+	wkeNetSetMIMEType(job wkeNetJob, mime string)
+	wkeNetGetRawResponseHead(job wkeNetJob) map[string]string
 }
