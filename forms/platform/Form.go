@@ -7,6 +7,7 @@ import (
 type Form interface {
 	Controls
 
+	Close()
 	ShowDialog()
 	SetTitle(title string)
 	SetBorderStyle(style f.FormBorder)

@@ -99,8 +99,8 @@ func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
 		}
 		return obj
 	case reflect.Func:
-		rsName := "tmpFnRs" + strconv.FormatUint(seq(), 10)
-		jsFn := new(fnJsData).init("tmpFn" + strconv.FormatUint(seq(), 10))
+		rsName := "__tmpFnRs" + strconv.FormatUint(seq(), 10)
+		jsFn := new(fnJsData).init("__tmpFn" + strconv.FormatUint(seq(), 10))
 		jsFn.fn = rv
 		if is64 {
 			jsFn.callAsFunction = syscall.NewCallbackCDecl(execTempFunc)
@@ -119,6 +119,7 @@ func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
                  window[fn].apply(null,args);
                  fnrs=window.top[rs];
                  window.top[rs]=undefined;
+                 window[fn]=undefined;
                  return fnrs;
                }`
 		js = fmt.Sprintf(js, rsName, jsFn.fnName)
@@ -152,6 +153,7 @@ func execTempFunc(es jsExecState, _, _ jsValue, count uint32) uintptr {
 			mbApi.jsSetGlobal(es, rsName, jv)
 		}
 	}
+	delete(keepRef, dataName)
 	return 0
 }
 
@@ -182,7 +184,7 @@ func toGoValue(mb Miniblink, es jsExecState, value jsValue) interface{} {
 		}
 		return ps
 	case jsType_FUNCTION:
-		name := "pofn" + strconv.FormatUint(seq(), 10)
+		name := "__pofn" + strconv.FormatUint(seq(), 10)
 		return JsFunc(func(param ...interface{}) interface{} {
 			jses := mbApi.wkeGlobalExec(mb.GetHandle())
 			ps := make([]jsValue, len(param))

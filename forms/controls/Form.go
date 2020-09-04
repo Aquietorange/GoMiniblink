@@ -130,3 +130,7 @@ func (_this *Form) SetMinimizeBox(isShow bool) {
 func (_this *Form) SetIconVisable(isShow bool) {
 	_this.getImpl().SetIconVisable(isShow)
 }
+
+func (_this *Form) Close() {
+	_this.impl.Close()
+}

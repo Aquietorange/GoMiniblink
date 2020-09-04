@@ -5,24 +5,20 @@ import (
 )
 
 type DocumentReadyEvArgs interface {
-	Frame() FrameContext
+	FrameContext
 }
 
 type freeDocumentReadyEvArgs struct {
-	ctx *freeFrameContext
+	*freeFrameContext
 }
 
 func (_this *freeDocumentReadyEvArgs) init(mb Miniblink, frame wkeFrame) *freeDocumentReadyEvArgs {
-	_this.ctx = new(freeFrameContext).init(mb, frame)
+	_this.freeFrameContext = new(freeFrameContext).init(mb, frame)
 	return _this
 }
 
-func (_this *freeDocumentReadyEvArgs) Frame() FrameContext {
-	return _this.ctx
-}
-
 type FrameContext interface {
-	Id() uintptr
+	FrameId() uintptr
 	IsMain() bool
 	Url() string
 	IsRemote() bool
@@ -67,7 +63,7 @@ func (_this *freeFrameContext) IsMain() bool {
 	return _this.isMain
 }
 
-func (_this *freeFrameContext) Id() uintptr {
+func (_this *freeFrameContext) FrameId() uintptr {
 	return _this.id
 }
 
@@ -108,20 +104,16 @@ func (_this *freeConsoleMessageEvArgs) StackTrace() string {
 }
 
 type JsReadyEvArgs interface {
-	Frame() FrameContext
+	FrameContext
 }
 
 type wkeJsReadyEvArgs struct {
-	ctx *freeFrameContext
+	*freeFrameContext
 }
 
 func (_this *wkeJsReadyEvArgs) init(mb Miniblink, frame wkeFrame) *wkeJsReadyEvArgs {
-	_this.ctx = new(freeFrameContext).init(mb, frame)
+	_this.freeFrameContext = new(freeFrameContext).init(mb, frame)
 	return _this
-}
-
-func (_this *wkeJsReadyEvArgs) Frame() FrameContext {
-	return _this.ctx
 }
 
 type ResponseEvArgs interface {

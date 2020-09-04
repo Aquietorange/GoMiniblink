@@ -38,7 +38,7 @@ func BindJsFunc(fn JsFnBinding) {
 				value := mbApi.jsArg(es, i)
 				args[i] = toGoValue(mb, es, value)
 			}
-			g := keepRef[strconv.FormatUint(uint64(param), 10)].(JsFnBinding)
+			g := keepRef["__mbJsFn_"+strconv.FormatUint(uint64(param), 10)].(JsFnBinding)
 			rs := g.Call(mb, args)
 			if rs != nil {
 				return uintptr(toJsValue(mb, es, rs))
@@ -48,5 +48,5 @@ func BindJsFunc(fn JsFnBinding) {
 	}
 	pm := seq()
 	mbApi.wkeJsBindFunction(fn.Name, fn.core, uintptr(pm), 0)
-	keepRef[strconv.FormatUint(pm, 10)] = fn
+	keepRef["__mbJsFn_"+strconv.FormatUint(pm, 10)] = fn
 }

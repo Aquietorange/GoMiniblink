@@ -14,10 +14,13 @@ func main() {
 	controls.App.SetIcon("app.ico")
 	controls.App.SetBgColor(0x00FF)
 
-	var frm = new(g.MiniblinkForm).Init(false)
+	var frm = new(g.MiniblinkForm).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 	frm.View.EvLoad["init"] = func(target interface{}) {
+		frm.View.EvConsole["show"] = func(_ interface{}, e g.ConsoleEvArgs) {
+			fmt.Println(e.Message())
+		}
 		frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
 		frm.View.LoadUri("http://local/window.html")
 	}

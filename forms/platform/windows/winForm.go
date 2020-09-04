@@ -169,6 +169,18 @@ func (_this *winForm) Show() {
 	w.UpdateWindow(_this.hWnd())
 }
 
+func (_this *winForm) Hide() {
+	w.ShowWindow(_this.hWnd(), w.SW_HIDE)
+}
+
+func (_this *winForm) Close() {
+	w.SendMessage(_this.hWnd(), w.WM_CLOSE, 0, 0)
+}
+
+func (_this *winForm) ShowDialog() {
+
+}
+
 func (_this *winForm) ShowToMax() {
 	w.ShowWindow(_this.hWnd(), w.SW_MAXIMIZE)
 	w.UpdateWindow(_this.hWnd())
@@ -176,14 +188,6 @@ func (_this *winForm) ShowToMax() {
 
 func (_this *winForm) ShowToMin() {
 	w.ShowWindow(_this.hWnd(), w.SW_MINIMIZE)
-}
-
-func (_this *winForm) Hide() {
-	w.ShowWindow(_this.hWnd(), w.SW_HIDE)
-}
-
-func (_this *winForm) ShowDialog() {
-
 }
 
 func (_this *winForm) SetSize(width, height int) {

@@ -142,9 +142,10 @@ func (_this *freeMiniblink) mbInit() {
 	mbApi.wkeOnLoadUrlFail(_this._wke, _this.onUrlFail, 0)
 	mbApi.wkeOnDidCreateScriptContext(_this._wke, _this.onDidCreateScriptContext, 0)
 	mbApi.wkeOnConsole(_this._wke, _this.onConsole, 0)
+	//todo 没有注册docReady
 }
 
-func (_this *freeMiniblink) onConsole(wke wkeHandle, param uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr {
+func (_this *freeMiniblink) onConsole(_ wkeHandle, _ uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr {
 	if _this._onConsole == nil {
 		return 0
 	}
@@ -177,8 +178,8 @@ func (_this *freeMiniblink) onConsole(wke wkeHandle, param uintptr, level int32,
 func (_this *freeMiniblink) onDidCreateScriptContext(_ wkeHandle, _ uintptr, frame wkeFrame, _ uintptr, _, _ int) uintptr {
 	_this._jsIsReady = true
 	args := new(wkeJsReadyEvArgs).init(_this, frame)
-	_this._frames = append(_this._frames, args.ctx)
-	args.ctx.RunJs(_this.getJsBindingScript(args.ctx.IsMain()))
+	_this._frames = append(_this._frames, args)
+	args.RunJs(_this.getJsBindingScript(args.IsMain()))
 	if _this._onJsReady == nil {
 		return 0
 	}
@@ -499,7 +500,7 @@ func (_this *freeMiniblink) viewPaint(e f.PaintEvArgs) {
 	}
 }
 
-func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, param, bits uintptr, rect *wkeRect, width, height int32) uintptr {
+func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, rect *wkeRect, width, _ int32) uintptr {
 	bx, by := int(rect.x), int(rect.y)
 	bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
 	bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
