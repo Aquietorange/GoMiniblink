@@ -26,6 +26,9 @@ func main() {
 		mb.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
 		mb.ResourceLoader = append(mb.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
 		mb.EvLoad["bind_func"] = func(_ interface{}) {
+			mb.EvConsole["show"] = func(_ interface{}, e g.ConsoleEvArgs) {
+				fmt.Println(e.Message())
+			}
 			mb.JsFuncEx("Func1", func(n1, n2 float64) int {
 				return int(n1 * n2)
 			})

@@ -26,7 +26,7 @@ func execGoFunc(ctx GoFnContext) interface{} {
 	wkeName := ctx.Param[0].(string)
 	fnName := ctx.Param[1].(string)
 	rsName := ctx.Param[2].(string)
-	if num, numOk := strconv.ParseInt(wkeName, 10, 32); numOk == nil {
+	if num, err := strconv.ParseUint(wkeName, 10, 64); err == nil {
 		wke := wkeHandle(uintptr(num))
 		mb := views[wke]
 		if impl, implOk := mb.(*freeMiniblink); implOk {
@@ -93,7 +93,7 @@ func (_this *freeMiniblink) getJsBindingScript(isMain bool) string {
 	rsName := "rs" + strconv.FormatUint(uint64(_this._wke), 32)
 	call := fnCall
 	if isMain == false {
-		call = "window.top['" + call + "']"
+		call = fmt.Sprintf("window.top[%q]", call)
 	}
 	var list []string
 	for k, _ := range _this._fnMap {
@@ -104,7 +104,7 @@ func (_this *freeMiniblink) getJsBindingScript(isMain bool) string {
                %s.apply(null,args);
                return window.top[rs];
            };`
-		js = fmt.Sprintf(js, k, rsName, strconv.FormatInt(int64(_this._wke), 10), k, call)
+		js = fmt.Sprintf(js, k, rsName, strconv.FormatUint(uint64(_this._wke), 10), k, call)
 		list = append(list, js)
 	}
 	return strings.Join(list, ";")

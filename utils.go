@@ -117,7 +117,7 @@ func toJsValue(mb Miniblink, es jsExecState, value interface{}) jsValue {
                  var arr=Array.prototype.slice.call(arguments);
                  var args=[fn,rs].concat(arr);
                  window[fn].apply(null,args);
-                 fnrs=window.top[rs];
+                 var fnrs=window.top[rs];
                  window.top[rs]=undefined;
                  window[fn]=undefined;
                  return fnrs;
