@@ -83,9 +83,8 @@ func (_this *freeMiniblink) JsFunc(name string, fn GoFn, state interface{}) {
 	}
 	if _this._jsIsReady {
 		for _, f := range _this._frames {
-			f.RunJs(_this.getJsBindingScript(false))
+			f.RunJs(_this.getJsBindingScript(f.IsMain()))
 		}
-		_this.RunJs(_this.getJsBindingScript(true))
 	}
 }
 
