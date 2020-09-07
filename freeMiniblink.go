@@ -141,7 +141,15 @@ func (_this *freeMiniblink) mbInit() {
 	mbApi.wkeOnLoadUrlFail(_this._wke, _this.onUrlFail, 0)
 	mbApi.wkeOnDidCreateScriptContext(_this._wke, _this.onDidCreateScriptContext, 0)
 	mbApi.wkeOnConsole(_this._wke, _this.onConsole, 0)
-	//todo 没有注册docReady
+	mbApi.wkeOnDocumentReady(_this._wke, _this.onDocumentReady, 0)
+}
+
+func (_this *freeMiniblink) onDocumentReady(_ wkeHandle, _ uintptr, frame wkeFrame) uintptr {
+	args := new(freeDocumentReadyEvArgs).init(_this, frame)
+	if _this._documentReady != nil {
+		_this._documentReady(args)
+	}
+	return 0
 }
 
 func (_this *freeMiniblink) onConsole(_ wkeHandle, _ uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr {

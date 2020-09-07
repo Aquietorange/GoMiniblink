@@ -37,6 +37,15 @@ func (_this *Provider) Init() *Provider {
 	return _this
 }
 
+func (_this *Provider) MouseLocation() forms.Point {
+	p := win32.POINT{}
+	win32.GetCursorPos(&p)
+	return forms.Point{
+		X: int(p.X),
+		Y: int(p.Y),
+	}
+}
+
 func (_this *Provider) AppDir() string {
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	return dir

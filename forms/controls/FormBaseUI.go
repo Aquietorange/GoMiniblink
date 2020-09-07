@@ -53,8 +53,6 @@ type FormBaseUI struct {
 
 	instance interface{}
 	impl     p.Window
-	size     f.Rect
-	pos      f.Point
 }
 
 func (_this *FormBaseUI) init(instance interface{}, impl p.Window) *FormBaseUI {
@@ -250,7 +248,6 @@ func (_this *FormBaseUI) init(instance interface{}, impl p.Window) *FormBaseUI {
 			b = bakResize(e)
 		}
 		if !b {
-			_this.size = e
 			_this.OnResize(e)
 		}
 		return b
@@ -263,7 +260,6 @@ func (_this *FormBaseUI) init(instance interface{}, impl p.Window) *FormBaseUI {
 			b = bakMove(e)
 		}
 		if !b {
-			_this.pos = e
 			_this.OnMove(e)
 		}
 		return b
@@ -279,6 +275,13 @@ func (_this *FormBaseUI) init(instance interface{}, impl p.Window) *FormBaseUI {
 	return _this
 }
 
+func (_this *FormBaseUI) SetMouseEnable(enable bool) {
+	_this.impl.SetMouseEnable(enable)
+}
+func (_this *FormBaseUI) GetMouseEnable() bool {
+	return _this.impl.GetMouseEnable()
+}
+
 func (_this *FormBaseUI) CreateGraphics() f.Graphics {
 	return _this.impl.CreateGraphics()
 }
@@ -292,26 +295,26 @@ func (_this *FormBaseUI) GetHandle() uintptr {
 }
 
 func (_this *FormBaseUI) SetLocation(x, y int) {
-	_this.pos = f.Point{
-		X: x,
-		Y: y,
-	}
 	_this.impl.SetLocation(x, y)
 }
 
 func (_this *FormBaseUI) GetLocation() f.Point {
-	return _this.pos
+	x, y := _this.impl.GetLocation()
+	return f.Point{
+		X: x,
+		Y: y,
+	}
 }
 
 func (_this *FormBaseUI) GetSize() f.Rect {
-	return _this.size
+	w, h := _this.impl.GetSize()
+	return f.Rect{
+		Width:  w,
+		Height: h,
+	}
 }
 
 func (_this *FormBaseUI) SetSize(width, height int) {
-	_this.size = f.Rect{
-		Width:  width,
-		Height: height,
-	}
 	_this.impl.SetSize(width, height)
 }
 

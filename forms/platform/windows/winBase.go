@@ -41,12 +41,14 @@ type winBase struct {
 
 	bgColor     int
 	fiexdCursor bool
+	msEnable    bool
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
 	_this.app = provider
 	_this.onWndProc = _this.msgProc
 	_this.SetBgColor(provider.defBgColor)
+	_this.msEnable = true
 	return _this
 }
 
@@ -202,7 +204,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 		}
 		w.EndPaint(hWnd, ps)
 	case w.WM_MOUSEMOVE:
-		if _this.onMouseMove != nil {
+		if _this.onMouseMove != nil && _this.msEnable {
 			e := f.MouseEvArgs{
 				X:    int(w.GET_X_LPARAM(lParam)),
 				Y:    int(w.GET_Y_LPARAM(lParam)),
@@ -225,7 +227,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 	case w.WM_LBUTTONDOWN, w.WM_RBUTTONDOWN, w.WM_MBUTTONDOWN:
 		_this.fiexdCursor = true
 		w.SetCapture(hWnd)
-		if _this.onMouseDown != nil {
+		if _this.onMouseDown != nil && _this.msEnable {
 			e := f.MouseEvArgs{
 				X:    int(w.GET_X_LPARAM(lParam)),
 				Y:    int(w.GET_Y_LPARAM(lParam)),
@@ -246,7 +248,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 	case w.WM_LBUTTONUP, w.WM_RBUTTONUP, w.WM_MBUTTONUP:
 		_this.fiexdCursor = false
 		w.ReleaseCapture()
-		if _this.onMouseUp != nil {
+		if _this.onMouseUp != nil && _this.msEnable {
 			e := f.MouseEvArgs{
 				X:    int(w.GET_X_LPARAM(lParam)),
 				Y:    int(w.GET_Y_LPARAM(lParam)),
@@ -265,7 +267,7 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 			}
 		}
 	case w.WM_MOUSEWHEEL:
-		if _this.onMouseWheel != nil {
+		if _this.onMouseWheel != nil && _this.msEnable {
 			lp, hp := w.LOWORD(int32(wParam)), w.HIWORD(int32(wParam))
 			e := f.MouseEvArgs{
 				X:     int(w.GET_X_LPARAM(lParam)),
@@ -332,6 +334,26 @@ func (_this *winBase) hWnd() w.HWND {
 
 func (_this *winBase) GetProvider() p.Provider {
 	return _this.app
+}
+
+func (_this *winBase) SetMouseEnable(enable bool) {
+	_this.msEnable = enable
+}
+
+func (_this *winBase) GetMouseEnable() bool {
+	return _this.msEnable
+}
+
+func (_this *winBase) GetSize() (width, height int) {
+	rect := w.RECT{}
+	w.GetWindowRect(_this.hWnd(), &rect)
+	return int(rect.Right), int(rect.Bottom)
+}
+
+func (_this *winBase) GetLocation() (x, y int) {
+	rect := w.RECT{}
+	w.GetWindowRect(_this.hWnd(), &rect)
+	return int(rect.Left), int(rect.Top)
 }
 
 type invokeContext struct {

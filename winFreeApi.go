@@ -100,6 +100,7 @@ type winFreeApi struct {
 	_wkeNetGetMIMEType           *windows.LazyProc
 	_wkeNetSetMIMEType           *windows.LazyProc
 	_wkeNetGetRawResponseHead    *windows.LazyProc
+	_wkeOnDocumentReady2         *windows.LazyProc
 }
 
 func (_this *winFreeApi) init() *winFreeApi {
@@ -110,6 +111,7 @@ func (_this *winFreeApi) init() *winFreeApi {
 	} else {
 		lib = windows.NewLazyDLL("miniblink_x86.dll")
 	}
+	_this._wkeOnDocumentReady2 = lib.NewProc("wkeOnDocumentReady2")
 	_this._wkeNetGetRawResponseHead = lib.NewProc("wkeNetGetRawResponseHead")
 	_this._wkeNetSetMIMEType = lib.NewProc("wkeNetSetMIMEType")
 	_this._wkeNetGetMIMEType = lib.NewProc("wkeNetGetMIMEType")
@@ -187,6 +189,10 @@ func (_this *winFreeApi) init() *winFreeApi {
 		fmt.Println("初始化失败", err)
 	}
 	return _this
+}
+
+func (_this *winFreeApi) wkeOnDocumentReady(wke wkeHandle, callback wkeDocumentReady2Callback, param uintptr) {
+	_this._wkeOnDocumentReady2.Call(uintptr(wke), syscall.NewCallbackCDecl(callback), param)
 }
 
 func (_this *winFreeApi) wkeNetGetRawResponseHead(job wkeNetJob) map[string]string {

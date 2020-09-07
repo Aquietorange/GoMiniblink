@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	g "qq2564874169/goMiniblink"
+	"qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/controls"
 	"qq2564874169/goMiniblink/forms/platform/windows"
 	"unsafe"
@@ -16,6 +17,8 @@ func main() {
 
 	var frm = new(g.MiniblinkForm).Init()
 	frm.SetTitle("miniblink窗口")
+	frm.SetStartPosition(forms.FormStartPosition_Manual)
+	frm.SetLocation(100, 100)
 	frm.SetSize(800, 500)
 	frm.View.EvLoad["init"] = func(target interface{}) {
 		frm.View.EvConsole["show"] = func(_ interface{}, e g.ConsoleEvArgs) {

@@ -62,7 +62,8 @@ func (_this *Form) registerEvents() {
 		switch _this.startPos {
 		case f.FormStartPosition_Screen_Center:
 			scr := App.GetScreen()
-			x, y := scr.WorkArea.Width/2-_this.size.Width/2, scr.WorkArea.Height/2-_this.size.Height/2
+			size := _this.GetSize()
+			x, y := scr.WorkArea.Width/2-size.Width/2, scr.WorkArea.Height/2-size.Height/2
 			_this.impl.SetLocation(x, y)
 		}
 		if bakCreate != nil {

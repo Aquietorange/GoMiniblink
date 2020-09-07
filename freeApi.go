@@ -91,6 +91,7 @@ type wkeDidCreateScriptContextCallback func(wke wkeHandle, param uintptr, frame 
 type wkeConsoleCallback func(wke wkeHandle, param uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr
 type wkeLoadUrlEndCallback func(wke wkeHandle, param, url uintptr, job wkeNetJob, buf uintptr, len int32) uintptr
 type wkeLoadUrlFailCallback func(wke wkeHandle, param, url uintptr, job wkeNetJob) uintptr
+type wkeDocumentReady2Callback func(wke wkeHandle, param uintptr, frame wkeFrame) uintptr
 
 var mbApi freeApi
 
@@ -164,4 +165,5 @@ type freeApi interface {
 	wkeNetGetMIMEType(job wkeNetJob) string
 	wkeNetSetMIMEType(job wkeNetJob, mime string)
 	wkeNetGetRawResponseHead(job wkeNetJob) map[string]string
+	wkeOnDocumentReady(wke wkeHandle, callback wkeDocumentReady2Callback, param uintptr)
 }

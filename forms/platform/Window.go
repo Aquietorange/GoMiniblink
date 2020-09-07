@@ -30,12 +30,16 @@ type Window interface {
 	Invoke(fn func(state interface{}), state interface{})
 	IsInvoke() bool
 	SetSize(w int, h int)
+	GetSize() (w, h int)
 	SetLocation(x int, y int)
+	GetLocation() (x, y int)
 	Show()
 	Hide()
 	SetBgColor(color int)
 	CreateGraphics() f.Graphics
 	SetCursor(cursor f.CursorType)
+	SetMouseEnable(enable bool)
+	GetMouseEnable() bool
 }
 
 type WindowLostFocusProc func() bool

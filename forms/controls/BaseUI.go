@@ -11,4 +11,6 @@ type BaseUI interface {
 	SetBgColor(color int)
 	IsInvoke() bool
 	Invoke(fn func(state interface{}), state interface{})
+	SetMouseEnable(enable bool)
+	GetMouseEnable() bool
 }

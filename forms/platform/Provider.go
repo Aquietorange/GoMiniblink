@@ -12,6 +12,7 @@ type Provider interface {
 	GetScreen() f.Screen
 	ModifierKeys() map[f.Keys]bool
 	MouseIsDown() map[f.MouseButtons]bool
+	MouseLocation() f.Point
 	AppDir() string
 
 	NewForm() Form
