@@ -347,7 +347,7 @@ func (_this *winBase) GetMouseEnable() bool {
 func (_this *winBase) GetSize() (width, height int) {
 	rect := w.RECT{}
 	w.GetWindowRect(_this.hWnd(), &rect)
-	return int(rect.Right), int(rect.Bottom)
+	return int(rect.Right - rect.Left), int(rect.Bottom - rect.Top)
 }
 
 func (_this *winBase) GetLocation() (x, y int) {

@@ -24,6 +24,8 @@ type MiniblinkForm struct {
 	_isLoad        bool
 	_isTransparent bool
 	_wke           wkeHandle
+	_rsState       int
+	_isDrop        bool
 }
 
 func (_this *MiniblinkForm) Init() *MiniblinkForm {
@@ -72,6 +74,61 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 		_this._isLoad = true
 	}
 	return _this
+}
+
+func (_this *MiniblinkForm) NoneBorderResize() {
+	padd := 5
+	onMove := _this.View.OnMouseMove
+	//onDown := _this.OnMouseDown
+	_this.View.OnMouseMove = func(e *f.MouseEvArgs) {
+		size := _this.GetSize()
+		if e.X <= padd {
+			if e.Y <= padd {
+				_this._rsState = 7
+			} else if e.Y+padd >= size.Height {
+				_this._rsState = 1
+			} else {
+				_this._rsState = 4
+			}
+		} else if e.Y <= padd {
+			if e.X <= padd {
+				_this._rsState = 7
+			} else if e.X+padd >= size.Width {
+				_this._rsState = 9
+			} else {
+				_this._rsState = 8
+			}
+		} else if e.X+padd >= size.Width {
+			if e.Y <= padd {
+				_this._rsState = 9
+			} else if e.Y+padd >= size.Height {
+				_this._rsState = 3
+			} else {
+				_this._rsState = 6
+			}
+		} else if e.Y+padd >= size.Height {
+			if e.X <= padd {
+				_this._rsState = 1
+			} else if e.X+padd >= size.Width {
+				_this._rsState = 3
+			} else {
+				_this._rsState = 2
+			}
+		} else if _this._isDrop == false {
+			_this._rsState = 0
+		}
+		switch _this._rsState {
+		case 8, 2:
+			_this.SetCursor(f.CursorType_SIZENS)
+		case 4, 6:
+			_this.SetCursor(f.CursorType_SIZEWE)
+		case 7, 3:
+			_this.SetCursor(f.CursorType_SIZENWSE)
+		case 9, 1:
+			_this.SetCursor(f.CursorType_SIZENESW)
+		}
+		onMove(e)
+	}
 }
 
 func (_this *MiniblinkForm) TransparentMode() {
@@ -214,6 +271,7 @@ func (_this *MiniblinkForm) fnDrop() {
 	if me {
 		_this.View.SetMouseEnable(false)
 	}
+	_this._isDrop = true
 	_this.watchMouseMove(func(p f.Point) {
 		var nx = p.X - srcMs.X
 		var ny = p.Y - srcMs.Y
@@ -223,6 +281,7 @@ func (_this *MiniblinkForm) fnDrop() {
 	}, func() {
 		_this.View.SetMouseEnable(me)
 		_this.View.SetCursor(f.CursorType_Default)
+		_this._isDrop = false
 	})
 	_this.View.SetCursor(f.CursorType_SIZEALL)
 }

@@ -16,11 +16,14 @@ func main() {
 	controls.App.SetBgColor(0x00FF)
 
 	var frm = new(g.MiniblinkForm).Init()
-	frm.SetTitle("miniblink窗口")
-	frm.SetStartPosition(forms.FormStartPosition_Manual)
-	frm.SetLocation(100, 100)
-	frm.SetSize(800, 500)
 	frm.View.EvLoad["init"] = func(target interface{}) {
+		frm.SetTitle("miniblink窗口")
+		frm.SetStartPosition(forms.FormStartPosition_Manual)
+		frm.SetLocation(100, 100)
+		frm.SetBorderStyle(forms.FormBorder_None)
+		frm.NoneBorderResize()
+		frm.SetSize(800, 500)
+
 		frm.View.EvConsole["show"] = func(_ *g.MiniblinkBrowser, e g.ConsoleEvArgs) {
 			fmt.Println(e.Message())
 		}

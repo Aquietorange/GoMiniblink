@@ -399,11 +399,8 @@ func (_this *freeMiniblink) viewSetCursor() bool {
 	default:
 		fmt.Println("未实现的鼠标指针类型：" + strconv.Itoa(int(cur)))
 	}
-	if newCur != f.CursorType_Default {
-		_this._view.SetCursor(newCur)
-		return true
-	}
-	return false
+	_this._view.SetCursor(newCur)
+	return true
 }
 
 func (_this *freeMiniblink) viewMouseWheel(e *f.MouseEvArgs) {
