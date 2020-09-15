@@ -1924,6 +1924,7 @@ var (
 	createDialogIndirectParam   *windows.LazyProc
 	mapDialogRect               *windows.LazyProc
 	fillRect                    *windows.LazyProc
+	updateLayeredWindow         *windows.LazyProc
 )
 
 func init() {
@@ -1933,6 +1934,7 @@ func init() {
 	libuser32 = windows.NewLazySystemDLL("user32.dll")
 
 	// Functions
+	updateLayeredWindow = libuser32.NewProc("UpdateLayeredWindow")
 	addClipboardFormatListener = libuser32.NewProc("AddClipboardFormatListener")
 	adjustWindowRect = libuser32.NewProc("AdjustWindowRect")
 	attachThreadInput = libuser32.NewProc("AttachThreadInput")
@@ -2059,7 +2061,7 @@ func init() {
 	setWindowLong = libuser32.NewProc("SetWindowLongW")
 	// On 32 bit SetWindowLongPtrW is not available
 	if is64bit {
-		setWindowLongPtr = libuser32.NewProc("SetWindowLongPtrW")
+		setWindowLongPtr = libuser32.NewProc("SetWindowLongPtr")
 	} else {
 		setWindowLongPtr = libuser32.NewProc("SetWindowLongW")
 	}
@@ -2080,6 +2082,20 @@ func init() {
 	createDialogIndirectParam = libuser32.NewProc("CreateDialogIndirectParamW")
 	mapDialogRect = libuser32.NewProc("MapDialogRect")
 	fillRect = libuser32.NewProc("FillRect")
+}
+
+func UpdateLayeredWindow(hWnd HWND, hdcDst HDC, pptDst *POINT, pptSize *SIZE, hdcSrc HDC, pptSrc *POINT, crKey int32, blend *BLENDFUNCTION, dwFlags int32) bool {
+	ret, _, _ := syscall.Syscall9(updateLayeredWindow.Addr(), 9,
+		uintptr(hWnd),
+		uintptr(hdcDst),
+		uintptr(unsafe.Pointer(pptDst)),
+		uintptr(unsafe.Pointer(pptSize)),
+		uintptr(hdcSrc),
+		uintptr(unsafe.Pointer(pptSrc)),
+		uintptr(crKey),
+		uintptr(unsafe.Pointer(blend)),
+		uintptr(dwFlags))
+	return ret != 0
 }
 
 func FillRect(hdc HDC, rect *RECT, hbrush HBRUSH) bool {
@@ -3351,11 +3367,13 @@ func SetWinEventHook(eventMin uint32, eventMax uint32, hmodWinEventProc HMODULE,
 }
 
 func SetWindowLong(hWnd HWND, index, value int64) int32 {
-	ret, _, _ := syscall.Syscall(setWindowLong.Addr(), 3,
+	ret, _, err := syscall.Syscall(setWindowLong.Addr(), 3,
 		uintptr(hWnd),
 		uintptr(index),
 		uintptr(value))
-
+	if err != 0 {
+		fmt.Println("SetWindowLong", err)
+	}
 	return int32(ret)
 }
 

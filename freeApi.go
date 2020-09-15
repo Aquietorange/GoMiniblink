@@ -166,4 +166,5 @@ type freeApi interface {
 	wkeNetSetMIMEType(job wkeNetJob, mime string)
 	wkeNetGetRawResponseHead(job wkeNetJob) map[string]string
 	wkeOnDocumentReady(wke wkeHandle, callback wkeDocumentReady2Callback, param uintptr)
+	wkeSetTransparent(wke wkeHandle, enable bool)
 }

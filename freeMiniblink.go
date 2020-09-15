@@ -52,6 +52,7 @@ type freeMiniblink struct {
 	_onJsReady     JsReadyCallback
 	_onConsole     ConsoleCallback
 	_documentReady DocumentReadyCallback
+	_paintUpdated  PaintUpdatedCallback
 }
 
 func (_this *freeMiniblink) init(control *c.Control) *freeMiniblink {
@@ -129,6 +130,10 @@ func (_this *freeMiniblink) SetOnJsReady(callback JsReadyCallback) {
 
 func (_this *freeMiniblink) SetOnRequestBefore(callback RequestBeforeCallback) {
 	_this._onRequest = callback
+}
+
+func (_this *freeMiniblink) SetOnPaintUpdated(callback PaintUpdatedCallback) {
+	_this._paintUpdated = callback
 }
 
 func (_this *freeMiniblink) mbInit() {
@@ -520,7 +525,22 @@ func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, re
 			bmp.Pix[sp] = pixs[dp]
 		}
 	}
-	_this._view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+	args := new(freePaintUpdatedEvArgs).init(bmp, f.Bound{
+		Point: f.Point{
+			X: bx,
+			Y: by,
+		},
+		Rect: f.Rect{
+			Width:  bw,
+			Height: bh,
+		},
+	})
+	if _this._paintUpdated != nil {
+		_this._paintUpdated(args)
+	}
+	if args.IsCancel() == false {
+		_this._view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+	}
 	return 0
 }
 

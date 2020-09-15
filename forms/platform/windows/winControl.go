@@ -70,7 +70,7 @@ func (_this *winControl) Create() {
 		return
 	}
 	if _this.createParams.Parent == 0 {
-		panic("身为一个控件，必须有父窗口")
+		panic("必须有父窗口")
 	}
 	hWnd := win32.CreateWindowEx(
 		_this.createParams.ExStyle,

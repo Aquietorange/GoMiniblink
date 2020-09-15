@@ -9,6 +9,7 @@ type RequestBeforeCallback func(args RequestBeforeEvArgs)
 type JsReadyCallback func(args JsReadyEvArgs)
 type ConsoleCallback func(args ConsoleEvArgs)
 type DocumentReadyCallback func(args DocumentReadyEvArgs)
+type PaintUpdatedCallback func(args PaintUpdatedEvArgs)
 
 type Miniblink interface {
 	ToBitmap() *image.RGBA
@@ -19,6 +20,7 @@ type Miniblink interface {
 	SetOnJsReady(callback JsReadyCallback)
 	SetOnRequestBefore(callback RequestBeforeCallback)
 	SetOnDocumentReady(callback DocumentReadyCallback)
+	SetOnPaintUpdated(callback PaintUpdatedCallback)
 	LoadUri(uri string)
 	GetHandle() wkeHandle
 }

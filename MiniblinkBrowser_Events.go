@@ -1,8 +1,45 @@
 package GoMiniblink
 
 import (
+	"image"
+	"qq2564874169/goMiniblink/forms"
 	"strconv"
 )
+
+type PaintUpdatedEvArgs interface {
+	Bitmap() *image.RGBA
+	Bound() forms.Bound
+	Cancel()
+	IsCancel() bool
+}
+
+type freePaintUpdatedEvArgs struct {
+	bitmap *image.RGBA
+	bound  forms.Bound
+	cancel bool
+}
+
+func (_this *freePaintUpdatedEvArgs) init(bitmap *image.RGBA, bound forms.Bound) *freePaintUpdatedEvArgs {
+	_this.bitmap = bitmap
+	_this.bound = bound
+	return _this
+}
+
+func (_this *freePaintUpdatedEvArgs) Bitmap() *image.RGBA {
+	return _this.bitmap
+}
+
+func (_this *freePaintUpdatedEvArgs) Bound() forms.Bound {
+	return _this.bound
+}
+
+func (_this *freePaintUpdatedEvArgs) IsCancel() bool {
+	return _this.cancel
+}
+
+func (_this *freePaintUpdatedEvArgs) Cancel() {
+	_this.cancel = true
+}
 
 type DocumentReadyEvArgs interface {
 	FrameContext
@@ -344,6 +381,12 @@ func (_this *MiniblinkBrowser) defOnConsole(e ConsoleEvArgs) {
 
 func (_this *MiniblinkBrowser) defOnDocumentReady(e DocumentReadyEvArgs) {
 	for _, v := range _this.EvDocumentReady {
+		v(_this, e)
+	}
+}
+
+func (_this *MiniblinkBrowser) defOnPaintUpdated(e PaintUpdatedEvArgs) {
+	for _, v := range _this.EvPaintUpdated {
 		v(_this, e)
 	}
 }

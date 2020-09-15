@@ -16,16 +16,14 @@ func main() {
 	controls.App.SetBgColor(0x00FF)
 
 	var frm = new(g.MiniblinkForm).Init()
-	frm.SetTitle("miniblink窗口")
-	frm.SetStartPosition(forms.FormStartPosition_Manual)
-	frm.SetLocation(100, 100)
-	frm.SetSize(800, 500)
-	frm.View.EvLoad["init"] = func(target interface{}) {
-		frm.View.EvConsole["show"] = func(_ *g.MiniblinkBrowser, e g.ConsoleEvArgs) {
-			fmt.Println(e.Message())
-		}
+	frm.EvLoad["init"] = func(target interface{}) {
+		frm.SetTitle("miniblink窗口")
+		frm.SetStartPosition(forms.FormStartPosition_Manual)
+		frm.SetLocation(100, 100)
+		frm.SetSize(300, 300)
+		frm.TransparentMode()
 		frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
-		frm.View.LoadUri("http://local/window.html")
+		frm.View.LoadUri("http://local/transparent.html")
 	}
 	controls.Run(&frm.Form)
 }
