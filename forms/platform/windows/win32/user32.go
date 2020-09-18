@@ -3195,7 +3195,6 @@ func SendMessage(hWnd HWND, msg uint32, wParam, lParam uintptr) uintptr {
 		lParam,
 		0,
 		0)
-
 	return ret
 }
 

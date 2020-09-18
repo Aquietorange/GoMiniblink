@@ -78,8 +78,36 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 
 func (_this *MiniblinkForm) NoneBorderResize() {
 	padd := 5
+	hWnd := win32.HWND(_this.GetHandle())
 	onMove := _this.View.OnMouseMove
-	//onDown := _this.OnMouseDown
+	onDown := _this.View.OnMouseDown
+	_this.View.OnMouseDown = func(e *f.MouseEvArgs) {
+		if e.Button&f.MouseButtons_Left != f.MouseButtons_Left {
+			onDown(e)
+			return
+		}
+		switch _this._rsState {
+		case 8:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF003), 0)
+		case 2:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF006), 0)
+		case 4:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF001), 0)
+		case 6:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF002), 0)
+		case 7:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF004), 0)
+		case 9:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF005), 0)
+		case 1:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF007), 0)
+		case 3:
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF008), 0)
+		default:
+			onDown(e)
+		}
+		_this._rsState = 0
+	}
 	_this.View.OnMouseMove = func(e *f.MouseEvArgs) {
 		size := _this.GetSize()
 		if e.X <= padd {
@@ -142,7 +170,7 @@ func (_this *MiniblinkForm) TransparentMode() {
 	_this.SetBorderStyle(f.FormBorder_None)
 	hWnd := win32.HWND(_this.GetHandle())
 	style := win32.GetWindowLong(hWnd, win32.GWL_EXSTYLE)
-	if style&int64(win32.WS_EX_LAYERED) != win32.WS_EX_LAYERED {
+	if style&win32.WS_EX_LAYERED != win32.WS_EX_LAYERED {
 		win32.SetWindowLong(hWnd, win32.GWL_EXSTYLE, style|win32.WS_EX_LAYERED)
 	}
 	mbApi.wkeSetTransparent(_this._wke, true)
@@ -265,6 +293,7 @@ func (_this *MiniblinkForm) fnDrop() {
 		c.App.MouseIsDown()[f.MouseButtons_Left] == false {
 		return
 	}
+	//win32.SendMessage(win32.HWND(_this.GetHandle()), win32.WM_SYSCOMMAND, win32.SC_MOVE|win32.HTCAPTION, 0)
 	me := _this.View.GetMouseEnable()
 	srcMs := c.App.MouseLocation()
 	srcFrm := _this.GetLocation()
