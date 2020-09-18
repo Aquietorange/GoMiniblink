@@ -7,6 +7,7 @@ import (
 	"qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/platform"
 	"qq2564874169/goMiniblink/forms/platform/windows/win32"
+	"reflect"
 	"syscall"
 	"time"
 	"unsafe"
@@ -18,6 +19,7 @@ type Provider struct {
 	hInstance    win32.HINSTANCE
 	className    string
 	mainId       win32.HWND
+	tmpWnd       map[uintptr]baseWindow
 	handleWnds   map[win32.HWND]baseWindow
 	nameWnds     map[string]baseWindow
 	defOwner     win32.HWND
@@ -28,12 +30,14 @@ type Provider struct {
 }
 
 func (_this *Provider) Init() *Provider {
+	_this.tmpWnd = make(map[uintptr]baseWindow)
 	_this.handleWnds = make(map[win32.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = "goMiniblinkClass"
 	_this.hInstance = win32.GetModuleHandle(nil)
 	_this.msClick = new(mouseClickWorker).init()
 	_this.mainThreadId = windows.GetCurrentThreadId()
+	_this.registerWndClass()
 	return _this
 }
 
@@ -98,7 +102,7 @@ func (_this *Provider) SetIcon(file string) {
 
 func (_this *Provider) registerWndClass() {
 	var class = win32.WNDCLASSEX{
-		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW,
+		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW | win32.CS_DBLCLKS,
 		LpfnWndProc:   syscall.NewCallback(_this.classMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
@@ -114,12 +118,14 @@ func (_this *Provider) registerWndClass() {
 }
 
 func (_this *Provider) add(wnd baseWindow) {
-	if hWnd := wnd.hWnd(); hWnd != 0 {
-		if _this.mainId == 0 {
-			_this.mainId = hWnd
-		}
-		_this.handleWnds[hWnd] = wnd
-	}
+	//if hWnd := wnd.hWnd(); hWnd != 0 {
+	//	if _this.mainId == 0 {
+	//		_this.mainId = hWnd
+	//	}
+	//	_this.handleWnds[hWnd] = wnd
+	//}
+	ref := reflect.ValueOf(wnd).Pointer()
+	_this.tmpWnd[ref] = wnd
 }
 
 func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
@@ -132,8 +138,15 @@ func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
 }
 
 func (_this *Provider) classMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+	if msg == win32.WM_CREATE {
+		cs := *((*win32.CREATESTRUCT)(unsafe.Pointer(lParam)))
+		if w, ok := _this.tmpWnd[cs.CreateParams]; ok {
+			_this.handleWnds[hWnd] = w
+			delete(_this.tmpWnd, cs.CreateParams)
+		}
+	}
 	if w, ok := _this.handleWnds[hWnd]; ok {
-		if code := w.wndMsgProc(hWnd, msg, wParam, lParam); code != 0 {
+		if code := w.onWndMsg(hWnd, msg, wParam, lParam); code != 0 {
 			return code
 		}
 	}
@@ -169,13 +182,9 @@ func (_this *Provider) Exit(code int) {
 }
 
 func (_this *Provider) RunMain(form platform.Form) {
-	_, ok := form.(*winForm)
-	if ok == false {
-		panic("类型不正确")
+	if f, ok := form.(*winForm); ok {
+		f.Show()
 	}
-	_this.registerWndClass()
-	form.Create()
-	form.Show()
 	var message win32.MSG
 	for {
 		if win32.GetMessage(&message, 0, 0, 0) {

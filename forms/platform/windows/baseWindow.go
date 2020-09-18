@@ -6,5 +6,5 @@ import (
 
 type baseWindow interface {
 	hWnd() win32.HWND
-	wndMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
+	onWndMsg(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr
 }

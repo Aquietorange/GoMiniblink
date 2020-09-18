@@ -15,7 +15,6 @@ import (
 type winBase struct {
 	app       *Provider
 	handle    w.HWND
-	isCreated bool
 	invokeMap sync.Map
 	onWndProc windowsMsgProc
 	isLoad    bool
@@ -46,9 +45,10 @@ type winBase struct {
 
 func (_this *winBase) init(provider *Provider) *winBase {
 	_this.app = provider
+	_this.app.add(_this)
 	_this.onWndProc = _this.msgProc
-	_this.SetBgColor(provider.defBgColor)
 	_this.msEnable = true
+	_this.SetBgColor(provider.defBgColor)
 	return _this
 }
 
@@ -60,30 +60,17 @@ func (_this *winBase) SetBgColor(color int) {
 	_this.bgColor = color
 }
 
-func (_this *winBase) IsCreate() bool {
-	return _this.isCreated
-}
-
 func (_this *winBase) SetCursor(cursor f.CursorType) {
 	res := w.MAKEINTRESOURCE(uintptr(toWinCursor(cursor)))
 	cur := w.LoadCursor(0, res)
 	w.SetCursor(cur)
 }
 
-func (_this *winBase) wndMsgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) uintptr {
+func (_this *winBase) onWndMsg(hWnd w.HWND, msg uint32, wParam, lParam uintptr) uintptr {
 	if _this.onWndProc != nil {
 		return _this.onWndProc(hWnd, msg, wParam, lParam)
 	}
 	return 0
-}
-
-func (_this *winBase) fireCreate(hWnd w.HWND) {
-	_this.isCreated = true
-	_this.handle = hWnd
-	_this.app.add(_this)
-	if _this.onCreate != nil {
-		_this.onCreate(uintptr(hWnd))
-	}
 }
 
 func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) uintptr {
@@ -92,6 +79,15 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 	}
 	var ret int
 	switch msg {
+	case w.WM_CREATE:
+		if _this.app.defIcon != 0 {
+			w.SendMessage(hWnd, w.WM_SETICON, 1, uintptr(_this.app.defIcon))
+			w.SendMessage(hWnd, w.WM_SETICON, 0, uintptr(_this.app.defIcon))
+		}
+		_this.handle = hWnd
+		if _this.onCreate != nil {
+			_this.onCreate(uintptr(hWnd))
+		}
 	case w.WM_SHOWWINDOW:
 		if _this.isLoad == false {
 			if _this.onLoad != nil {
@@ -119,8 +115,8 @@ func (_this *winBase) msgProc(hWnd w.HWND, msg uint32, wParam, lParam uintptr) u
 		}
 	case w.WM_SIZE:
 		if _this.onResize != nil {
-			w, h := w.GET_X_LPARAM(lParam), w.GET_Y_LPARAM(lParam)
-			rect := f.Rect{Width: int(w), Height: int(h)}
+			xl, yl := w.GET_X_LPARAM(lParam), w.GET_Y_LPARAM(lParam)
+			rect := f.Rect{Width: int(xl), Height: int(yl)}
 			if _this.onResize(rect) {
 				ret = 1
 			}

@@ -5,7 +5,6 @@ import (
 )
 
 type Window interface {
-	Create()
 	GetHandle() uintptr
 	SetOnCreate(proc WindowCreateProc) WindowCreateProc
 	SetOnDestroy(proc WindowDestroyProc) WindowDestroyProc
