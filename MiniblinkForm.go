@@ -88,21 +88,21 @@ func (_this *MiniblinkForm) NoneBorderResize() {
 		}
 		switch _this._rsState {
 		case 8:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF003), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF003), 0)
 		case 2:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF006), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF006), 0)
 		case 4:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF001), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF001), 0)
 		case 6:
 			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF002), 0)
 		case 7:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF004), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF004), 0)
 		case 9:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF005), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF005), 0)
 		case 1:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF007), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF007), 0)
 		case 3:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(0xF000|0xF008), 0)
+			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF008), 0)
 		default:
 			onDown(e)
 		}

@@ -4,9 +4,27 @@ import (
 	"fmt"
 	"image/color"
 	"qq2564874169/goMiniblink/forms"
-	"qq2564874169/goMiniblink/forms/platform/windows/win32"
+	plat "qq2564874169/goMiniblink/forms/platform"
+	win "qq2564874169/goMiniblink/forms/platform/windows/win32"
 	"syscall"
 )
+
+func findChild(container plat.Controls, hWnd win.HWND) plat.Window {
+	if container.GetHandle() == uintptr(hWnd) {
+		return container
+	}
+	for _, i := range container.GetChilds() {
+		if c, ok := i.(plat.Controls); ok {
+			w := findChild(c, hWnd)
+			if w != nil {
+				return w
+			}
+		} else if i.GetHandle() == uintptr(hWnd) {
+			return i
+		}
+	}
+	return nil
+}
 
 func intToRGBA(rgba int) color.RGBA {
 	return color.RGBA{
@@ -30,75 +48,75 @@ func isExtendKey(key forms.Keys) bool {
 func toWinCursor(cursor forms.CursorType) int {
 	switch cursor {
 	case forms.CursorType_ARROW:
-		return win32.IDC_ARROW
+		return win.IDC_ARROW
 	case forms.CursorType_SIZE:
-		return win32.IDC_SIZE
+		return win.IDC_SIZE
 	case forms.CursorType_ICON:
-		return win32.IDC_ICON
+		return win.IDC_ICON
 	case forms.CursorType_HELP:
-		return win32.IDC_HELP
+		return win.IDC_HELP
 	case forms.CursorType_APPSTARTING:
-		return win32.IDC_APPSTARTING
+		return win.IDC_APPSTARTING
 	case forms.CursorType_HAND:
-		return win32.IDC_HAND
+		return win.IDC_HAND
 	case forms.CursorType_NO:
-		return win32.IDC_NO
+		return win.IDC_NO
 	case forms.CursorType_SIZEALL:
-		return win32.IDC_SIZEALL
+		return win.IDC_SIZEALL
 	case forms.CursorType_SIZENS:
-		return win32.IDC_SIZENS
+		return win.IDC_SIZENS
 	case forms.CursorType_SIZEWE:
-		return win32.IDC_SIZEWE
+		return win.IDC_SIZEWE
 	case forms.CursorType_SIZENWSE:
-		return win32.IDC_SIZENWSE
+		return win.IDC_SIZENWSE
 	case forms.CursorType_SIZENESW:
-		return win32.IDC_SIZENESW
+		return win.IDC_SIZENESW
 	case forms.CursorType_UPARROW:
-		return win32.IDC_UPARROW
+		return win.IDC_UPARROW
 	case forms.CursorType_CROSS:
-		return win32.IDC_CROSS
+		return win.IDC_CROSS
 	case forms.CursorType_WAIT:
-		return win32.IDC_WAIT
+		return win.IDC_WAIT
 	case forms.CursorType_IBEAM:
-		return win32.IDC_IBEAM
+		return win.IDC_IBEAM
 	default:
-		return win32.IDC_ARROW
+		return win.IDC_ARROW
 	}
 }
 
 func winCursorTo(cursor int) forms.CursorType {
 	switch cursor {
-	case 32512:
+	case win.IDC_ARROW:
 		return forms.CursorType_ARROW
-	case 32513:
+	case win.IDC_IBEAM:
 		return forms.CursorType_IBEAM
-	case 32514:
+	case win.IDC_WAIT:
 		return forms.CursorType_WAIT
-	case 32515:
+	case win.IDC_CROSS:
 		return forms.CursorType_CROSS
-	case 32516:
+	case win.IDC_UPARROW:
 		return forms.CursorType_UPARROW
-	case 32642:
+	case win.IDC_SIZENWSE:
 		return forms.CursorType_SIZENWSE
-	case 32643:
+	case win.IDC_SIZENESW:
 		return forms.CursorType_SIZENESW
-	case 32644:
+	case win.IDC_SIZEWE:
 		return forms.CursorType_SIZEWE
-	case 32645:
+	case win.IDC_SIZENS:
 		return forms.CursorType_SIZENS
-	case 32646:
+	case win.IDC_SIZEALL:
 		return forms.CursorType_SIZEALL
-	case 32648:
+	case win.IDC_NO:
 		return forms.CursorType_NO
-	case 32649:
+	case win.IDC_HAND:
 		return forms.CursorType_HAND
-	case 32650:
+	case win.IDC_APPSTARTING:
 		return forms.CursorType_APPSTARTING
-	case 32651:
+	case win.IDC_HELP:
 		return forms.CursorType_HELP
-	case 32641:
+	case win.IDC_ICON:
 		return forms.CursorType_ICON
-	case 32640:
+	case win.IDC_SIZE:
 		return forms.CursorType_SIZE
 	default:
 		return forms.CursorType_ARROW
@@ -107,59 +125,59 @@ func winCursorTo(cursor int) forms.CursorType {
 
 func vkToKey(vk int) forms.Keys {
 	switch vk {
-	case win32.VK_ESCAPE:
+	case win.VK_ESCAPE:
 		return forms.Keys_Esc
-	case win32.VK_F1:
+	case win.VK_F1:
 		return forms.Keys_F1
-	case win32.VK_F2:
+	case win.VK_F2:
 		return forms.Keys_F2
-	case win32.VK_F3:
+	case win.VK_F3:
 		return forms.Keys_F3
-	case win32.VK_F4:
+	case win.VK_F4:
 		return forms.Keys_F4
-	case win32.VK_F5:
+	case win.VK_F5:
 		return forms.Keys_F5
-	case win32.VK_F6:
+	case win.VK_F6:
 		return forms.Keys_F6
-	case win32.VK_F7:
+	case win.VK_F7:
 		return forms.Keys_F7
-	case win32.VK_F8:
+	case win.VK_F8:
 		return forms.Keys_F8
-	case win32.VK_F9:
+	case win.VK_F9:
 		return forms.Keys_F9
-	case win32.VK_F10:
+	case win.VK_F10:
 		return forms.Keys_F10
-	case win32.VK_F11:
+	case win.VK_F11:
 		return forms.Keys_F11
-	case win32.VK_F12:
+	case win.VK_F12:
 		return forms.Keys_F12
-	case win32.VK_SPACE:
+	case win.VK_SPACE:
 		return forms.Keys_Space
-	case win32.VK_TAB:
+	case win.VK_TAB:
 		return forms.Keys_Tab
-	case win32.VK_CAPITAL:
+	case win.VK_CAPITAL:
 		return forms.Keys_CapsLock
-	case win32.VK_SHIFT:
+	case win.VK_SHIFT:
 		return forms.Keys_Shift
-	case win32.VK_CONTROL:
+	case win.VK_CONTROL:
 		return forms.Keys_Ctrl
-	case win32.VK_BACK:
+	case win.VK_BACK:
 		return forms.Keys_Back
-	case win32.VK_MENU:
+	case win.VK_MENU:
 		return forms.Keys_Alt
-	case win32.VK_LWIN:
+	case win.VK_LWIN:
 		return forms.Keys_Win
-	case win32.VK_RSHIFT:
+	case win.VK_RSHIFT:
 		return forms.Keys_Right_Shift
-	case win32.VK_RCONTROL:
+	case win.VK_RCONTROL:
 		return forms.Keys_Right_Ctrl
-	case win32.VK_RMENU:
+	case win.VK_RMENU:
 		return forms.Keys_Right_Alt
-	case win32.VK_RWIN:
+	case win.VK_RWIN:
 		return forms.Keys_Right_Win
-	case win32.VK_RETURN:
+	case win.VK_RETURN:
 		return forms.Keys_Enter
-	case win32.VK_APPS:
+	case win.VK_APPS:
 		return forms.Keys_Apps
 	case 0x30:
 		return forms.Keys_0
@@ -181,17 +199,17 @@ func vkToKey(vk int) forms.Keys {
 		return forms.Keys_8
 	case 0x39:
 		return forms.Keys_9
-	case win32.VK_OEM_3:
+	case win.VK_OEM_3:
 		return forms.Keys_OEM_3
-	case win32.VK_OEM_PLUS:
+	case win.VK_OEM_PLUS:
 		return forms.Keys_OEM_PLUS
-	case win32.VK_OEM_MINUS:
+	case win.VK_OEM_MINUS:
 		return forms.Keys_OEM_MINUS
-	case win32.VK_SNAPSHOT:
+	case win.VK_SNAPSHOT:
 		return forms.Keys_Snapshot
-	case win32.VK_SCROLL:
+	case win.VK_SCROLL:
 		return forms.Keys_Scroll_Lock
-	case win32.VK_PAUSE:
+	case win.VK_PAUSE:
 		return forms.Keys_Pause
 	case 0x51:
 		return forms.Keys_Q
@@ -245,75 +263,75 @@ func vkToKey(vk int) forms.Keys {
 		return forms.Keys_N
 	case 0x4D:
 		return forms.Keys_M
-	case win32.VK_OEM_4:
+	case win.VK_OEM_4:
 		return forms.Keys_OEM_4
-	case win32.VK_OEM_6:
+	case win.VK_OEM_6:
 		return forms.Keys_OEM_6
-	case win32.VK_OEM_1:
+	case win.VK_OEM_1:
 		return forms.Keys_OEM_1
-	case win32.VK_OEM_7:
+	case win.VK_OEM_7:
 		return forms.Keys_OEM_7
-	case win32.VK_OEM_5:
+	case win.VK_OEM_5:
 		return forms.Keys_OEM_5
-	case win32.VK_OEM_COMMA:
+	case win.VK_OEM_COMMA:
 		return forms.Keys_OEM_COMMA
-	case win32.VK_OEM_PERIOD:
+	case win.VK_OEM_PERIOD:
 		return forms.Keys_OEM_PERIOD
-	case win32.VK_OEM_2:
+	case win.VK_OEM_2:
 		return forms.Keys_OEM_2
-	case win32.VK_INSERT:
+	case win.VK_INSERT:
 		return forms.Keys_Insert
-	case win32.VK_DELETE:
+	case win.VK_DELETE:
 		return forms.Keys_Delete
-	case win32.VK_HOME:
+	case win.VK_HOME:
 		return forms.Keys_Home
-	case win32.VK_END:
+	case win.VK_END:
 		return forms.Keys_End
-	case win32.VK_PRIOR:
+	case win.VK_PRIOR:
 		return forms.Keys_PageUp
-	case win32.VK_NEXT:
+	case win.VK_NEXT:
 		return forms.Keys_PageDown
-	case win32.VK_LEFT:
+	case win.VK_LEFT:
 		return forms.Keys_Left
-	case win32.VK_UP:
+	case win.VK_UP:
 		return forms.Keys_Up
-	case win32.VK_RIGHT:
+	case win.VK_RIGHT:
 		return forms.Keys_Right
-	case win32.VK_DOWN:
+	case win.VK_DOWN:
 		return forms.Keys_Down
-	case win32.VK_NUMLOCK:
+	case win.VK_NUMLOCK:
 		return forms.Keys_Num_Lock
-	case win32.VK_ADD:
+	case win.VK_ADD:
 		return forms.Keys_Num_Add
-	case win32.VK_SUBTRACT:
+	case win.VK_SUBTRACT:
 		return forms.Keys_Num_Sub
-	case win32.VK_MULTIPLY:
+	case win.VK_MULTIPLY:
 		return forms.Keys_Num_Multiply
-	case win32.VK_DIVIDE:
+	case win.VK_DIVIDE:
 		return forms.Keys_Num_Divide
-	case win32.VK_DECIMAL:
+	case win.VK_DECIMAL:
 		return forms.Keys_Num_Decimal
-	case win32.VK_SEPARATOR:
+	case win.VK_SEPARATOR:
 		return forms.Keys_Num_Separator
-	case win32.VK_NUMPAD0:
+	case win.VK_NUMPAD0:
 		return forms.Keys_Num_0
-	case win32.VK_NUMPAD1:
+	case win.VK_NUMPAD1:
 		return forms.Keys_Num_1
-	case win32.VK_NUMPAD2:
+	case win.VK_NUMPAD2:
 		return forms.Keys_Num_2
-	case win32.VK_NUMPAD3:
+	case win.VK_NUMPAD3:
 		return forms.Keys_Num_3
-	case win32.VK_NUMPAD4:
+	case win.VK_NUMPAD4:
 		return forms.Keys_Num_4
-	case win32.VK_NUMPAD5:
+	case win.VK_NUMPAD5:
 		return forms.Keys_Num_5
-	case win32.VK_NUMPAD6:
+	case win.VK_NUMPAD6:
 		return forms.Keys_Num_6
-	case win32.VK_NUMPAD7:
+	case win.VK_NUMPAD7:
 		return forms.Keys_Num_7
-	case win32.VK_NUMPAD8:
+	case win.VK_NUMPAD8:
 		return forms.Keys_Num_8
-	case win32.VK_NUMPAD9:
+	case win.VK_NUMPAD9:
 		return forms.Keys_Num_9
 	default:
 		return forms.Keys_Error
@@ -323,59 +341,59 @@ func vkToKey(vk int) forms.Keys {
 func keyToVk(key forms.Keys) int {
 	switch key {
 	case forms.Keys_Esc:
-		return win32.VK_ESCAPE
+		return win.VK_ESCAPE
 	case forms.Keys_F1:
-		return win32.VK_F1
+		return win.VK_F1
 	case forms.Keys_F2:
-		return win32.VK_F2
+		return win.VK_F2
 	case forms.Keys_F3:
-		return win32.VK_F3
+		return win.VK_F3
 	case forms.Keys_F4:
-		return win32.VK_F4
+		return win.VK_F4
 	case forms.Keys_F5:
-		return win32.VK_F5
+		return win.VK_F5
 	case forms.Keys_F6:
-		return win32.VK_F6
+		return win.VK_F6
 	case forms.Keys_F7:
-		return win32.VK_F7
+		return win.VK_F7
 	case forms.Keys_F8:
-		return win32.VK_F8
+		return win.VK_F8
 	case forms.Keys_F9:
-		return win32.VK_F9
+		return win.VK_F9
 	case forms.Keys_F10:
-		return win32.VK_F10
+		return win.VK_F10
 	case forms.Keys_F11:
-		return win32.VK_F11
+		return win.VK_F11
 	case forms.Keys_F12:
-		return win32.VK_F12
+		return win.VK_F12
 	case forms.Keys_Space:
-		return win32.VK_SPACE
+		return win.VK_SPACE
 	case forms.Keys_Tab:
-		return win32.VK_TAB
+		return win.VK_TAB
 	case forms.Keys_CapsLock:
-		return win32.VK_CAPITAL
+		return win.VK_CAPITAL
 	case forms.Keys_Shift:
-		return win32.VK_SHIFT
+		return win.VK_SHIFT
 	case forms.Keys_Ctrl:
-		return win32.VK_CONTROL
+		return win.VK_CONTROL
 	case forms.Keys_Back:
-		return win32.VK_BACK
+		return win.VK_BACK
 	case forms.Keys_Alt:
-		return win32.VK_MENU
+		return win.VK_MENU
 	case forms.Keys_Win:
-		return win32.VK_LWIN
+		return win.VK_LWIN
 	case forms.Keys_Right_Shift:
-		return win32.VK_RSHIFT
+		return win.VK_RSHIFT
 	case forms.Keys_Right_Ctrl:
-		return win32.VK_RCONTROL
+		return win.VK_RCONTROL
 	case forms.Keys_Right_Alt:
-		return win32.VK_RMENU
+		return win.VK_RMENU
 	case forms.Keys_Right_Win:
-		return win32.VK_RWIN
+		return win.VK_RWIN
 	case forms.Keys_Enter:
-		return win32.VK_RETURN
+		return win.VK_RETURN
 	case forms.Keys_Apps:
-		return win32.VK_APPS
+		return win.VK_APPS
 	case forms.Keys_0:
 		return 0x30
 	case forms.Keys_1:
@@ -397,17 +415,17 @@ func keyToVk(key forms.Keys) int {
 	case forms.Keys_9:
 		return 0x39
 	case forms.Keys_OEM_3:
-		return win32.VK_OEM_3
+		return win.VK_OEM_3
 	case forms.Keys_OEM_PLUS:
-		return win32.VK_OEM_PLUS
+		return win.VK_OEM_PLUS
 	case forms.Keys_OEM_MINUS:
-		return win32.VK_OEM_MINUS
+		return win.VK_OEM_MINUS
 	case forms.Keys_Snapshot:
-		return win32.VK_SNAPSHOT
+		return win.VK_SNAPSHOT
 	case forms.Keys_Scroll_Lock:
-		return win32.VK_SCROLL
+		return win.VK_SCROLL
 	case forms.Keys_Pause:
-		return win32.VK_PAUSE
+		return win.VK_PAUSE
 	case forms.Keys_Q:
 		return 0x51
 	case forms.Keys_W:
@@ -461,75 +479,75 @@ func keyToVk(key forms.Keys) int {
 	case forms.Keys_M:
 		return 0x4D
 	case forms.Keys_OEM_4:
-		return win32.VK_OEM_4
+		return win.VK_OEM_4
 	case forms.Keys_OEM_6:
-		return win32.VK_OEM_6
+		return win.VK_OEM_6
 	case forms.Keys_OEM_1:
-		return win32.VK_OEM_1
+		return win.VK_OEM_1
 	case forms.Keys_OEM_7:
-		return win32.VK_OEM_7
+		return win.VK_OEM_7
 	case forms.Keys_OEM_5:
-		return win32.VK_OEM_5
+		return win.VK_OEM_5
 	case forms.Keys_OEM_COMMA:
-		return win32.VK_OEM_COMMA
+		return win.VK_OEM_COMMA
 	case forms.Keys_OEM_PERIOD:
-		return win32.VK_OEM_PERIOD
+		return win.VK_OEM_PERIOD
 	case forms.Keys_OEM_2:
-		return win32.VK_OEM_2
+		return win.VK_OEM_2
 	case forms.Keys_Insert:
-		return win32.VK_INSERT
+		return win.VK_INSERT
 	case forms.Keys_Delete:
-		return win32.VK_DELETE
+		return win.VK_DELETE
 	case forms.Keys_Home:
-		return win32.VK_HOME
+		return win.VK_HOME
 	case forms.Keys_End:
-		return win32.VK_END
+		return win.VK_END
 	case forms.Keys_PageUp:
-		return win32.VK_PRIOR
+		return win.VK_PRIOR
 	case forms.Keys_PageDown:
-		return win32.VK_NEXT
+		return win.VK_NEXT
 	case forms.Keys_Left:
-		return win32.VK_LEFT
+		return win.VK_LEFT
 	case forms.Keys_Up:
-		return win32.VK_UP
+		return win.VK_UP
 	case forms.Keys_Right:
-		return win32.VK_RIGHT
+		return win.VK_RIGHT
 	case forms.Keys_Down:
-		return win32.VK_DOWN
+		return win.VK_DOWN
 	case forms.Keys_Num_Lock:
-		return win32.VK_NUMLOCK
+		return win.VK_NUMLOCK
 	case forms.Keys_Num_Add:
-		return win32.VK_ADD
+		return win.VK_ADD
 	case forms.Keys_Num_Sub:
-		return win32.VK_SUBTRACT
+		return win.VK_SUBTRACT
 	case forms.Keys_Num_Multiply:
-		return win32.VK_MULTIPLY
+		return win.VK_MULTIPLY
 	case forms.Keys_Num_Divide:
-		return win32.VK_DIVIDE
+		return win.VK_DIVIDE
 	case forms.Keys_Num_Decimal:
-		return win32.VK_DECIMAL
+		return win.VK_DECIMAL
 	case forms.Keys_Num_Separator:
-		return win32.VK_SEPARATOR
+		return win.VK_SEPARATOR
 	case forms.Keys_Num_0:
-		return win32.VK_NUMPAD0
+		return win.VK_NUMPAD0
 	case forms.Keys_Num_1:
-		return win32.VK_NUMPAD1
+		return win.VK_NUMPAD1
 	case forms.Keys_Num_2:
-		return win32.VK_NUMPAD2
+		return win.VK_NUMPAD2
 	case forms.Keys_Num_3:
-		return win32.VK_NUMPAD3
+		return win.VK_NUMPAD3
 	case forms.Keys_Num_4:
-		return win32.VK_NUMPAD4
+		return win.VK_NUMPAD4
 	case forms.Keys_Num_5:
-		return win32.VK_NUMPAD5
+		return win.VK_NUMPAD5
 	case forms.Keys_Num_6:
-		return win32.VK_NUMPAD6
+		return win.VK_NUMPAD6
 	case forms.Keys_Num_7:
-		return win32.VK_NUMPAD7
+		return win.VK_NUMPAD7
 	case forms.Keys_Num_8:
-		return win32.VK_NUMPAD8
+		return win.VK_NUMPAD8
 	case forms.Keys_Num_9:
-		return win32.VK_NUMPAD9
+		return win.VK_NUMPAD9
 	default:
 		fmt.Println("未定义的按键", key)
 		return 0

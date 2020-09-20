@@ -37,8 +37,13 @@ type Window interface {
 	SetBgColor(color int)
 	CreateGraphics() f.Graphics
 	SetCursor(cursor f.CursorType)
+	GetCursor() f.CursorType
 	SetMouseEnable(enable bool)
 	GetMouseEnable() bool
+	SetParent(parent Control)
+	GetParent() Control
+	GetOwner() Form
+	MousePosition() f.Point
 }
 
 type WindowLostFocusProc func() bool

@@ -4,6 +4,8 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
+type FormStateProc func(state f.FormState)
+
 type Form interface {
 	Controls
 
@@ -14,6 +16,7 @@ type Form interface {
 	ShowInTaskbar(isShow bool)
 	ShowToMax()
 	ShowToMin()
+	NoneBorderResize()
 
 	SetMaximizeBox(isShow bool)
 	SetMinimizeBox(isShow bool)
@@ -22,5 +25,3 @@ type Form interface {
 
 	SetOnState(proc FormStateProc) FormStateProc
 }
-
-type FormStateProc func(state f.FormState)

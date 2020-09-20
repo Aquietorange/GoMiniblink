@@ -51,22 +51,22 @@ func (_this *DefChildContainer) onAnchor(rect f.Rect) {
 			continue
 		}
 		b := _this.logAnchor[n.GetHandle()]
-		p := n.GetLocation()
-		s := n.GetSize()
+		pos := n.GetLocation()
+		sz := n.GetSize()
 		if anc&f.AnchorStyle_Left != 0 && anc&f.AnchorStyle_Right != 0 {
-			s.Width = rect.Width - b.Left - b.Right
-			p.X = b.Left
+			sz.Width = rect.Width - b.Left - b.Right
+			pos.X = b.Left
 		} else if anc&f.AnchorStyle_Right != 0 {
-			p.X = rect.Width - b.Right - s.Width
+			pos.X = rect.Width - b.Right - sz.Width
 		}
 		if anc&f.AnchorStyle_Top != 0 && anc&f.AnchorStyle_Bottom != 0 {
-			s.Height = rect.Height - b.Top - b.Bottom
-			p.Y = b.Top
+			sz.Height = rect.Height - b.Top - b.Bottom
+			pos.Y = b.Top
 		} else if anc&f.AnchorStyle_Bottom != 0 {
-			p.Y = rect.Height - b.Bottom - s.Height
+			pos.Y = rect.Height - b.Bottom - sz.Height
 		}
-		n.SetSize(s.Width, s.Height)
-		n.SetLocation(p.X, p.Y)
+		n.SetSize(sz.Width, sz.Height)
+		n.SetLocation(pos.X, pos.Y)
 	}
 }
 

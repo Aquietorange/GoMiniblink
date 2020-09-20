@@ -4,49 +4,56 @@ import (
 	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
-	"qq2564874169/goMiniblink/forms"
-	"qq2564874169/goMiniblink/forms/platform"
-	"qq2564874169/goMiniblink/forms/platform/windows/win32"
+	f "qq2564874169/goMiniblink/forms"
+	p "qq2564874169/goMiniblink/forms/platform"
+	w "qq2564874169/goMiniblink/forms/platform/windows/win32"
 	"reflect"
 	"syscall"
-	"time"
 	"unsafe"
 )
 
-type windowsMsgProc func(hWnd win32.HWND, msg uint32, wParam, lParam uintptr) uintptr
+type windowsMsgProc func(hWnd w.HWND, msg uint32, wParam, lParam uintptr) uintptr
 
 type Provider struct {
-	hInstance    win32.HINSTANCE
+	hInstance    w.HINSTANCE
 	className    string
-	mainId       win32.HWND
+	wndClass     w.WNDCLASSEX
+	mainId       w.HWND
 	tmpWnd       map[uintptr]baseWindow
-	handleWnds   map[win32.HWND]baseWindow
+	handleWnds   map[w.HWND]baseWindow
 	nameWnds     map[string]baseWindow
-	defOwner     win32.HWND
-	defIcon      win32.HICON
-	msClick      *mouseClickWorker
-	defBgColor   int
+	dlgOwner     w.HWND
+	defIcon      w.HICON
 	mainThreadId uint32
+	watchAll     map[w.HWND]windowsMsgProc
 }
 
 func (_this *Provider) Init() *Provider {
+	_this.watchAll = make(map[w.HWND]windowsMsgProc)
 	_this.tmpWnd = make(map[uintptr]baseWindow)
-	_this.handleWnds = make(map[win32.HWND]baseWindow)
+	_this.handleWnds = make(map[w.HWND]baseWindow)
 	_this.nameWnds = make(map[string]baseWindow)
 	_this.className = "goMiniblinkClass"
-	_this.hInstance = win32.GetModuleHandle(nil)
-	_this.msClick = new(mouseClickWorker).init()
+	_this.hInstance = w.GetModuleHandle(nil)
 	_this.mainThreadId = windows.GetCurrentThreadId()
 	_this.registerWndClass()
 	return _this
 }
 
-func (_this *Provider) MouseLocation() forms.Point {
-	p := win32.POINT{}
-	win32.GetCursorPos(&p)
-	return forms.Point{
-		X: int(p.X),
-		Y: int(p.Y),
+func (_this *Provider) watch(wnd baseWindow, proc windowsMsgProc) {
+	_this.watchAll[wnd.hWnd()] = proc
+}
+
+func (_this *Provider) unWatch(wnd baseWindow) {
+	delete(_this.watchAll, wnd.hWnd())
+}
+
+func (_this *Provider) MouseLocation() f.Point {
+	pos := w.POINT{}
+	w.GetCursorPos(&pos)
+	return f.Point{
+		X: int(pos.X),
+		Y: int(pos.Y),
 	}
 }
 
@@ -55,209 +62,120 @@ func (_this *Provider) AppDir() string {
 	return dir
 }
 
-func (_this *Provider) ModifierKeys() map[forms.Keys]bool {
-	keys := make(map[forms.Keys]bool)
-	cs := win32.GetKeyState(int32(win32.VK_CONTROL))
-	ss := win32.GetKeyState(int32(win32.VK_SHIFT))
-	as := win32.GetKeyState(int32(win32.VK_MENU))
-	keys[forms.Keys_Ctrl] = cs < 0
-	keys[forms.Keys_Shift] = ss < 0
-	keys[forms.Keys_Alt] = as < 0
+func (_this *Provider) ModifierKeys() map[f.Keys]bool {
+	keys := make(map[f.Keys]bool)
+	cs := w.GetKeyState(int32(w.VK_CONTROL))
+	ss := w.GetKeyState(int32(w.VK_SHIFT))
+	as := w.GetKeyState(int32(w.VK_MENU))
+	keys[f.Keys_Ctrl] = cs < 0
+	keys[f.Keys_Shift] = ss < 0
+	keys[f.Keys_Alt] = as < 0
 	return keys
 }
 
-func (_this *Provider) MouseIsDown() map[forms.MouseButtons]bool {
-	keys := make(map[forms.MouseButtons]bool)
-	ls := win32.GetKeyState(int32(win32.VK_LBUTTON))
-	rs := win32.GetKeyState(int32(win32.VK_RBUTTON))
-	ms := win32.GetKeyState(int32(win32.VK_MBUTTON))
-	keys[forms.MouseButtons_Left] = ls < 0
-	keys[forms.MouseButtons_Right] = rs < 0
-	keys[forms.MouseButtons_Middle] = ms < 0
+func (_this *Provider) MouseIsDown() map[f.MouseButtons]bool {
+	keys := make(map[f.MouseButtons]bool)
+	ls := w.GetKeyState(int32(w.VK_LBUTTON))
+	rs := w.GetKeyState(int32(w.VK_RBUTTON))
+	ms := w.GetKeyState(int32(w.VK_MBUTTON))
+	keys[f.MouseButtons_Left] = ls < 0
+	keys[f.MouseButtons_Right] = rs < 0
+	keys[f.MouseButtons_Middle] = ms < 0
 	return keys
 }
 
-func (_this *Provider) SetBgColor(color int) {
-	_this.defBgColor = color
-}
-
-func (_this *Provider) GetScreen() forms.Screen {
-	var s = forms.Screen{
-		Full: forms.Rect{
-			Width:  int(win32.GetSystemMetrics(win32.SM_CXSCREEN)),
-			Height: int(win32.GetSystemMetrics(win32.SM_CYSCREEN)),
+func (_this *Provider) GetScreen() f.Screen {
+	var s = f.Screen{
+		Full: f.Rect{
+			Width:  int(w.GetSystemMetrics(w.SM_CXSCREEN)),
+			Height: int(w.GetSystemMetrics(w.SM_CYSCREEN)),
 		},
-		WorkArea: forms.Rect{
-			Width:  int(win32.GetSystemMetrics(win32.SM_CXFULLSCREEN)),
-			Height: int(win32.GetSystemMetrics(win32.SM_CYFULLSCREEN)),
+		WorkArea: f.Rect{
+			Width:  int(w.GetSystemMetrics(w.SM_CXFULLSCREEN)),
+			Height: int(w.GetSystemMetrics(w.SM_CYFULLSCREEN)),
 		},
 	}
 	return s
 }
 
 func (_this *Provider) SetIcon(file string) {
-	h := win32.LoadImage(_this.hInstance, sto16(file), win32.IMAGE_ICON, 0, 0, win32.LR_LOADFROMFILE)
-	_this.defIcon = win32.HICON(h)
+	h := w.LoadImage(_this.hInstance, sto16(file), w.IMAGE_ICON, 0, 0, w.LR_LOADFROMFILE)
+	_this.defIcon = w.HICON(h)
 }
 
 func (_this *Provider) registerWndClass() {
-	var class = win32.WNDCLASSEX{
-		Style:         win32.CS_HREDRAW | win32.CS_VREDRAW | win32.CS_DBLCLKS,
-		LpfnWndProc:   syscall.NewCallback(_this.classMsgProc),
+	_this.wndClass = w.WNDCLASSEX{
+		Style:         w.CS_HREDRAW | w.CS_VREDRAW | w.CS_DBLCLKS,
+		LpfnWndProc:   syscall.NewCallbackCDecl(_this.classMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
 		HIcon:         _this.defIcon,
 		HIconSm:       _this.defIcon,
+		HCursor:       w.LoadCursor(0, w.MAKEINTRESOURCE(w.IDC_ARROW)),
+		HbrBackground: w.GetSysColorBrush(w.COLOR_WINDOW),
 	}
-	class.CbSize = uint32(unsafe.Sizeof(class))
-	win32.RegisterClassEx(&class)
-	_this.defOwner = win32.CreateWindowEx(0,
+	_this.wndClass.CbSize = uint32(unsafe.Sizeof(_this.wndClass))
+	w.RegisterClassEx(&_this.wndClass)
+	_this.dlgOwner = w.CreateWindowEx(0,
 		sto16(_this.className), sto16(""),
-		win32.WS_OVERLAPPED, 0, 0, 0, 0,
+		w.WS_OVERLAPPED, 0, 0, 0, 0,
 		0, 0, _this.hInstance, unsafe.Pointer(nil))
 }
 
 func (_this *Provider) add(wnd baseWindow) {
-	//if hWnd := wnd.hWnd(); hWnd != 0 {
-	//	if _this.mainId == 0 {
-	//		_this.mainId = hWnd
-	//	}
-	//	_this.handleWnds[hWnd] = wnd
-	//}
 	ref := reflect.ValueOf(wnd).Pointer()
 	_this.tmpWnd[ref] = wnd
 }
 
-func (_this *Provider) remove(hWnd win32.HWND, isExit bool) {
-	if w, ok := _this.handleWnds[hWnd]; ok {
+func (_this *Provider) remove(hWnd w.HWND, isExit bool) {
+	if wnd, ok := _this.handleWnds[hWnd]; ok {
 		delete(_this.handleWnds, hWnd)
-		if isExit && w.hWnd() == _this.mainId {
+		if isExit && wnd.hWnd() == _this.mainId {
 			_this.Exit(0)
 		}
 	}
 }
 
-func (_this *Provider) classMsgProc(hWnd win32.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-	if msg == win32.WM_CREATE {
-		cs := *((*win32.CREATESTRUCT)(unsafe.Pointer(lParam)))
-		if w, ok := _this.tmpWnd[cs.CreateParams]; ok {
-			_this.handleWnds[hWnd] = w
+func (_this *Provider) classMsgProc(hWnd w.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
+	if msg == w.WM_CREATE {
+		cs := *((*w.CREATESTRUCT)(unsafe.Pointer(lParam)))
+		if wnd, ok := _this.tmpWnd[cs.CreateParams]; ok {
+			if _this.mainId == 0 {
+				_this.mainId = hWnd
+			}
+			_this.handleWnds[hWnd] = wnd
 			delete(_this.tmpWnd, cs.CreateParams)
 		}
 	}
-	if w, ok := _this.handleWnds[hWnd]; ok {
-		if code := w.onWndMsg(hWnd, msg, wParam, lParam); code != 0 {
+	for _, proc := range _this.watchAll {
+		if code := proc(hWnd, msg, wParam, lParam); code != 0 {
 			return code
 		}
 	}
-	return win32.DefWindowProc(hWnd, msg, wParam, lParam)
-}
-
-func (_this *Provider) sendMouseClick(hWnd win32.HWND, msg uint32, lParam uintptr) uintptr {
-	switch msg {
-	case win32.WM_LBUTTONDOWN:
-		_this.msClick.mouseDown(hWnd, forms.MouseButtons_Left, int(lParam))
-	case win32.WM_LBUTTONUP:
-		if _this.msClick.mouseUp(hWnd, forms.MouseButtons_Left, int(lParam)) {
-			return 1
-		}
-	case win32.WM_RBUTTONDOWN:
-		_this.msClick.mouseDown(hWnd, forms.MouseButtons_Right, int(lParam))
-	case win32.WM_RBUTTONUP:
-		if _this.msClick.mouseUp(hWnd, forms.MouseButtons_Right, int(lParam)) {
-			return 1
-		}
-	case win32.WM_MBUTTONDOWN:
-		_this.msClick.mouseDown(hWnd, forms.MouseButtons_Middle, int(lParam))
-	case win32.WM_MBUTTONUP:
-		if _this.msClick.mouseUp(hWnd, forms.MouseButtons_Middle, int(lParam)) {
-			return 1
+	if wnd, ok := _this.handleWnds[hWnd]; ok {
+		if code := wnd.onWndMsg(hWnd, msg, wParam, lParam); code != 0 {
+			return code
 		}
 	}
-	return 0
+	return w.DefWindowProc(hWnd, msg, wParam, lParam)
 }
 
 func (_this *Provider) Exit(code int) {
-	win32.PostQuitMessage(int32(code))
+	w.PostQuitMessage(int32(code))
 }
 
-func (_this *Provider) RunMain(form platform.Form) {
-	if f, ok := form.(*winForm); ok {
-		f.Show()
+func (_this *Provider) RunMain(form p.Form) {
+	if fm, ok := form.(*winForm); ok {
+		fm.Show()
 	}
-	var message win32.MSG
+	var message w.MSG
 	for {
-		if win32.GetMessage(&message, 0, 0, 0) {
-			win32.TranslateMessage(&message)
-			win32.DispatchMessage(&message)
+		if w.GetMessage(&message, 0, 0, 0) {
+			w.TranslateMessage(&message)
+			w.DispatchMessage(&message)
 		} else {
 			break
 		}
 	}
 	os.Exit(0)
-}
-
-type mouseClickWorker struct {
-	down_hWnd  win32.HWND
-	down_key   forms.MouseButtons
-	down_pos   int
-	click_hWnd win32.HWND
-	click_key  forms.MouseButtons
-	click_pos  int
-	time       int64
-	isDouble   bool
-}
-
-func (_this *mouseClickWorker) init() *mouseClickWorker {
-	return _this
-}
-
-func (_this *mouseClickWorker) fire() {
-	defer func() {
-		recover()
-	}()
-	for {
-		time.Sleep(time.Millisecond)
-		if _this.click_hWnd != 0 && _this.time <= time.Now().UnixNano() {
-			x, y := int(win32.LOWORD(int32(_this.click_pos))), int(win32.HIWORD(int32(_this.click_pos)))
-			e := forms.MouseEvArgs{
-				X:        x,
-				Y:        y,
-				Delta:    0,
-				IsDouble: _this.isDouble,
-				Time:     time.Now(),
-				Button:   _this.click_key,
-			}
-			win32.PostMessage(_this.click_hWnd, uint32(win32.WM_COMMAND), uintptr(cmd_mouse_click), uintptr(unsafe.Pointer(&e)))
-			_this.click_hWnd = 0
-			_this.click_key = 0
-			_this.click_pos = 0
-		}
-	}
-}
-
-func (_this *mouseClickWorker) mouseDown(hWnd win32.HWND, key forms.MouseButtons, pos int) {
-	_this.down_hWnd = hWnd
-	_this.down_key = key
-	_this.down_pos = pos
-}
-
-func (_this *mouseClickWorker) mouseUp(hWnd win32.HWND, key forms.MouseButtons, pos int) bool {
-	if _this.down_hWnd == hWnd {
-		if _this.down_key == key && _this.down_pos == pos {
-			_this.click_key = key
-			_this.click_pos = pos
-			if _this.click_hWnd != hWnd {
-				_this.click_hWnd = hWnd
-				_this.isDouble = false
-				_this.time = time.Now().Add(time.Millisecond * 200).UnixNano()
-				return true
-			} else if _this.time > time.Now().UnixNano() {
-				_this.isDouble = true
-				return true
-			}
-		}
-	}
-	_this.click_hWnd = 0
-	return false
 }

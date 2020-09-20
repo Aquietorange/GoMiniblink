@@ -290,6 +290,10 @@ func (_this *FormBaseUI) SetCursor(cursor f.CursorType) {
 	_this.impl.SetCursor(cursor)
 }
 
+func (_this *FormBaseUI) GetCursor() f.CursorType {
+	return _this.impl.GetCursor()
+}
+
 func (_this *FormBaseUI) GetHandle() uintptr {
 	return _this.impl.GetHandle()
 }

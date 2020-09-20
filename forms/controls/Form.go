@@ -43,6 +43,10 @@ func (_this *Form) Init() *Form {
 	return _this
 }
 
+func (_this *Form) NoneBorderResize() {
+	_this.impl.NoneBorderResize()
+}
+
 func (_this *Form) toControls() p.Controls {
 	return _this.impl
 }
