@@ -1,6 +1,7 @@
 package windows
 
 import (
+	"fmt"
 	"golang.org/x/sys/windows"
 	f "qq2564874169/goMiniblink/forms"
 	plat "qq2564874169/goMiniblink/forms/platform"
@@ -22,7 +23,7 @@ type winBase struct {
 	invokeMap sync.Map
 	onWndProc windowsMsgProc
 	isLoad    bool
-	owner     *winForm
+	owner     plat.Form
 	parent    plat.Control
 
 	onLoad                plat.WindowLoadProc
@@ -44,10 +45,9 @@ type winBase struct {
 	onFocus               plat.WindowFocusProc
 	onLostFocus           plat.WindowLostFocusProc
 
-	bgColor    int
-	LockCursor bool
-	msEnable   bool
-	cursor     f.CursorType
+	bgColor  int32
+	msEnable bool
+	cursor   f.CursorType
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
@@ -56,6 +56,7 @@ func (_this *winBase) init(provider *Provider) *winBase {
 	_this.onWndProc = _this.msgProc
 	_this.msEnable = true
 	_this.cursor = f.CursorType_Default
+	_this.bgColor = -1
 	return _this
 }
 
@@ -72,7 +73,7 @@ func (_this *winBase) IsInvoke() bool {
 	return _this.app.mainThreadId == windows.GetCurrentThreadId()
 }
 
-func (_this *winBase) SetBgColor(color int) {
+func (_this *winBase) SetBgColor(color int32) {
 	_this.bgColor = color
 }
 
@@ -102,7 +103,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	var ret uintptr
 	switch msg {
 	case win.WM_CREATE:
-		if _this.app.defIcon != 0 {
+		cs := *((*win.CREATESTRUCT)(unsafe.Pointer(lParam)))
+		if _this.app.defIcon != 0 && cs.ExStyle&win.WS_EX_DLGMODALFRAME == 0 {
 			win.SendMessage(hWnd, win.WM_SETICON, 1, uintptr(_this.app.defIcon))
 			win.SendMessage(hWnd, win.WM_SETICON, 0, uintptr(_this.app.defIcon))
 		}
@@ -210,6 +212,15 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			},
 		}
 		if e.Clip.IsEmpty() == false {
+			if _this.bgColor >= 0 {
+				fmt.Println(_this.bgColor)
+				rgb := intToRGBA(_this.bgColor)
+				//todo 这里
+				bg := int32(rgb.A)<<24 | int32(rgb.B)<<16 | int32(rgb.G)<<8 | int32(rgb.R)
+				fmt.Println(bg)
+				sb := win.CreateSolidBrush(win.COLORREF(bg))
+				win.FillRect(hdc, &ps.RcPaint, sb)
+			}
 			e.Graphics = new(winGraphics).init(hdc)
 			if _this.onPaint != nil && _this.onPaint(e) {
 				ret = 1
@@ -259,7 +270,6 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_LBUTTONDOWN, win.WM_RBUTTONDOWN, win.WM_MBUTTONDOWN:
-		_this.LockCursor = true
 		win.SetCapture(hWnd)
 		if _this.onMouseDown != nil && _this.msEnable {
 			e := f.MouseEvArgs{
@@ -280,7 +290,6 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
-		_this.LockCursor = false
 		win.ReleaseCapture()
 		if _this.onMouseUp != nil && _this.msEnable {
 			e := f.MouseEvArgs{
@@ -400,7 +409,14 @@ func (_this *winBase) GetLocation() (x, y int) {
 }
 
 func (_this *winBase) SetParent(parent plat.Control) {
-	_this.parent = parent
+	if win.SetParent(_this.handle, win.HWND(parent.GetHandle())) != 0 {
+		_this.parent = parent
+		if ow, ok := parent.(plat.Form); ok {
+			_this.owner = ow
+		} else {
+			_this.owner = parent.GetOwner()
+		}
+	}
 }
 
 func (_this *winBase) GetParent() plat.Control {

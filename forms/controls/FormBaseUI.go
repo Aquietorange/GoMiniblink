@@ -322,7 +322,7 @@ func (_this *FormBaseUI) SetSize(width, height int) {
 	_this.impl.SetSize(width, height)
 }
 
-func (_this *FormBaseUI) SetBgColor(color int) {
+func (_this *FormBaseUI) SetBgColor(color int32) {
 	_this.impl.SetBgColor(color)
 }
 

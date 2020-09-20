@@ -34,7 +34,7 @@ type Window interface {
 	GetLocation() (x, y int)
 	Show()
 	Hide()
-	SetBgColor(color int)
+	SetBgColor(color int32)
 	CreateGraphics() f.Graphics
 	SetCursor(cursor f.CursorType)
 	GetCursor() f.CursorType

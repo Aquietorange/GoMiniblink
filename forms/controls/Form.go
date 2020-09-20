@@ -21,15 +21,12 @@ type Form struct {
 	startPos      f.FormStartPosition
 }
 
-func (_this *Form) getImpl() p.Form {
-	if _this.isInit == false {
-		panic("必须使用Init()初始化 ")
-	}
+func (_this *Form) getFormImpl() p.Form {
 	return _this.impl
 }
 
-func (_this *Form) Init() *Form {
-	_this.impl = App.NewForm()
+func (_this *Form) InitEx(param p.FormParam) *Form {
+	_this.impl = App.NewForm(param)
 	_this.FormBaseUI.init(_this, _this.impl)
 	_this.DefChildContainer.init(_this)
 	_this.EvState = make(map[string]func(interface{}, f.FormState))
@@ -41,6 +38,10 @@ func (_this *Form) Init() *Form {
 	_this.registerEvents()
 	_this.isInit = true
 	return _this
+}
+
+func (_this *Form) Init() *Form {
+	return _this.InitEx(p.FormParam{})
 }
 
 func (_this *Form) NoneBorderResize() {
@@ -85,21 +86,16 @@ func (_this *Form) defOnState(state f.FormState) {
 
 func (_this *Form) SetTitle(title string) {
 	_this.title = title
-	_this.getImpl().SetTitle(_this.title)
+	_this.impl.SetTitle(_this.title)
 }
 
 func (_this *Form) SetBorderStyle(style f.FormBorder) {
 	_this.border = style
-	_this.getImpl().SetBorderStyle(_this.border)
+	_this.impl.SetBorderStyle(_this.border)
 }
 
 func (_this *Form) GetBorderStyle() f.FormBorder {
 	return _this.border
-}
-
-func (_this *Form) ShowInTaskbar(isShow bool) {
-	_this.showInTaskbar = isShow
-	_this.getImpl().ShowInTaskbar(_this.showInTaskbar)
 }
 
 func (_this *Form) SetState(state f.FormState) {
@@ -108,11 +104,11 @@ func (_this *Form) SetState(state f.FormState) {
 	}
 	switch state {
 	case f.FormState_Max:
-		_this.getImpl().ShowToMax()
+		_this.impl.ShowToMax()
 	case f.FormState_Min:
-		_this.getImpl().ShowToMin()
+		_this.impl.ShowToMin()
 	case f.FormState_Normal:
-		_this.getImpl().Show()
+		_this.impl.Show()
 	}
 }
 
@@ -125,17 +121,17 @@ func (_this *Form) SetStartPosition(pos f.FormStartPosition) {
 }
 
 func (_this *Form) SetMaximizeBox(isShow bool) {
-	_this.getImpl().SetMaximizeBox(isShow)
+	_this.impl.SetMaximizeBox(isShow)
 }
 
 func (_this *Form) SetMinimizeBox(isShow bool) {
-	_this.getImpl().SetMinimizeBox(isShow)
-}
-
-func (_this *Form) SetIconVisable(isShow bool) {
-	_this.getImpl().SetIconVisable(isShow)
+	_this.impl.SetMinimizeBox(isShow)
 }
 
 func (_this *Form) Close() {
 	_this.impl.Close()
+}
+
+func (_this *Form) SetIcon(file string) {
+	_this.impl.SetIcon(file)
 }

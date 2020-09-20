@@ -16,5 +16,7 @@ func main() {
 	frm.SetTitle("this is form")
 	frm.SetSize(600, 600)
 	frm.SetLocation(100, 100)
+	frm.SetBgColor(0x007D9A)
+
 	controls.Run(frm)
 }

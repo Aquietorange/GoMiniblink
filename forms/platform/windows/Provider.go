@@ -22,7 +22,7 @@ type Provider struct {
 	tmpWnd       map[uintptr]baseWindow
 	handleWnds   map[w.HWND]baseWindow
 	nameWnds     map[string]baseWindow
-	dlgOwner     w.HWND
+	defOwner     w.HWND
 	defIcon      w.HICON
 	mainThreadId uint32
 	watchAll     map[w.HWND]windowsMsgProc
@@ -109,14 +109,12 @@ func (_this *Provider) registerWndClass() {
 		LpfnWndProc:   syscall.NewCallbackCDecl(_this.classMsgProc),
 		HInstance:     _this.hInstance,
 		LpszClassName: sto16(_this.className),
-		HIcon:         _this.defIcon,
-		HIconSm:       _this.defIcon,
 		HCursor:       w.LoadCursor(0, w.MAKEINTRESOURCE(w.IDC_ARROW)),
 		HbrBackground: w.GetSysColorBrush(w.COLOR_WINDOW),
 	}
 	_this.wndClass.CbSize = uint32(unsafe.Sizeof(_this.wndClass))
 	w.RegisterClassEx(&_this.wndClass)
-	_this.dlgOwner = w.CreateWindowEx(0,
+	_this.defOwner = w.CreateWindowEx(0,
 		sto16(_this.className), sto16(""),
 		w.WS_OVERLAPPED, 0, 0, 0, 0,
 		0, 0, _this.hInstance, unsafe.Pointer(nil))

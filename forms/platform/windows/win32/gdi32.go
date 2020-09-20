@@ -1114,6 +1114,7 @@ var (
 	transparentBlt          *windows.LazyProc
 	createDIBitmap          *windows.LazyProc
 	getCurrentObject        *windows.LazyProc
+	createSolidBrush        *windows.LazyProc
 )
 
 func init() {
@@ -1122,6 +1123,7 @@ func init() {
 	libmsimg32 = windows.NewLazySystemDLL("msimg32.dll")
 
 	// Functions
+	createSolidBrush = libgdi32.NewProc("CreateSolidBrush")
 	getCurrentObject = libgdi32.NewProc("GetCurrentObject")
 	createDIBitmap = libgdi32.NewProc("CreateDIBitmap")
 	abortDoc = libgdi32.NewProc("AbortDoc")
@@ -1200,6 +1202,10 @@ func init() {
 	transparentBlt = libmsimg32.NewProc("TransparentBlt")
 }
 
+func CreateSolidBrush(color COLORREF) HBRUSH {
+	rs, _, _ := createSolidBrush.Call(uintptr(color))
+	return HBRUSH(rs)
+}
 func GetCurrentObject(hdc HDC, objType uint32) HGDIOBJ {
 	ret, _, err := getCurrentObject.Call(uintptr(hdc), uintptr(objType))
 	if ret == 0 {

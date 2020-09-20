@@ -4,6 +4,11 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
+type FormParam struct {
+	HideInTaskbar bool
+	HideIcon      bool
+}
+
 type Provider interface {
 	RunMain(form Form)
 	Exit(code int)
@@ -14,6 +19,6 @@ type Provider interface {
 	MouseLocation() f.Point
 	AppDir() string
 
-	NewForm() Form
+	NewForm(param FormParam) Form
 	NewControl() Control
 }

@@ -15,15 +15,24 @@ type winForm struct {
 	_border  f.FormBorder
 }
 
-func (_this *winForm) init(provider *Provider) *winForm {
+func (_this *winForm) init(provider *Provider, param plat.FormParam) *winForm {
 	_this.winBase.init(provider)
 	_this.onWndProc = _this.msgProc
+	parent := win.HWND(0)
+	exStyle := win.WS_EX_APPWINDOW | win.WS_EX_CONTROLPARENT
+	if param.HideInTaskbar {
+		exStyle &= ^win.WS_EX_APPWINDOW
+		parent = _this.app.defOwner
+	}
+	if param.HideIcon {
+		exStyle |= win.WS_EX_DLGMODALFRAME
+	}
 	win.CreateWindowEx(
-		win.WS_EX_APPWINDOW,
+		uint64(exStyle),
 		sto16(_this.app.className),
 		sto16(""),
 		win.WS_OVERLAPPEDWINDOW,
-		0, 0, 0, 0, 0, 0, _this.app.hInstance, unsafe.Pointer(_this))
+		0, 0, 0, 0, parent, 0, _this.app.hInstance, unsafe.Pointer(_this))
 	return _this
 }
 
@@ -173,50 +182,6 @@ func (_this *winForm) NoneBorderResize() {
 	})
 }
 
-func (_this *winForm) Create() {
-	//if _this.IsCreate() == false {
-	//	hWnd := win.CreateDialogIndirectParam(
-	//		_this.app.hInstance,
-	//		_this.createParams,
-	//		_this.app.dlgOwner,
-	//		syscall.NewCallback(_this.formWndProc),
-	//		nil)
-	//	if hWnd == 0 {
-	//		panic("创建失败")
-	//	}
-	//}
-}
-
-//func (_this *winForm) reCreate() {
-//	preHwnd := _this.handle
-//	var rect win.RECT
-//	win.GetWindowRect(preHwnd, &rect)
-//	isVisible := win.IsWindowVisible(preHwnd)
-//	isMax := win.IsZoomed(preHwnd)
-//	isMin := win.IsIconic(preHwnd)
-//	_this.initTitle = win.GetWindowText(preHwnd)
-//	_this.createParams.X = int16(rect.Left)
-//	_this.createParams.Y = int16(rect.Top)
-//	_this.createParams.CX = int16(rect.Right - rect.Left)
-//	_this.createParams.CY = int16(rect.Bottom - rect.Top)
-//	_this.isCreated = false
-//	bakEvCreate := _this.evWndCreate
-//	_this.evWndCreate = nil
-//	_this.Create()
-//	_this.evWndCreate = bakEvCreate
-//	_this.app.remove(preHwnd, false)
-//	win.DestroyWindow(preHwnd)
-//	if isVisible {
-//		if isMax {
-//			win.ShowWindow(_this.handle, win.SW_MAXIMIZE)
-//		} else if isMin {
-//			win.ShowWindow(_this.handle, win.SW_MINIMIZE)
-//		} else {
-//			win.ShowWindow(_this.handle, win.SW_SHOW)
-//		}
-//	}
-//}
-
 func (_this *winForm) Show() {
 	isMax := win.IsZoomed(_this.handle)
 	isMin := win.IsIconic(_this.handle)
@@ -233,7 +198,7 @@ func (_this *winForm) Close() {
 }
 
 func (_this *winForm) ShowDialog() {
-
+	//todo miss
 }
 
 func (_this *winForm) ShowToMax() {
@@ -263,15 +228,6 @@ func (_this *winForm) SetBorderStyle(border f.FormBorder) {
 	_this._border = border
 }
 
-func (_this *winForm) ShowInTaskbar(isShow bool) {
-	style := uint32(win.GetWindowLong(_this.handle, win.GWL_STYLE))
-	if isShow {
-		style |= win.WS_EX_APPWINDOW
-	} else {
-		style &= ^uint32(win.WS_EX_APPWINDOW)
-	}
-}
-
 func (_this *winForm) SetOnState(proc plat.FormStateProc) plat.FormStateProc {
 	pre := _this._onState
 	_this._onState = proc
@@ -279,38 +235,33 @@ func (_this *winForm) SetOnState(proc plat.FormStateProc) plat.FormStateProc {
 }
 
 func (_this *winForm) SetMaximizeBox(isShow bool) {
-	style := uint32(win.GetWindowLong(_this.handle, win.GWL_STYLE))
+	style := win.GetWindowLong(_this.handle, win.GWL_STYLE)
 	if isShow {
 		style |= win.WS_MAXIMIZEBOX
 	} else {
-		style &= ^uint32(win.WS_MAXIMIZEBOX)
+		style &= ^win.WS_MAXIMIZEBOX
 	}
-	win.SetWindowLong(_this.handle, win.GWL_STYLE, int64(style))
+	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
 }
 
 func (_this *winForm) SetMinimizeBox(isShow bool) {
-	style := uint32(win.GetWindowLong(_this.handle, win.GWL_STYLE))
+	style := win.GetWindowLong(_this.handle, win.GWL_STYLE)
 	if isShow {
 		style |= win.WS_MINIMIZEBOX
 	} else {
-		style &= ^uint32(win.WS_MINIMIZEBOX)
+		style &= ^win.WS_MINIMIZEBOX
 	}
-	win.SetWindowLong(_this.handle, win.GWL_STYLE, int64(style))
+	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
 }
 
 func (_this *winForm) SetIcon(iconFile string) {
+	style := win.GetWindowLong(_this.handle, win.GWL_EXSTYLE)
+	if style&win.WS_EX_DLGMODALFRAME != 0 {
+		return
+	}
 	h := win.LoadImage(_this.app.hInstance, sto16(iconFile), win.IMAGE_ICON, 0, 0, win.LR_LOADFROMFILE)
 	if h != 0 {
 		win.SendMessage(_this.handle, win.WM_SETICON, 1, uintptr(h))
 		win.SendMessage(_this.handle, win.WM_SETICON, 0, uintptr(h))
-	}
-}
-
-func (_this *winForm) SetIconVisable(isShow bool) {
-	style := uint32(win.GetWindowLong(_this.handle, win.GWL_STYLE))
-	if isShow {
-		style &= ^uint32(win.DS_MODALFRAME)
-	} else {
-		style |= win.DS_MODALFRAME
 	}
 }

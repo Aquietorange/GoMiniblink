@@ -13,7 +13,6 @@ type Form interface {
 	ShowDialog()
 	SetTitle(title string)
 	SetBorderStyle(style f.FormBorder)
-	ShowInTaskbar(isShow bool)
 	ShowToMax()
 	ShowToMin()
 	NoneBorderResize()
@@ -21,7 +20,6 @@ type Form interface {
 	SetMaximizeBox(isShow bool)
 	SetMinimizeBox(isShow bool)
 	SetIcon(iconFile string)
-	SetIconVisable(isShow bool)
 
 	SetOnState(proc FormStateProc) FormStateProc
 }

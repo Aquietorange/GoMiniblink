@@ -8,7 +8,7 @@ type BaseUI interface {
 	GetLocation() f.Point
 	SetSize(width, height int)
 	SetLocation(x, y int)
-	SetBgColor(color int)
+	SetBgColor(color int32)
 	IsInvoke() bool
 	Invoke(fn func(state interface{}), state interface{})
 	SetMouseEnable(enable bool)
