@@ -216,6 +216,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				bg := (int32(r) << 16) | (int32(g) << 8) | int32(b)
 				sb := win.CreateSolidBrush(win.COLORREF(bg))
 				win.FillRect(hdc, &ps.RcPaint, sb)
+				win.DeleteObject(win.HGDIOBJ(sb))
 			}
 			e.Graphics = new(winGraphics).init(hdc)
 			if _this.onPaint != nil && _this.onPaint(e) {
