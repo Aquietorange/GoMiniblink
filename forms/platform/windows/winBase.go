@@ -1,7 +1,6 @@
 package windows
 
 import (
-	"fmt"
 	"golang.org/x/sys/windows"
 	f "qq2564874169/goMiniblink/forms"
 	plat "qq2564874169/goMiniblink/forms/platform"
@@ -213,11 +212,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 		if e.Clip.IsEmpty() == false {
 			if _this.bgColor >= 0 {
-				fmt.Println(_this.bgColor)
-				rgb := intToRGBA(_this.bgColor)
-				//todo 这里
-				bg := int32(rgb.A)<<24 | int32(rgb.B)<<16 | int32(rgb.G)<<8 | int32(rgb.R)
-				fmt.Println(bg)
+				r, g, b := uint8(_this.bgColor), uint8(_this.bgColor>>8), uint8(_this.bgColor>>16)
+				bg := (int32(r) << 16) | (int32(g) << 8) | int32(b)
 				sb := win.CreateSolidBrush(win.COLORREF(bg))
 				win.FillRect(hdc, &ps.RcPaint, sb)
 			}
