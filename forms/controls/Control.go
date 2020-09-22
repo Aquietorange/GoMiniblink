@@ -30,11 +30,3 @@ func (_this *Control) SetAnchor(style f.AnchorStyle) {
 func (_this *Control) toControl() p.Control {
 	return _this.impl
 }
-
-func (_this *Control) Show() {
-	_this.impl.Show()
-}
-
-func (_this *Control) Hide() {
-	_this.impl.Hide()
-}

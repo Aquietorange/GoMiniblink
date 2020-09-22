@@ -21,13 +21,8 @@ func main() {
 	ctrl.SetSize(200, 300)
 	ctrl.SetLocation(50, 50)
 	ctrl.SetBgColor(0x2FAEE3)
-	ctrl.EvMouseUp["showForm"] = func(sender interface{}, e *forms.MouseEvArgs) {
-		dlg := new(controls.Form).Init()
-		dlg.SetTitle("this is dialog")
-		dlg.SetSize(200, 200)
-		dlg.SetLocation(500, 500)
-		dlg.ShowDialog()
-		//dlg.Show()
+	ctrl.EvMouseUp["showForm"] = func(s controls.GUI, e *forms.MouseEvArgs) {
+
 	}
 	frm.AddChild(ctrl)
 

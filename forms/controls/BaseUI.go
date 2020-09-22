@@ -6,99 +6,99 @@ import (
 )
 
 type BaseUI struct {
-	EvKeyDown map[string]func(sender interface{}, e *f.KeyEvArgs)
+	EvKeyDown map[string]func(s GUI, e *f.KeyEvArgs)
 	OnKeyDown func(e *f.KeyEvArgs)
 
-	EvKeyUp map[string]func(sender interface{}, e *f.KeyEvArgs)
+	EvKeyUp map[string]func(s GUI, e *f.KeyEvArgs)
 	OnKeyUp func(e *f.KeyEvArgs)
 
-	EvKeyPress map[string]func(sender interface{}, e *f.KeyPressEvArgs)
+	EvKeyPress map[string]func(s GUI, e *f.KeyPressEvArgs)
 	OnKeyPress func(e *f.KeyPressEvArgs)
 
-	EvShow map[string]func(sender interface{})
+	EvShow map[string]func(s GUI)
 	OnShow func()
 
-	EvResize map[string]func(sender interface{}, e f.Rect)
+	EvResize map[string]func(s GUI, e f.Rect)
 	OnResize func(e f.Rect)
 
-	EvMove map[string]func(sender interface{}, e f.Point)
+	EvMove map[string]func(s GUI, e f.Point)
 	OnMove func(e f.Point)
 
-	EvMouseMove map[string]func(sender interface{}, e *f.MouseEvArgs)
+	EvMouseMove map[string]func(s GUI, e *f.MouseEvArgs)
 	OnMouseMove func(e *f.MouseEvArgs)
 
-	EvMouseDown map[string]func(sender interface{}, e *f.MouseEvArgs)
+	EvMouseDown map[string]func(s GUI, e *f.MouseEvArgs)
 	OnMouseDown func(e *f.MouseEvArgs)
 
-	EvMouseUp map[string]func(sender interface{}, e *f.MouseEvArgs)
+	EvMouseUp map[string]func(s GUI, e *f.MouseEvArgs)
 	OnMouseUp func(e *f.MouseEvArgs)
 
-	EvMouseWheel map[string]func(sender interface{}, e *f.MouseEvArgs)
+	EvMouseWheel map[string]func(s GUI, e *f.MouseEvArgs)
 	OnMouseWheel func(e *f.MouseEvArgs)
 
-	EvMouseClick map[string]func(sender interface{}, e *f.MouseEvArgs)
+	EvMouseClick map[string]func(s GUI, e *f.MouseEvArgs)
 	OnMouseClick func(e *f.MouseEvArgs)
 
-	EvPaint map[string]func(sender interface{}, e f.PaintEvArgs)
+	EvPaint map[string]func(s GUI, e f.PaintEvArgs)
 	OnPaint func(e f.PaintEvArgs)
 
-	EvFocus map[string]func(sender interface{})
+	EvFocus map[string]func(s GUI)
 	OnFocus func()
 
-	EvLostFocus map[string]func(sender interface{})
+	EvLostFocus map[string]func(s GUI)
 	OnLostFocus func()
 
 	OnSetCursor           func() bool
 	OnImeStartComposition func() bool
 
-	instance interface{}
+	instance GUI
 	impl     p.Window
 }
 
-func (_this *BaseUI) Init(instance interface{}, impl p.Window) *BaseUI {
+func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 	_this.instance = instance
 	_this.impl = impl
 
-	_this.EvKeyPress = make(map[string]func(target interface{}, e *f.KeyPressEvArgs))
+	_this.EvKeyPress = make(map[string]func(s GUI, e *f.KeyPressEvArgs))
 	_this.OnKeyPress = _this.defOnKeyPress
 
-	_this.EvKeyDown = make(map[string]func(target interface{}, e *f.KeyEvArgs))
+	_this.EvKeyDown = make(map[string]func(s GUI, e *f.KeyEvArgs))
 	_this.OnKeyDown = _this.defOnKeyDown
 
-	_this.EvKeyUp = make(map[string]func(target interface{}, e *f.KeyEvArgs))
+	_this.EvKeyUp = make(map[string]func(s GUI, e *f.KeyEvArgs))
 	_this.OnKeyUp = _this.defOnKeyUp
 
-	_this.EvPaint = make(map[string]func(target interface{}, e f.PaintEvArgs))
+	_this.EvPaint = make(map[string]func(s GUI, e f.PaintEvArgs))
 	_this.OnPaint = _this.defOnPaint
 
-	_this.EvShow = make(map[string]func(target interface{}))
+	_this.EvShow = make(map[string]func(s GUI))
 	_this.OnShow = _this.defOnLoad
 
-	_this.EvResize = make(map[string]func(target interface{}, e f.Rect))
+	_this.EvResize = make(map[string]func(s GUI, e f.Rect))
 	_this.OnResize = _this.defOnResize
 
-	_this.EvMove = make(map[string]func(target interface{}, e f.Point))
+	_this.EvMove = make(map[string]func(s GUI, e f.Point))
 	_this.OnMove = _this.defOnMove
 
-	_this.EvMouseMove = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseMove = make(map[string]func(s GUI, e *f.MouseEvArgs))
 	_this.OnMouseMove = _this.defOnMouseMove
 
-	_this.EvMouseDown = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseDown = make(map[string]func(s GUI, e *f.MouseEvArgs))
 	_this.OnMouseDown = _this.defOnMouseDown
 
-	_this.EvMouseUp = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseUp = make(map[string]func(s GUI, e *f.MouseEvArgs))
 	_this.OnMouseUp = _this.defOnMouseUp
 
-	_this.EvMouseWheel = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseWheel = make(map[string]func(s GUI, e *f.MouseEvArgs))
 	_this.OnMouseWheel = _this.defOnMouseWheel
 
-	_this.EvMouseClick = make(map[string]func(target interface{}, e *f.MouseEvArgs))
+	_this.EvMouseClick = make(map[string]func(s GUI, e *f.MouseEvArgs))
 	_this.OnMouseClick = _this.defOnMouseClick
 
-	_this.EvFocus = make(map[string]func(target interface{}))
+	_this.EvFocus = make(map[string]func(s GUI))
 	_this.OnFocus = _this.defOnFocus
 
-	_this.EvLostFocus = make(map[string]func(target interface{}))
+	_this.EvLostFocus = make(map[string]func(s GUI))
 	_this.OnLostFocus = _this.defOnLostFocus
 
 	var bakImeStart p.WindowImeStartCompositionProc

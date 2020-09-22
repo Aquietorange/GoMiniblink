@@ -77,6 +77,9 @@ func (_this *winBase) IsInvoke() bool {
 
 func (_this *winBase) SetBgColor(color int32) {
 	_this.bgColor = color
+	var rect win.RECT
+	win.GetClientRect(_this.handle, &rect)
+	win.InvalidateRect(_this.handle, &rect, false)
 }
 
 func (_this *winBase) SetCursor(cursor f.CursorType) {
