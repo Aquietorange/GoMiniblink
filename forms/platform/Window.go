@@ -4,6 +4,25 @@ import (
 	f "qq2564874169/goMiniblink/forms"
 )
 
+type WindowLostFocusProc func() bool
+type WindowFocusProc func() bool
+type WindowImeStartCompositionProc func() bool
+type WindowSetCursorProc func() bool
+type WindowShowProc func()
+type WindowCreateProc func(handle uintptr) bool
+type WindowDestroyProc func()
+type WindowResizeProc func(e f.Rect) bool
+type WindowMoveProc func(e f.Point) bool
+type WindowMouseMoveProc func(e *f.MouseEvArgs)
+type WindowMouseDownProc func(e *f.MouseEvArgs)
+type WindowMouseUpProc func(e *f.MouseEvArgs)
+type WindowMouseWheelProc func(e *f.MouseEvArgs)
+type WindowMouseClickProc func(e *f.MouseEvArgs)
+type WindowPaintProc func(e f.PaintEvArgs) bool
+type WindowKeyDownProc func(e *f.KeyEvArgs)
+type WindowKeyUpProc func(e *f.KeyEvArgs)
+type WindowKeyPressProc func(e *f.KeyPressEvArgs)
+
 type Window interface {
 	GetHandle() uintptr
 	SetOnCreate(proc WindowCreateProc) WindowCreateProc
@@ -23,7 +42,7 @@ type Window interface {
 	SetOnImeStartComposition(proc WindowImeStartCompositionProc) WindowImeStartCompositionProc
 	SetOnFocus(proc WindowFocusProc) WindowFocusProc
 	SetOnLostFocus(proc WindowLostFocusProc) WindowLostFocusProc
-	SetOnLoad(proc WindowLoadProc) WindowLoadProc
+	SetOnShow(proc WindowShowProc) WindowShowProc
 
 	GetProvider() Provider
 	Invoke(fn func(state interface{}), state interface{})
@@ -38,29 +57,9 @@ type Window interface {
 	CreateGraphics() f.Graphics
 	SetCursor(cursor f.CursorType)
 	GetCursor() f.CursorType
-	SetMouseEnable(enable bool)
-	GetMouseEnable() bool
-	SetParent(parent Control)
 	GetParent() Control
 	GetOwner() Form
 	MousePosition() f.Point
+	IsEnable() bool
+	Enable(b bool)
 }
-
-type WindowLostFocusProc func() bool
-type WindowFocusProc func() bool
-type WindowImeStartCompositionProc func() bool
-type WindowSetCursorProc func() bool
-type WindowLoadProc func()
-type WindowCreateProc func(handle uintptr) bool
-type WindowDestroyProc func()
-type WindowResizeProc func(e f.Rect) bool
-type WindowMoveProc func(e f.Point) bool
-type WindowMouseMoveProc func(e *f.MouseEvArgs)
-type WindowMouseDownProc func(e *f.MouseEvArgs)
-type WindowMouseUpProc func(e *f.MouseEvArgs)
-type WindowMouseWheelProc func(e *f.MouseEvArgs)
-type WindowMouseClickProc func(e *f.MouseEvArgs)
-type WindowPaintProc func(e f.PaintEvArgs) bool
-type WindowKeyDownProc func(e *f.KeyEvArgs)
-type WindowKeyUpProc func(e *f.KeyEvArgs)
-type WindowKeyPressProc func(e *f.KeyPressEvArgs)

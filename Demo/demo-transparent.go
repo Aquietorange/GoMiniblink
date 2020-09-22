@@ -13,13 +13,13 @@ func main() {
 	controls.App = new(windows.Provider).Init()
 
 	var frm = new(g.MiniblinkForm).Init()
-	frm.EvLoad["set_form"] = func(target interface{}) {
+	frm.EvShow["set_form"] = func(target interface{}) {
 		frm.TransparentMode()
 		frm.SetLocation(100, 100)
 		frm.SetSize(300, 300)
 		frm.NoneBorderResize()
 	}
-	frm.EvLoad["set_view"] = func(target interface{}) {
+	frm.EvShow["set_view"] = func(target interface{}) {
 		frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
 		frm.View.LoadUri("http://local/transparent.html")
 	}

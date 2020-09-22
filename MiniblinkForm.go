@@ -39,8 +39,8 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 		_this.View.SetSize(e.Width, e.Height)
 		bakOnResize(e)
 	}
-	bakOnLoad := _this.OnLoad
-	_this.OnLoad = func() {
+	bakOnLoad := _this.OnShow
+	_this.OnShow = func() {
 		_this._wke = wkeHandle(_this.View.GetMiniblinkHandle())
 		_this.View.OnFocus()
 		_this.View.JsFuncEx(_fnMax, func() {

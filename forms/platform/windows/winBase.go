@@ -16,16 +16,19 @@ type invokeContext struct {
 	state interface{}
 }
 
+const (
+	cmd_invoke = 100
+)
+
 type winBase struct {
 	app       *Provider
 	handle    win.HWND
 	invokeMap sync.Map
 	onWndProc windowsMsgProc
-	isLoad    bool
 	owner     plat.Form
 	parent    plat.Control
 
-	onLoad                plat.WindowLoadProc
+	onShow                plat.WindowShowProc
 	onCreate              plat.WindowCreateProc
 	onDestroy             plat.WindowDestroyProc
 	onResize              plat.WindowResizeProc
@@ -45,17 +48,17 @@ type winBase struct {
 	onLostFocus           plat.WindowLostFocusProc
 
 	bgColor  int32
-	msEnable bool
 	cursor   f.CursorType
+	isEnable bool
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
 	_this.app = provider
-	_this.app.add(_this)
-	_this.onWndProc = _this.msgProc
-	_this.msEnable = true
+	_this.isEnable = true
 	_this.cursor = f.CursorType_Default
 	_this.bgColor = -1
+	_this.app.add(_this)
+	_this.onWndProc = _this.msgProc
 	return _this
 }
 
@@ -103,7 +106,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	switch msg {
 	case win.WM_CREATE:
 		cs := *((*win.CREATESTRUCT)(unsafe.Pointer(lParam)))
-		if _this.app.defIcon != 0 && cs.ExStyle&win.WS_EX_DLGMODALFRAME == 0 {
+		if _this.app.defIcon != 0 && cs.ExStyle&win.WS_EX_DLGMODALFRAME == 0 && cs.Style&win.WS_CHILD == 0 {
 			win.SendMessage(hWnd, win.WM_SETICON, 1, uintptr(_this.app.defIcon))
 			win.SendMessage(hWnd, win.WM_SETICON, 0, uintptr(_this.app.defIcon))
 		}
@@ -112,11 +115,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			_this.onCreate(uintptr(hWnd))
 		}
 	case win.WM_SHOWWINDOW:
-		if _this.isLoad == false {
-			if _this.onLoad != nil {
-				_this.onLoad()
-			}
-			_this.isLoad = true
+		if _this.onShow != nil {
+			_this.onShow()
 		}
 	case win.WM_COMMAND:
 		ret = _this.execCmd(wParam, lParam)
@@ -141,8 +141,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_SIZE:
 		if _this.onResize != nil {
-			xl, yl := win.GET_X_LPARAM(lParam), win.GET_Y_LPARAM(lParam)
-			rect := f.Rect{Width: int(xl), Height: int(yl)}
+			w, h := win.GET_X_LPARAM(lParam), win.GET_Y_LPARAM(lParam)
+			rect := f.Rect{Width: int(w), Height: int(h)}
 			if _this.onResize(rect) {
 				ret = 1
 			}
@@ -159,7 +159,6 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		if _this.onDestroy != nil {
 			_this.onDestroy()
 		}
-		_this.app.remove(_this.handle, true)
 	case win.WM_SYSKEYDOWN, win.WM_KEYDOWN:
 		key := vkToKey(int(wParam))
 		if _this.onKeyDown != nil && key != f.Keys_Error {
@@ -226,7 +225,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 		win.EndPaint(hWnd, ps)
 	case win.WM_MOUSEMOVE:
-		if _this.onMouseMove != nil && _this.msEnable {
+		if _this.onMouseMove != nil {
 			e := f.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
@@ -247,7 +246,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_LBUTTONDBLCLK, win.WM_MBUTTONDBLCLK, win.WM_RBUTTONDBLCLK:
-		if _this.onMouseClick != nil && _this.msEnable {
+		if _this.onMouseClick != nil {
 			e := f.MouseEvArgs{
 				X:        int(win.GET_X_LPARAM(lParam)),
 				Y:        int(win.GET_Y_LPARAM(lParam)),
@@ -268,7 +267,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_LBUTTONDOWN, win.WM_RBUTTONDOWN, win.WM_MBUTTONDOWN:
 		win.SetCapture(hWnd)
-		if _this.onMouseDown != nil && _this.msEnable {
+		if _this.onMouseDown != nil {
 			e := f.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
@@ -288,7 +287,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
 		win.ReleaseCapture()
-		if _this.onMouseUp != nil && _this.msEnable {
+		if _this.onMouseUp != nil {
 			e := f.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
@@ -307,7 +306,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_MOUSEWHEEL:
-		if _this.onMouseWheel != nil && _this.msEnable {
+		if _this.onMouseWheel != nil {
 			lp, hp := win.LOWORD(int32(wParam)), win.HIWORD(int32(wParam))
 			e := f.MouseEvArgs{
 				X:     int(win.GET_X_LPARAM(lParam)),
@@ -377,12 +376,18 @@ func (_this *winBase) GetProvider() plat.Provider {
 	return _this.app
 }
 
-func (_this *winBase) SetMouseEnable(enable bool) {
-	_this.msEnable = enable
+func (_this *winBase) IsEnable() bool {
+	return _this.isEnable
 }
 
-func (_this *winBase) GetMouseEnable() bool {
-	return _this.msEnable
+func (_this *winBase) Enable(b bool) {
+	style := win.GetWindowLong(_this.handle, win.GWL_STYLE)
+	if b {
+		style &= ^win.WS_DISABLED
+	} else {
+		style |= win.WS_DISABLED
+	}
+	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
 }
 
 func (_this *winBase) GetSize() (width, height int) {
@@ -392,28 +397,17 @@ func (_this *winBase) GetSize() (width, height int) {
 }
 
 func (_this *winBase) SetSize(width, height int) {
-	win.SetWindowPos(_this.handle, 0, 0, 0, int32(width), int32(height), win.SWP_NOMOVE|win.SWP_NOZORDER)
+	win.SetWindowPos(_this.handle, 0, 0, 0, int32(width), int32(height), win.SWP_NOMOVE|win.SWP_NOZORDER|win.SWP_NOACTIVATE)
 }
 
 func (_this *winBase) SetLocation(x, y int) {
-	win.SetWindowPos(_this.handle, 0, int32(x), int32(y), 0, 0, win.SWP_NOSIZE|win.SWP_NOZORDER)
+	win.SetWindowPos(_this.handle, 0, int32(x), int32(y), 0, 0, win.SWP_NOSIZE|win.SWP_NOZORDER|win.SWP_NOACTIVATE)
 }
 
 func (_this *winBase) GetLocation() (x, y int) {
 	rect := win.RECT{}
 	win.GetWindowRect(_this.handle, &rect)
 	return int(rect.Left), int(rect.Top)
-}
-
-func (_this *winBase) SetParent(parent plat.Control) {
-	if win.SetParent(_this.handle, win.HWND(parent.GetHandle())) != 0 {
-		_this.parent = parent
-		if ow, ok := parent.(plat.Form); ok {
-			_this.owner = ow
-		} else {
-			_this.owner = parent.GetOwner()
-		}
-	}
 }
 
 func (_this *winBase) GetParent() plat.Control {

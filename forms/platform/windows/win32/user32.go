@@ -2480,13 +2480,11 @@ func EmptyClipboard() bool {
 	return ret != 0
 }
 
-func EnableWindow(hWnd HWND, bEnable bool) bool {
-	ret, _, _ := syscall.Syscall(enableWindow.Addr(), 2,
+func EnableWindow(hWnd HWND, bEnable bool) {
+	syscall.Syscall(enableWindow.Addr(), 2,
 		uintptr(hWnd),
 		uintptr(BoolToBOOL(bEnable)),
 		0)
-
-	return ret != 0
 }
 
 func EndDeferWindowPos(hWinPosInfo HDWP) bool {

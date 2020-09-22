@@ -4,9 +4,9 @@ import (
 	plat "qq2564874169/goMiniblink/forms/platform"
 )
 
-func (_this *winBase) SetOnLoad(proc plat.WindowLoadProc) plat.WindowLoadProc {
-	pre := _this.onLoad
-	_this.onLoad = proc
+func (_this *winBase) SetOnShow(proc plat.WindowShowProc) plat.WindowShowProc {
+	pre := _this.onShow
+	_this.onShow = proc
 	return pre
 }
 

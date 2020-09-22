@@ -5,6 +5,7 @@ import (
 )
 
 type FormStateProc func(state f.FormState)
+type FormActiveProc func()
 
 type Form interface {
 	Controls
@@ -16,10 +17,12 @@ type Form interface {
 	ShowToMax()
 	ShowToMin()
 	NoneBorderResize()
+	Active()
 
 	SetMaximizeBox(isShow bool)
 	SetMinimizeBox(isShow bool)
 	SetIcon(iconFile string)
 
 	SetOnState(proc FormStateProc) FormStateProc
+	SetOnActive(proc FormActiveProc) FormActiveProc
 }

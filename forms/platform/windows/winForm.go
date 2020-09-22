@@ -8,15 +8,16 @@ import (
 )
 
 type winForm struct {
-	winBase
-	_onClose func() (cancel bool)
-	_onState plat.FormStateProc
-	_ctrls   []plat.Control
-	_border  f.FormBorder
+	winContainer
+	_onClose  func() (cancel bool)
+	_onState  plat.FormStateProc
+	_onActive plat.FormActiveProc
+	_border   f.FormBorder
+	_isModal  bool
 }
 
 func (_this *winForm) init(provider *Provider, param plat.FormParam) *winForm {
-	_this.winBase.init(provider)
+	_this.winContainer.init(provider, _this)
 	_this.onWndProc = _this.msgProc
 	parent := win.HWND(0)
 	exStyle := win.WS_EX_APPWINDOW | win.WS_EX_CONTROLPARENT
@@ -27,31 +28,15 @@ func (_this *winForm) init(provider *Provider, param plat.FormParam) *winForm {
 	if param.HideIcon {
 		exStyle |= win.WS_EX_DLGMODALFRAME
 	}
+	x := 100 + len(_this.app.forms)*25
+	y := 100 + len(_this.app.forms)*25
 	win.CreateWindowEx(
 		uint64(exStyle),
 		sto16(_this.app.className),
 		sto16(""),
 		win.WS_OVERLAPPEDWINDOW,
-		0, 0, 0, 0, parent, 0, _this.app.hInstance, unsafe.Pointer(_this))
+		int32(x), int32(y), 200, 300, parent, 0, _this.app.hInstance, unsafe.Pointer(_this))
 	return _this
-}
-
-func (_this *winForm) GetChilds() []plat.Control {
-	return _this._ctrls
-}
-
-func (_this *winForm) AddControl(control plat.Control) {
-	control.SetParent(_this)
-	_this._ctrls = append(_this._ctrls, control)
-}
-
-func (_this *winForm) RemoveControl(control plat.Control) {
-	//if ctrl, ok := control.(*winControl); ok {
-	//	if ctrl.IsCreate() {
-	//
-	//	}
-	//	delete(_this._ctrls, ctrl.id())
-	//}
 }
 
 func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
@@ -61,7 +46,12 @@ func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	}
 	switch msg {
 	case win.WM_CREATE:
-		_this.SetSize(200, 300)
+		_this.app.forms[hWnd] = _this
+	case win.WM_DESTROY:
+		if _this._isModal {
+			win.PostQuitMessage(0)
+			return 1
+		}
 	case win.WM_SIZE:
 		if _this._onState != nil {
 			switch int(wParam) {
@@ -73,12 +63,25 @@ func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				_this._onState(f.FormState_Min)
 			}
 		}
+	case win.WM_ACTIVATE:
+		if _this._onActive != nil {
+			_this._onActive()
+		}
 	case win.WM_CLOSE:
 		if _this._onClose != nil && _this._onClose() {
 			rs = 1
 		}
+		if rs != 0 && _this._isModal {
+			_this._isModal = false
+		}
 	}
 	return rs
+}
+
+func (_this *winForm) SetOnActive(proc plat.FormActiveProc) plat.FormActiveProc {
+	pre := _this._onActive
+	_this._onActive = proc
+	return pre
 }
 
 func (_this *winForm) NoneBorderResize() {
@@ -198,7 +201,23 @@ func (_this *winForm) Close() {
 }
 
 func (_this *winForm) ShowDialog() {
-	//todo miss
+	acHwnd := win.GetActiveWindow()
+	if acfm, ok := _this.app.forms[acHwnd].(*winForm); ok {
+		acfm.Enable(false)
+		_this._isModal = true
+		_this.Show()
+		var msg win.MSG
+		for {
+			if win.GetMessage(&msg, 0, 0, 0) && _this._isModal {
+				win.TranslateMessage(&msg)
+				win.DispatchMessage(&msg)
+			} else {
+				break
+			}
+		}
+		acfm.Enable(true)
+		acfm.Active()
+	}
 }
 
 func (_this *winForm) ShowToMax() {
@@ -264,4 +283,13 @@ func (_this *winForm) SetIcon(iconFile string) {
 		win.SendMessage(_this.handle, win.WM_SETICON, 1, uintptr(h))
 		win.SendMessage(_this.handle, win.WM_SETICON, 0, uintptr(h))
 	}
+}
+
+func (_this *winForm) Enable(b bool) {
+	_this.isEnable = b
+	win.EnableWindow(_this.handle, b)
+}
+
+func (_this *winForm) Active() {
+	win.SetActiveWindow(_this.handle)
 }

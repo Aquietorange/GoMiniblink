@@ -13,10 +13,9 @@ func main() {
 	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
 	controls.App = new(windows.Provider).Init()
 	controls.App.SetIcon("app.ico")
-	controls.App.SetBgColor(0x00FF)
 
 	var frm = new(g.MiniblinkForm).Init()
-	frm.View.EvLoad["init"] = func(target interface{}) {
+	frm.View.EvShow["init"] = func(target interface{}) {
 		frm.SetTitle("miniblink窗口")
 		frm.SetStartPosition(forms.FormStartPosition_Manual)
 		frm.SetLocation(100, 100)

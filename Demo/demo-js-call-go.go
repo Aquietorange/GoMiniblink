@@ -13,20 +13,19 @@ func main() {
 	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
 	controls.App = new(windows.Provider).Init()
 	controls.App.SetIcon("app.ico")
-	controls.App.SetBgColor(0x00FF)
 
 	frm := new(controls.Form).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetSize(800, 500)
 
-	frm.EvLoad[""] = func(sender interface{}) {
+	frm.EvShow[""] = func(sender interface{}) {
 		mb := new(g.MiniblinkBrowser).Init()
 		mb.SetSize(750, 425)
 		mb.SetLocation(15, 15)
 		mb.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
 		mb.ResourceLoader = append(mb.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
-		mb.EvLoad["bind_func"] = func(_ interface{}) {
-			mb.EvConsole["show"] = func(_ interface{}, e g.ConsoleEvArgs) {
+		mb.EvShow["bind_func"] = func(_ interface{}) {
+			mb.EvConsole["show"] = func(_ *g.MiniblinkBrowser, e g.ConsoleEvArgs) {
 				fmt.Println(e.Message())
 			}
 			mb.JsFuncEx("Func1", func(n1, n2 float64) int {

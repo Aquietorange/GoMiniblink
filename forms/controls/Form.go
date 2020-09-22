@@ -6,8 +6,8 @@ import (
 )
 
 type Form struct {
-	FormBaseUI
-	DefChildContainer
+	BaseUI
+	BaseContainer
 
 	EvState map[string]func(target interface{}, state f.FormState)
 	OnState func(state f.FormState)
@@ -27,8 +27,8 @@ func (_this *Form) getFormImpl() p.Form {
 
 func (_this *Form) InitEx(param p.FormParam) *Form {
 	_this.impl = App.NewForm(param)
-	_this.FormBaseUI.init(_this, _this.impl)
-	_this.DefChildContainer.init(_this)
+	_this.BaseUI.Init(_this, _this.impl)
+	_this.BaseContainer.Init(_this)
 	_this.EvState = make(map[string]func(interface{}, f.FormState))
 	_this.title = ""
 	_this.border = f.FormBorder_Default
@@ -62,8 +62,8 @@ func (_this *Form) registerEvents() {
 		_this.state = state
 		_this.OnState(state)
 	})
-	var bakCreate p.WindowCreateProc
-	bakCreate = _this.impl.SetOnCreate(func(handle uintptr) bool {
+	var bakShow p.WindowShowProc
+	bakShow = _this.impl.SetOnShow(func() {
 		switch _this.startPos {
 		case f.FormStartPosition_Screen_Center:
 			scr := App.GetScreen()
@@ -71,10 +71,9 @@ func (_this *Form) registerEvents() {
 			x, y := scr.WorkArea.Width/2-size.Width/2, scr.WorkArea.Height/2-size.Height/2
 			_this.impl.SetLocation(x, y)
 		}
-		if bakCreate != nil {
-			return bakCreate(handle)
+		if bakShow != nil {
+			bakShow()
 		}
-		return false
 	})
 }
 
@@ -134,4 +133,9 @@ func (_this *Form) Close() {
 
 func (_this *Form) SetIcon(file string) {
 	_this.impl.SetIcon(file)
+}
+
+func (_this *Form) ShowDialog() {
+	_this.SetStartPosition(f.FormStartPosition_Screen_Center)
+	_this.impl.ShowDialog()
 }
