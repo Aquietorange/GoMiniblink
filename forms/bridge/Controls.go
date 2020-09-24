@@ -1,4 +1,4 @@
-package platform
+package bridge
 
 type Controls interface {
 	Control

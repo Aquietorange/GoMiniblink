@@ -1925,6 +1925,7 @@ var (
 	mapDialogRect               *windows.LazyProc
 	fillRect                    *windows.LazyProc
 	updateLayeredWindow         *windows.LazyProc
+	getDoubleClickTime          *windows.LazyProc
 )
 
 func init() {
@@ -1934,6 +1935,7 @@ func init() {
 	libuser32 = windows.NewLazySystemDLL("user32.dll")
 
 	// Functions
+	getDoubleClickTime = libuser32.NewProc("GetDoubleClickTime")
 	updateLayeredWindow = libuser32.NewProc("UpdateLayeredWindow")
 	addClipboardFormatListener = libuser32.NewProc("AddClipboardFormatListener")
 	adjustWindowRect = libuser32.NewProc("AdjustWindowRect")
@@ -2082,6 +2084,11 @@ func init() {
 	createDialogIndirectParam = libuser32.NewProc("CreateDialogIndirectParamW")
 	mapDialogRect = libuser32.NewProc("MapDialogRect")
 	fillRect = libuser32.NewProc("FillRect")
+}
+
+func GetDoubleClickTime() uint32 {
+	rs, _, _ := getDoubleClickTime.Call()
+	return uint32(rs)
 }
 
 func UpdateLayeredWindow(hWnd HWND, hdcDst HDC, pptDst *POINT, pptSize *SIZE, hdcSrc HDC, pptSrc *POINT, crKey int32, blend *BLENDFUNCTION, dwFlags int32) bool {

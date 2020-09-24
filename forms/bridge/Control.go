@@ -1,4 +1,4 @@
-package platform
+package bridge
 
 type Control interface {
 	Window

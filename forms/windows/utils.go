@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"image/color"
 	fm "qq2564874169/goMiniblink/forms"
-	plat "qq2564874169/goMiniblink/forms/platform"
-	win "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	br "qq2564874169/goMiniblink/forms/bridge"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"syscall"
 )
 
-func findChild(container plat.Controls, hWnd win.HWND) plat.Window {
+func findChild(container br.Controls, hWnd win.HWND) br.Window {
 	if container.GetHandle() == uintptr(hWnd) {
 		return container
 	}
 	for _, i := range container.GetChilds() {
-		if c, ok := i.(plat.Controls); ok {
+		if c, ok := i.(br.Controls); ok {
 			w := findChild(c, hWnd)
 			if w != nil {
 				return w

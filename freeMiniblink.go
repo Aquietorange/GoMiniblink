@@ -6,7 +6,7 @@ import (
 	"math"
 	f "qq2564874169/goMiniblink/forms"
 	c "qq2564874169/goMiniblink/forms/controls"
-	w "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	w "qq2564874169/goMiniblink/forms/windows/win32"
 	"strconv"
 	"strings"
 	"time"

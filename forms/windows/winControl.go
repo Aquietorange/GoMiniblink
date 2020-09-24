@@ -1,7 +1,7 @@
 package windows
 
 import (
-	w "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"unsafe"
 )
 
@@ -11,11 +11,11 @@ type winControl struct {
 
 func (_this *winControl) init(provider *Provider) *winControl {
 	_this.winBase.init(provider)
-	w.CreateWindowEx(
+	win.CreateWindowEx(
 		0,
 		sto16(provider.className),
 		sto16(""),
-		w.WS_CHILD|w.WS_VISIBLE, 0, 0, 100, 100, _this.app.defOwner, 0,
+		win.WS_CHILD|win.WS_VISIBLE, 0, 0, 100, 100, _this.app.defOwner, 0,
 		provider.hInstance, unsafe.Pointer(_this))
 	return _this
 }

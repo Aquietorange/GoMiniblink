@@ -2,14 +2,16 @@ package windows
 
 import (
 	"golang.org/x/sys/windows"
-	f "qq2564874169/goMiniblink/forms"
-	plat "qq2564874169/goMiniblink/forms/platform"
-	win "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	fm "qq2564874169/goMiniblink/forms"
+	br "qq2564874169/goMiniblink/forms/bridge"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"strconv"
 	"sync"
 	"time"
 	"unsafe"
 )
+
+var dbclickTime = win.GetDoubleClickTime()
 
 type invokeContext struct {
 	fn    func(state interface{})
@@ -25,37 +27,38 @@ type winBase struct {
 	handle    win.HWND
 	invokeMap sync.Map
 	onWndProc windowsMsgProc
-	owner     plat.Form
-	parent    plat.Control
+	owner     br.Form
+	parent    br.Control
 
-	onShow                plat.WindowShowProc
-	onCreate              plat.WindowCreateProc
-	onDestroy             plat.WindowDestroyProc
-	onResize              plat.WindowResizeProc
-	onMove                plat.WindowMoveProc
-	onMouseMove           plat.WindowMouseMoveProc
-	onMouseDown           plat.WindowMouseDownProc
-	onMouseUp             plat.WindowMouseUpProc
-	onMouseWheel          plat.WindowMouseWheelProc
-	onMouseClick          plat.WindowMouseClickProc
-	onPaint               plat.WindowPaintProc
-	onKeyDown             plat.WindowKeyDownProc
-	onKeyUp               plat.WindowKeyUpProc
-	onKeyPress            plat.WindowKeyPressProc
-	onSetCursor           plat.WindowSetCursorProc
-	onImeStartComposition plat.WindowImeStartCompositionProc
-	onFocus               plat.WindowFocusProc
-	onLostFocus           plat.WindowLostFocusProc
+	onShow                br.WindowShowProc
+	onCreate              br.WindowCreateProc
+	onDestroy             br.WindowDestroyProc
+	onResize              br.WindowResizeProc
+	onMove                br.WindowMoveProc
+	onMouseMove           br.WindowMouseMoveProc
+	onMouseDown           br.WindowMouseDownProc
+	onMouseUp             br.WindowMouseUpProc
+	onMouseWheel          br.WindowMouseWheelProc
+	onMouseClick          br.WindowMouseClickProc
+	onPaint               br.WindowPaintProc
+	onKeyDown             br.WindowKeyDownProc
+	onKeyUp               br.WindowKeyUpProc
+	onKeyPress            br.WindowKeyPressProc
+	onSetCursor           br.WindowSetCursorProc
+	onImeStartComposition br.WindowImeStartCompositionProc
+	onFocus               br.WindowFocusProc
+	onLostFocus           br.WindowLostFocusProc
 
-	bgColor  int32
-	cursor   f.CursorType
-	isEnable bool
+	bgColor   int32
+	cursor    fm.CursorType
+	isEnable  bool
+	clickTime time.Time
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
 	_this.app = provider
 	_this.isEnable = true
-	_this.cursor = f.CursorType_Default
+	_this.cursor = fm.CursorType_Default
 	_this.bgColor = -1
 	_this.app.add(_this)
 	_this.onWndProc = _this.msgProc
@@ -82,15 +85,15 @@ func (_this *winBase) SetBgColor(color int32) {
 	win.InvalidateRect(_this.handle, &rect, false)
 }
 
-func (_this *winBase) SetCursor(cursor f.CursorType) {
-	if cursor != f.CursorType_Default {
+func (_this *winBase) SetCursor(cursor fm.CursorType) {
+	if cursor != fm.CursorType_Default {
 		res := win.MAKEINTRESOURCE(uintptr(toWinCursor(cursor)))
 		win.SetCursor(win.LoadCursor(0, res))
 	}
 	_this.cursor = cursor
 }
 
-func (_this *winBase) GetCursor() f.CursorType {
+func (_this *winBase) GetCursor() fm.CursorType {
 	return _this.cursor
 }
 
@@ -136,7 +139,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			ret = 1
 		}
 	case win.WM_SETCURSOR:
-		if _this.cursor != f.CursorType_Default {
+		if _this.cursor != fm.CursorType_Default {
 			_this.SetCursor(_this.cursor)
 			ret = 1
 		} else if _this.onSetCursor != nil && _this.onSetCursor() {
@@ -145,7 +148,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_SIZE:
 		if _this.onResize != nil {
 			w, h := win.GET_X_LPARAM(lParam), win.GET_Y_LPARAM(lParam)
-			rect := f.Rect{Width: int(w), Height: int(h)}
+			rect := fm.Rect{Width: int(w), Height: int(h)}
 			if _this.onResize(rect) {
 				ret = 1
 			}
@@ -153,7 +156,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_MOVE:
 		if _this.onMove != nil {
 			x, y := win.GET_X_LPARAM(lParam), win.GET_Y_LPARAM(lParam)
-			pos := f.Point{X: int(x), Y: int(y)}
+			pos := fm.Point{X: int(x), Y: int(y)}
 			if _this.onMove(pos) {
 				ret = 1
 			}
@@ -164,8 +167,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_SYSKEYDOWN, win.WM_KEYDOWN:
 		key := vkToKey(int(wParam))
-		if _this.onKeyDown != nil && key != f.Keys_Error {
-			e := f.KeyEvArgs{
+		if _this.onKeyDown != nil && key != fm.Keys_Error {
+			e := fm.KeyEvArgs{
 				Key:   key,
 				Value: wParam,
 				IsSys: msg == win.WM_SYSKEYDOWN,
@@ -176,8 +179,8 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_SYSKEYUP, win.WM_KEYUP:
 		key := vkToKey(int(wParam))
-		if _this.onKeyUp != nil && key != f.Keys_Error {
-			e := f.KeyEvArgs{
+		if _this.onKeyUp != nil && key != fm.Keys_Error {
+			e := fm.KeyEvArgs{
 				Key:   key,
 				Value: wParam,
 				IsSys: msg == win.WM_SYSKEYUP,
@@ -188,7 +191,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_SYSCHAR, win.WM_CHAR:
 		if _this.onKeyPress != nil {
-			e := f.KeyPressEvArgs{
+			e := fm.KeyPressEvArgs{
 				KeyChar: strconv.Itoa(int(wParam)),
 				Value:   wParam,
 				IsSys:   msg == win.WM_SYSCHAR,
@@ -200,13 +203,13 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_PAINT:
 		ps := new(win.PAINTSTRUCT)
 		hdc := win.BeginPaint(hWnd, ps)
-		e := f.PaintEvArgs{
-			Clip: f.Bound{
-				Point: f.Point{
+		e := fm.PaintEvArgs{
+			Clip: fm.Bound{
+				Point: fm.Point{
 					X: int(ps.RcPaint.Left),
 					Y: int(ps.RcPaint.Top),
 				},
-				Rect: f.Rect{
+				Rect: fm.Rect{
 					Width:  int(ps.RcPaint.Right - ps.RcPaint.Left),
 					Height: int(ps.RcPaint.Bottom - ps.RcPaint.Top),
 				},
@@ -229,28 +232,29 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		win.EndPaint(hWnd, ps)
 	case win.WM_MOUSEMOVE:
 		if _this.onMouseMove != nil {
-			e := f.MouseEvArgs{
+			e := fm.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
 			wp := int(wParam)
 			if wp&win.MK_LBUTTON != 0 {
-				e.Button |= f.MouseButtons_Left
+				e.Button |= fm.MouseButtons_Left
 			}
 			if wp&win.MK_MBUTTON != 0 {
-				e.Button |= f.MouseButtons_Middle
+				e.Button |= fm.MouseButtons_Middle
 			}
 			if wp&win.MK_RBUTTON != 0 {
-				e.Button |= f.MouseButtons_Right
+				e.Button |= fm.MouseButtons_Right
 			}
 			if _this.onMouseMove(&e); e.IsHandle {
 				ret = 1
 			}
 		}
 	case win.WM_LBUTTONDBLCLK, win.WM_MBUTTONDBLCLK, win.WM_RBUTTONDBLCLK:
+		_this.clickTime = time.Now().Add(time.Hour * -1)
 		if _this.onMouseClick != nil {
-			e := f.MouseEvArgs{
+			e := fm.MouseEvArgs{
 				X:        int(win.GET_X_LPARAM(lParam)),
 				Y:        int(win.GET_Y_LPARAM(lParam)),
 				Time:     time.Now(),
@@ -258,11 +262,11 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 			switch msg {
 			case win.WM_LBUTTONDOWN:
-				e.Button |= f.MouseButtons_Left
+				e.Button |= fm.MouseButtons_Left
 			case win.WM_RBUTTONDOWN:
-				e.Button |= f.MouseButtons_Right
+				e.Button |= fm.MouseButtons_Right
 			case win.WM_MBUTTONDOWN:
-				e.Button |= f.MouseButtons_Middle
+				e.Button |= fm.MouseButtons_Middle
 			}
 			if _this.onMouseClick(&e); e.IsHandle {
 				ret = 1
@@ -270,19 +274,20 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_LBUTTONDOWN, win.WM_RBUTTONDOWN, win.WM_MBUTTONDOWN:
 		win.SetCapture(hWnd)
+		_this.clickTime = time.Now()
 		if _this.onMouseDown != nil {
-			e := f.MouseEvArgs{
+			e := fm.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
 			switch msg {
 			case win.WM_LBUTTONDOWN:
-				e.Button |= f.MouseButtons_Left
+				e.Button |= fm.MouseButtons_Left
 			case win.WM_RBUTTONDOWN:
-				e.Button |= f.MouseButtons_Right
+				e.Button |= fm.MouseButtons_Right
 			case win.WM_MBUTTONDOWN:
-				e.Button |= f.MouseButtons_Middle
+				e.Button |= fm.MouseButtons_Middle
 			}
 			if _this.onMouseDown(&e); e.IsHandle {
 				ret = 1
@@ -291,40 +296,71 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
 		win.ReleaseCapture()
 		if _this.onMouseUp != nil {
-			e := f.MouseEvArgs{
+			e := fm.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
 			switch msg {
 			case win.WM_LBUTTONDOWN:
-				e.Button |= f.MouseButtons_Left
+				e.Button |= fm.MouseButtons_Left
 			case win.WM_RBUTTONDOWN:
-				e.Button |= f.MouseButtons_Right
+				e.Button |= fm.MouseButtons_Right
 			case win.WM_MBUTTONDOWN:
-				e.Button |= f.MouseButtons_Middle
+				e.Button |= fm.MouseButtons_Middle
 			}
 			if _this.onMouseUp(&e); e.IsHandle {
 				ret = 1
 			}
 		}
+		if _this.onMouseClick != nil {
+			var rect win.RECT
+			win.GetWindowRect(hWnd, &rect)
+			mp := _this.app.MouseLocation()
+			if mp.X < int(rect.Right) && mp.X >= int(rect.Left) && mp.Y >= int(rect.Top) && mp.Y < int(rect.Bottom) {
+				go func() {
+					time.Sleep(time.Duration(time.Millisecond.Nanoseconds() * int64(dbclickTime)))
+					s := time.Now().Sub(_this.clickTime).Seconds()
+					if s < 1 {
+						e := fm.MouseEvArgs{
+							X:        int(win.GET_X_LPARAM(lParam)),
+							Y:        int(win.GET_Y_LPARAM(lParam)),
+							Time:     time.Now(),
+							IsDouble: false,
+						}
+						switch msg {
+						case win.WM_LBUTTONDOWN:
+							e.Button |= fm.MouseButtons_Left
+						case win.WM_RBUTTONDOWN:
+							e.Button |= fm.MouseButtons_Right
+						case win.WM_MBUTTONDOWN:
+							e.Button |= fm.MouseButtons_Middle
+						}
+						_this.Invoke(func(state interface{}) {
+							st := state.(fm.MouseEvArgs)
+							_this.onMouseClick(&st)
+						}, e)
+					}
+				}()
+			}
+		}
 	case win.WM_MOUSEWHEEL:
 		if _this.onMouseWheel != nil {
 			lp, hp := win.LOWORD(int32(wParam)), win.HIWORD(int32(wParam))
-			e := f.MouseEvArgs{
+			e := fm.MouseEvArgs{
 				X:     int(win.GET_X_LPARAM(lParam)),
 				Y:     int(win.GET_Y_LPARAM(lParam)),
 				Delta: int(hp),
 				Time:  time.Now(),
 			}
 			if lp&win.MK_LBUTTON != 0 {
-				e.Button |= f.MouseButtons_Left
+				e.Button |= fm.MouseButtons_Left
 			}
 			if lp&win.MK_MBUTTON != 0 {
-				e.Button |= f.MouseButtons_Middle
+				e.Button |= fm.MouseButtons_Middle
 			}
 			if lp&win.MK_RBUTTON != 0 {
-				e.Button |= f.MouseButtons_Right
+				e.Button |= fm.MouseButtons_Right
 			}
 			if _this.onMouseWheel(&e); e.IsHandle {
 				ret = 1
@@ -336,7 +372,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	return ret
 }
 
-func (_this *winBase) CreateGraphics() f.Graphics {
+func (_this *winBase) CreateGraphics() fm.Graphics {
 	hdc := win.GetDC(_this.handle)
 	g := new(winGraphics).init(hdc)
 	g.onClose = func(e *winGraphics) {
@@ -375,7 +411,7 @@ func (_this *winBase) GetHandle() uintptr {
 	return uintptr(_this.hWnd())
 }
 
-func (_this *winBase) GetProvider() plat.Provider {
+func (_this *winBase) GetProvider() br.Provider {
 	return _this.app
 }
 
@@ -413,22 +449,22 @@ func (_this *winBase) GetLocation() (x, y int) {
 	return int(rect.Left), int(rect.Top)
 }
 
-func (_this *winBase) GetParent() plat.Control {
+func (_this *winBase) GetParent() br.Control {
 	return _this.parent
 }
 
-func (_this *winBase) GetOwner() plat.Form {
+func (_this *winBase) GetOwner() br.Form {
 	return _this.owner
 }
 
-func (_this *winBase) MousePosition() f.Point {
+func (_this *winBase) MousePosition() fm.Point {
 	p := _this.app.MouseLocation()
 	sp := win.POINT{
 		X: int32(p.X),
 		Y: int32(p.Y),
 	}
 	win.ScreenToClient(_this.handle, &sp)
-	return f.Point{
+	return fm.Point{
 		X: int(sp.X),
 		Y: int(sp.Y),
 	}

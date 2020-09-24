@@ -2,19 +2,19 @@ package controls
 
 import (
 	f "qq2564874169/goMiniblink/forms"
-	p "qq2564874169/goMiniblink/forms/platform"
+	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
 type Container interface {
 	GUI
 
-	toControls() p.Controls
+	toControls() br.Controls
 }
 
 type Child interface {
 	GUI
 
-	toControl() p.Control
+	toControl() br.Control
 	getAnchor() f.AnchorStyle
 }
 
@@ -29,7 +29,7 @@ func (_this *BaseContainer) Init(container Container) *BaseContainer {
 	_this.Childs = make(map[uintptr]Child)
 	_this.logAnchor = make(map[uintptr]f.Bound2)
 	_this.container = container
-	var bakResize p.WindowResizeProc
+	var bakResize br.WindowResizeProc
 	bakResize = container.toControls().SetOnResize(func(e f.Rect) bool {
 		b := false
 		if bakResize != nil {

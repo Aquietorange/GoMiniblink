@@ -1,12 +1,14 @@
 package controls
 
-import p "qq2564874169/goMiniblink/forms/platform"
+import (
+	"qq2564874169/goMiniblink/forms/bridge"
+)
 
 type MainForm interface {
-	getFormImpl() p.Form
+	getFormImpl() bridge.Form
 }
 
-var App p.Provider
+var App bridge.Provider
 
 func Run(form MainForm) {
 	App.RunMain(form.getFormImpl())

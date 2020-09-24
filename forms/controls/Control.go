@@ -2,13 +2,13 @@ package controls
 
 import (
 	f "qq2564874169/goMiniblink/forms"
-	p "qq2564874169/goMiniblink/forms/platform"
+	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
 type Control struct {
 	BaseUI
 
-	impl   p.Control
+	impl   br.Control
 	anchor f.AnchorStyle
 }
 
@@ -27,6 +27,6 @@ func (_this *Control) SetAnchor(style f.AnchorStyle) {
 	_this.anchor = style
 }
 
-func (_this *Control) toControl() p.Control {
+func (_this *Control) toControl() br.Control {
 	return _this.impl
 }

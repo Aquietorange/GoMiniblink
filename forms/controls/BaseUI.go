@@ -2,7 +2,7 @@ package controls
 
 import (
 	f "qq2564874169/goMiniblink/forms"
-	p "qq2564874169/goMiniblink/forms/platform"
+	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
 type BaseUI struct {
@@ -52,10 +52,10 @@ type BaseUI struct {
 	OnImeStartComposition func() bool
 
 	instance GUI
-	impl     p.Window
+	impl     br.Window
 }
 
-func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
+func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 	_this.instance = instance
 	_this.impl = impl
 
@@ -101,7 +101,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 	_this.EvLostFocus = make(map[string]func(s GUI))
 	_this.OnLostFocus = _this.defOnLostFocus
 
-	var bakImeStart p.WindowImeStartCompositionProc
+	var bakImeStart br.WindowImeStartCompositionProc
 	bakImeStart = _this.impl.SetOnImeStartComposition(func() bool {
 		b := false
 		if bakImeStart != nil {
@@ -113,7 +113,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakLostFocus p.WindowLostFocusProc
+	var bakLostFocus br.WindowLostFocusProc
 	bakLostFocus = _this.impl.SetOnLostFocus(func() bool {
 		b := false
 		if bakLostFocus != nil {
@@ -125,7 +125,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakFocus p.WindowFocusProc
+	var bakFocus br.WindowFocusProc
 	bakFocus = _this.impl.SetOnFocus(func() bool {
 		b := false
 		if bakFocus != nil {
@@ -137,7 +137,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakOnCursor p.WindowSetCursorProc
+	var bakOnCursor br.WindowSetCursorProc
 	bakOnCursor = _this.impl.SetOnCursor(func() bool {
 		b := false
 		if bakOnCursor != nil {
@@ -149,7 +149,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakKeyPress p.WindowKeyPressProc
+	var bakKeyPress br.WindowKeyPressProc
 	bakKeyPress = _this.impl.SetOnKeyPress(func(e *f.KeyPressEvArgs) {
 		if bakKeyPress != nil {
 			bakKeyPress(e)
@@ -159,7 +159,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakKeyUp p.WindowKeyUpProc
+	var bakKeyUp br.WindowKeyUpProc
 	bakKeyUp = _this.impl.SetOnKeyUp(func(e *f.KeyEvArgs) {
 		if bakKeyUp != nil {
 			bakKeyUp(e)
@@ -169,7 +169,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakKeyDown p.WindowKeyDownProc
+	var bakKeyDown br.WindowKeyDownProc
 	bakKeyDown = _this.impl.SetOnKeyDown(func(e *f.KeyEvArgs) {
 		if bakKeyDown != nil {
 			bakKeyDown(e)
@@ -179,7 +179,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakPaint p.WindowPaintProc
+	var bakPaint br.WindowPaintProc
 	bakPaint = _this.impl.SetOnPaint(func(e f.PaintEvArgs) bool {
 		b := false
 		if bakPaint != nil {
@@ -191,7 +191,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakMouseClick p.WindowMouseClickProc
+	var bakMouseClick br.WindowMouseClickProc
 	bakMouseClick = _this.impl.SetOnMouseClick(func(e *f.MouseEvArgs) {
 		if bakMouseClick != nil {
 			bakMouseClick(e)
@@ -201,7 +201,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakMouseWheel p.WindowMouseWheelProc
+	var bakMouseWheel br.WindowMouseWheelProc
 	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e *f.MouseEvArgs) {
 		if bakMouseWheel != nil {
 			bakMouseWheel(e)
@@ -211,7 +211,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakMouseUp p.WindowMouseUpProc
+	var bakMouseUp br.WindowMouseUpProc
 	bakMouseUp = _this.impl.SetOnMouseUp(func(e *f.MouseEvArgs) {
 		if bakMouseUp != nil {
 			bakMouseUp(e)
@@ -221,7 +221,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakMouseDown p.WindowMouseDownProc
+	var bakMouseDown br.WindowMouseDownProc
 	bakMouseDown = _this.impl.SetOnMouseDown(func(e *f.MouseEvArgs) {
 		if bakMouseDown != nil {
 			bakMouseDown(e)
@@ -231,7 +231,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakMouseMove p.WindowMouseMoveProc
+	var bakMouseMove br.WindowMouseMoveProc
 	bakMouseMove = _this.impl.SetOnMouseMove(func(e *f.MouseEvArgs) {
 		if bakMouseMove != nil {
 			bakMouseMove(e)
@@ -241,7 +241,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		}
 	})
 
-	var bakResize p.WindowResizeProc
+	var bakResize br.WindowResizeProc
 	bakResize = _this.impl.SetOnResize(func(e f.Rect) bool {
 		b := false
 		if bakResize != nil {
@@ -253,7 +253,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakMove p.WindowMoveProc
+	var bakMove br.WindowMoveProc
 	bakMove = _this.impl.SetOnMove(func(e f.Point) bool {
 		b := false
 		if bakMove != nil {
@@ -265,7 +265,7 @@ func (_this *BaseUI) Init(instance GUI, impl p.Window) *BaseUI {
 		return b
 	})
 
-	var bakShow p.WindowShowProc
+	var bakShow br.WindowShowProc
 	bakShow = _this.impl.SetOnShow(func() {
 		if bakShow != nil {
 			bakShow()

@@ -2,21 +2,21 @@ package windows
 
 import (
 	f "qq2564874169/goMiniblink/forms"
-	plat "qq2564874169/goMiniblink/forms/platform"
-	win "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	br "qq2564874169/goMiniblink/forms/bridge"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"unsafe"
 )
 
 type winForm struct {
 	winContainer
 	_onClose  func() (cancel bool)
-	_onState  plat.FormStateProc
-	_onActive plat.FormActiveProc
+	_onState  br.FormStateProc
+	_onActive br.FormActiveProc
 	_border   f.FormBorder
 	_isModal  bool
 }
 
-func (_this *winForm) init(provider *Provider, param plat.FormParam) *winForm {
+func (_this *winForm) init(provider *Provider, param br.FormParam) *winForm {
 	_this.winContainer.init(provider, _this)
 	_this.onWndProc = _this.msgProc
 	parent := win.HWND(0)
@@ -78,7 +78,7 @@ func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	return rs
 }
 
-func (_this *winForm) SetOnActive(proc plat.FormActiveProc) plat.FormActiveProc {
+func (_this *winForm) SetOnActive(proc br.FormActiveProc) br.FormActiveProc {
 	pre := _this._onActive
 	_this._onActive = proc
 	return pre
@@ -94,7 +94,7 @@ func (_this *winForm) NoneBorderResize() {
 		switch msg {
 		case win.WM_MOUSEMOVE:
 			if hWnd != _this.handle {
-				if wnd, ok := _this.app.handleWnds[hWnd].(plat.Control); ok {
+				if wnd, ok := _this.app.handleWnds[hWnd].(br.Control); ok {
 					if wnd.GetOwner().GetHandle() != uintptr(hWnd) {
 						return 0
 					}
@@ -247,7 +247,7 @@ func (_this *winForm) SetBorderStyle(border f.FormBorder) {
 	_this._border = border
 }
 
-func (_this *winForm) SetOnState(proc plat.FormStateProc) plat.FormStateProc {
+func (_this *winForm) SetOnState(proc br.FormStateProc) br.FormStateProc {
 	pre := _this._onState
 	_this._onState = proc
 	return pre

@@ -2,7 +2,7 @@ package controls
 
 import (
 	f "qq2564874169/goMiniblink/forms"
-	p "qq2564874169/goMiniblink/forms/platform"
+	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
 type Form struct {
@@ -12,7 +12,7 @@ type Form struct {
 	EvState map[string]func(target interface{}, state f.FormState)
 	OnState func(state f.FormState)
 
-	impl          p.Form
+	impl          br.Form
 	isInit        bool
 	title         string
 	showInTaskbar bool
@@ -21,11 +21,11 @@ type Form struct {
 	startPos      f.FormStartPosition
 }
 
-func (_this *Form) getFormImpl() p.Form {
+func (_this *Form) getFormImpl() br.Form {
 	return _this.impl
 }
 
-func (_this *Form) InitEx(param p.FormParam) *Form {
+func (_this *Form) InitEx(param br.FormParam) *Form {
 	_this.impl = App.NewForm(param)
 	_this.BaseUI.Init(_this, _this.impl)
 	_this.BaseContainer.Init(_this)
@@ -41,20 +41,20 @@ func (_this *Form) InitEx(param p.FormParam) *Form {
 }
 
 func (_this *Form) Init() *Form {
-	return _this.InitEx(p.FormParam{})
+	return _this.InitEx(br.FormParam{})
 }
 
 func (_this *Form) NoneBorderResize() {
 	_this.impl.NoneBorderResize()
 }
 
-func (_this *Form) toControls() p.Controls {
+func (_this *Form) toControls() br.Controls {
 	return _this.impl
 }
 
 func (_this *Form) registerEvents() {
 	_this.OnState = _this.defOnState
-	var bakState p.FormStateProc
+	var bakState br.FormStateProc
 	bakState = _this.impl.SetOnState(func(state f.FormState) {
 		if bakState != nil {
 			bakState(state)
@@ -62,7 +62,7 @@ func (_this *Form) registerEvents() {
 		_this.state = state
 		_this.OnState(state)
 	})
-	var bakShow p.WindowShowProc
+	var bakShow br.WindowShowProc
 	bakShow = _this.impl.SetOnShow(func() {
 		switch _this.startPos {
 		case f.FormStartPosition_Screen_Center:

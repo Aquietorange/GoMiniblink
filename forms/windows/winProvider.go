@@ -4,9 +4,9 @@ import (
 	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
-	f "qq2564874169/goMiniblink/forms"
-	p "qq2564874169/goMiniblink/forms/platform"
-	win "qq2564874169/goMiniblink/forms/platform/windows/win32"
+	fm "qq2564874169/goMiniblink/forms"
+	br "qq2564874169/goMiniblink/forms/bridge"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"reflect"
 	"syscall"
 	"unsafe"
@@ -25,11 +25,11 @@ type Provider struct {
 	defIcon      win.HICON
 	mainThreadId uint32
 	watchAll     map[win.HWND]windowsMsgProc
-	forms        map[win.HWND]p.Form
+	forms        map[win.HWND]br.Form
 }
 
 func (_this *Provider) Init() *Provider {
-	_this.forms = make(map[win.HWND]p.Form)
+	_this.forms = make(map[win.HWND]br.Form)
 	_this.watchAll = make(map[win.HWND]windowsMsgProc)
 	_this.tmpWnd = make(map[uintptr]baseWindow)
 	_this.handleWnds = make(map[win.HWND]baseWindow)
@@ -48,10 +48,10 @@ func (_this *Provider) unWatch(wnd baseWindow) {
 	delete(_this.watchAll, wnd.hWnd())
 }
 
-func (_this *Provider) MouseLocation() f.Point {
+func (_this *Provider) MouseLocation() fm.Point {
 	pos := win.POINT{}
 	win.GetCursorPos(&pos)
-	return f.Point{
+	return fm.Point{
 		X: int(pos.X),
 		Y: int(pos.Y),
 	}
@@ -62,35 +62,35 @@ func (_this *Provider) AppDir() string {
 	return dir
 }
 
-func (_this *Provider) ModifierKeys() map[f.Keys]bool {
-	keys := make(map[f.Keys]bool)
+func (_this *Provider) ModifierKeys() map[fm.Keys]bool {
+	keys := make(map[fm.Keys]bool)
 	cs := win.GetKeyState(int32(win.VK_CONTROL))
 	ss := win.GetKeyState(int32(win.VK_SHIFT))
 	as := win.GetKeyState(int32(win.VK_MENU))
-	keys[f.Keys_Ctrl] = cs < 0
-	keys[f.Keys_Shift] = ss < 0
-	keys[f.Keys_Alt] = as < 0
+	keys[fm.Keys_Ctrl] = cs < 0
+	keys[fm.Keys_Shift] = ss < 0
+	keys[fm.Keys_Alt] = as < 0
 	return keys
 }
 
-func (_this *Provider) MouseIsDown() map[f.MouseButtons]bool {
-	keys := make(map[f.MouseButtons]bool)
+func (_this *Provider) MouseIsDown() map[fm.MouseButtons]bool {
+	keys := make(map[fm.MouseButtons]bool)
 	ls := win.GetKeyState(int32(win.VK_LBUTTON))
 	rs := win.GetKeyState(int32(win.VK_RBUTTON))
 	ms := win.GetKeyState(int32(win.VK_MBUTTON))
-	keys[f.MouseButtons_Left] = ls < 0
-	keys[f.MouseButtons_Right] = rs < 0
-	keys[f.MouseButtons_Middle] = ms < 0
+	keys[fm.MouseButtons_Left] = ls < 0
+	keys[fm.MouseButtons_Right] = rs < 0
+	keys[fm.MouseButtons_Middle] = ms < 0
 	return keys
 }
 
-func (_this *Provider) GetScreen() f.Screen {
-	var s = f.Screen{
-		Full: f.Rect{
+func (_this *Provider) GetScreen() fm.Screen {
+	var s = fm.Screen{
+		Full: fm.Rect{
 			Width:  int(win.GetSystemMetrics(win.SM_CXSCREEN)),
 			Height: int(win.GetSystemMetrics(win.SM_CYSCREEN)),
 		},
-		WorkArea: f.Rect{
+		WorkArea: fm.Rect{
 			Width:  int(win.GetSystemMetrics(win.SM_CXFULLSCREEN)),
 			Height: int(win.GetSystemMetrics(win.SM_CYFULLSCREEN)),
 		},
@@ -163,7 +163,7 @@ func (_this *Provider) Exit(code int) {
 	win.PostQuitMessage(int32(code))
 }
 
-func (_this *Provider) RunMain(form p.Form) {
+func (_this *Provider) RunMain(form br.Form) {
 	form.Show()
 	var message win.MSG
 	for {

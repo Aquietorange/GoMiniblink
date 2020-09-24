@@ -1,4 +1,4 @@
-package platform
+package bridge
 
 import (
 	f "qq2564874169/goMiniblink/forms"

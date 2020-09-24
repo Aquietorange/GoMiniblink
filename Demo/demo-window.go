@@ -5,7 +5,7 @@ import (
 	g "qq2564874169/goMiniblink"
 	"qq2564874169/goMiniblink/forms"
 	"qq2564874169/goMiniblink/forms/controls"
-	"qq2564874169/goMiniblink/forms/platform/windows"
+	"qq2564874169/goMiniblink/forms/windows"
 	"unsafe"
 )
 
