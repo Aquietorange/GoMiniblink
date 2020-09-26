@@ -2,33 +2,30 @@ package main
 
 import (
 	"fmt"
-	g "qq2564874169/goMiniblink"
-	"qq2564874169/goMiniblink/forms"
-	"qq2564874169/goMiniblink/forms/controls"
+	gm "qq2564874169/goMiniblink"
+	fm "qq2564874169/goMiniblink/forms"
+	cs "qq2564874169/goMiniblink/forms/controls"
 	"qq2564874169/goMiniblink/forms/windows"
 	"unsafe"
 )
 
 func main() {
 	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
-	controls.App = new(windows.Provider).Init()
-	controls.App.SetIcon("app.ico")
+	cs.App = new(windows.Provider).Init()
+	cs.App.SetIcon("app.ico")
 
-	var frm = new(g.MiniblinkForm).Init()
+	var frm = new(gm.MiniblinkForm).Init()
 	frm.SetTitle("miniblink窗口")
-	frm.SetStartPosition(forms.FormStart_Manual)
 	frm.SetLocation(100, 100)
-	//frm.SetBorderStyle(forms.FormBorder_None)
-	//frm.NoneBorderResize()
 	frm.SetSize(800, 500)
-
-	frm.View.EvShow["init"] = func(s controls.GUI) {
-
-		frm.View.EvConsole["show"] = func(_ *g.MiniblinkBrowser, e g.ConsoleEvArgs) {
-			fmt.Println(e.Message())
-		}
-		frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(g.FileLoader).Init("Res", "local"))
+	frm.SetBorderStyle(fm.FormBorder_None)
+	frm.NoneBorderResize()
+	frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
+	frm.View.EvConsole["show"] = func(_ *gm.MiniblinkBrowser, e gm.ConsoleEvArgs) {
+		fmt.Println(e.Message())
+	}
+	frm.EvShow["init"] = func(s cs.GUI) {
 		frm.View.LoadUri("http://local/window.html")
 	}
-	controls.Run(&frm.Form)
+	cs.Run(&frm.Form)
 }

@@ -3,15 +3,15 @@ package GoMiniblink
 import (
 	"image"
 	url2 "net/url"
-	c "qq2564874169/goMiniblink/forms/controls"
+	cs "qq2564874169/goMiniblink/forms/controls"
 	"reflect"
 	"strings"
 )
 
 type MiniblinkBrowser struct {
-	c.Control
-	_mb     Miniblink
-	_fnlist map[string]reflect.Value
+	cs.Control
+	core   Miniblink
+	fnlist map[string]reflect.Value
 
 	EvRequestBefore map[string]func(sender *MiniblinkBrowser, e RequestBeforeEvArgs)
 	OnRequestBefore func(e RequestBeforeEvArgs)
@@ -45,7 +45,7 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.OnPaintUpdated = _this.defOnPaintUpdated
 
 	_this.EvRequestBefore["__goMiniblink"] = _this.loadRes
-	_this._mb = new(freeMiniblink).init(&_this.Control)
+	_this.core = new(freeMiniblink).init(&_this.Control)
 	_this.mbInit()
 	return _this
 }
@@ -54,7 +54,6 @@ func (_this *MiniblinkBrowser) loadRes(_ *MiniblinkBrowser, e RequestBeforeEvArg
 	if len(_this.ResourceLoader) == 0 {
 		return
 	}
-	e.EvResponse()
 	url, err := url2.Parse(e.Url())
 	if err != nil {
 		return
@@ -74,27 +73,27 @@ func (_this *MiniblinkBrowser) loadRes(_ *MiniblinkBrowser, e RequestBeforeEvArg
 }
 
 func (_this *MiniblinkBrowser) mbInit() {
-	_this._mb.SetOnRequestBefore(func(args RequestBeforeEvArgs) {
+	_this.core.SetOnRequestBefore(func(args RequestBeforeEvArgs) {
 		if _this.OnRequestBefore != nil {
 			_this.OnRequestBefore(args)
 		}
 	})
-	_this._mb.SetOnJsReady(func(args JsReadyEvArgs) {
+	_this.core.SetOnJsReady(func(args JsReadyEvArgs) {
 		if _this.OnJsReady != nil {
 			_this.OnJsReady(args)
 		}
 	})
-	_this._mb.SetOnConsole(func(args ConsoleEvArgs) {
+	_this.core.SetOnConsole(func(args ConsoleEvArgs) {
 		if _this.OnConsole != nil {
 			_this.OnConsole(args)
 		}
 	})
-	_this._mb.SetOnDocumentReady(func(args DocumentReadyEvArgs) {
+	_this.core.SetOnDocumentReady(func(args DocumentReadyEvArgs) {
 		if _this.OnDocumentReady != nil {
 			_this.OnDocumentReady(args)
 		}
 	})
-	_this._mb.SetOnPaintUpdated(func(args PaintUpdatedEvArgs) {
+	_this.core.SetOnPaintUpdated(func(args PaintUpdatedEvArgs) {
 		if _this.OnPaintUpdated != nil {
 			_this.OnPaintUpdated(args)
 		}
@@ -102,11 +101,11 @@ func (_this *MiniblinkBrowser) mbInit() {
 }
 
 func (_this *MiniblinkBrowser) LoadUri(uri string) {
-	_this._mb.LoadUri(uri)
+	_this.core.LoadUri(uri)
 }
 
 func (_this *MiniblinkBrowser) JsFunc(name string, fn GoFn, state interface{}) {
-	_this._mb.JsFunc(name, fn, state)
+	_this.core.JsFunc(name, fn, state)
 }
 
 func (_this *MiniblinkBrowser) JsFuncEx(name string, fn interface{}) {
@@ -130,13 +129,21 @@ func (_this *MiniblinkBrowser) JsFuncEx(name string, fn interface{}) {
 }
 
 func (_this *MiniblinkBrowser) CallJsFunc(name string, param ...interface{}) interface{} {
-	return _this._mb.CallJsFunc(name, param)
+	return _this.core.CallJsFunc(name, param)
 }
 
 func (_this *MiniblinkBrowser) ToBitmap() *image.RGBA {
-	return _this._mb.ToBitmap()
+	return _this.core.ToBitmap()
 }
 
 func (_this *MiniblinkBrowser) GetMiniblinkHandle() uintptr {
-	return uintptr(_this._mb.GetHandle())
+	return uintptr(_this.core.GetHandle())
+}
+
+func (_this *MiniblinkBrowser) MouseIsEnable() bool {
+	return _this.core.MouseIsEnable()
+}
+
+func (_this *MiniblinkBrowser) MouseEnable(b bool) {
+	_this.core.MouseEnable(b)
 }

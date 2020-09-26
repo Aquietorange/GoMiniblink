@@ -49,10 +49,11 @@ type winBase struct {
 	onFocus               br.WindowFocusProc
 	onLostFocus           br.WindowLostFocusProc
 
-	bgColor   int32
-	cursor    fm.CursorType
-	isEnable  bool
-	clickTime time.Time
+	bgColor    int32
+	cursor     fm.CursorType
+	lockCursor bool
+	isEnable   bool
+	clickTime  time.Time
 }
 
 func (_this *winBase) init(provider *Provider) *winBase {
@@ -139,10 +140,11 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			ret = 1
 		}
 	case win.WM_SETCURSOR:
-		if _this.cursor != fm.CursorType_Default {
-			_this.SetCursor(_this.cursor)
+		if _this.lockCursor == false && _this.onSetCursor != nil && _this.onSetCursor() {
 			ret = 1
-		} else if _this.onSetCursor != nil && _this.onSetCursor() {
+		}
+		if ret == 0 && _this.cursor != fm.CursorType_Default {
+			_this.SetCursor(_this.cursor)
 			ret = 1
 		}
 	case win.WM_SIZE:
@@ -272,6 +274,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		}
 	case win.WM_LBUTTONDOWN, win.WM_RBUTTONDOWN, win.WM_MBUTTONDOWN:
 		win.SetCapture(hWnd)
+		_this.lockCursor = true
 		_this.clickTime = time.Now()
 		if _this.onMouseDown != nil {
 			e := fm.MouseEvArgs{
@@ -292,6 +295,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
+		_this.lockCursor = false
 		win.ReleaseCapture()
 		if _this.onMouseUp != nil {
 			e := fm.MouseEvArgs{
@@ -425,6 +429,7 @@ func (_this *winBase) Enable(b bool) {
 		style |= win.WS_DISABLED
 	}
 	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
+	_this.isEnable = b
 }
 
 func (_this *winBase) SetSize(width, height int) {

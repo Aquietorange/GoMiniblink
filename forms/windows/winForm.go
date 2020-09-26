@@ -12,7 +12,7 @@ type winForm struct {
 	_onClose  func() (cancel bool)
 	_onState  br.FormStateProc
 	_onActive br.FormActiveProc
-	_border   fm.FormBorder
+	border    fm.FormBorder
 	_isModal  bool
 }
 
@@ -88,14 +88,14 @@ func (_this *winForm) NoneBorderResize() {
 	padd := 5
 	rsState := new(int)
 	_this.app.watch(_this, func(hWnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-		if _this._border != fm.FormBorder_None {
+		if _this.border != fm.FormBorder_None {
 			return 0
 		}
 		switch msg {
 		case win.WM_MOUSEMOVE:
 			if hWnd != _this.handle {
 				if wnd, ok := _this.app.handleWnds[hWnd].(br.Control); ok {
-					if wnd.GetOwner().GetHandle() != uintptr(hWnd) {
+					if wnd.GetOwner().GetHandle() != uintptr(_this.handle) {
 						return 0
 					}
 				} else {
@@ -161,21 +161,21 @@ func (_this *winForm) NoneBorderResize() {
 		case win.WM_LBUTTONDOWN:
 			switch *rsState {
 			case 4:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF001), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF001), lParam)
 			case 6:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF002), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF002), lParam)
 			case 8:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF003), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF003), lParam)
 			case 7:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF004), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF004), lParam)
 			case 9:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF005), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF005), lParam)
 			case 2:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF006), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF006), lParam)
 			case 1:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF007), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF007), lParam)
 			case 3:
-				win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF008), lParam)
+				win.SendMessage(_this.handle, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF008), lParam)
 			default:
 				return 0
 			}
@@ -244,7 +244,10 @@ func (_this *winForm) SetBorderStyle(border fm.FormBorder) {
 		style &= ^win.WS_SIZEBOX
 	}
 	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
-	_this._border = border
+	bn := _this.GetBound()
+	_this.SetSize(bn.Width, bn.Height-1)
+	_this.SetSize(bn.Width, bn.Height)
+	_this.border = border
 }
 
 func (_this *winForm) SetOnState(proc br.FormStateProc) br.FormStateProc {

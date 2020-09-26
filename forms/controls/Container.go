@@ -99,7 +99,11 @@ func (_this *BaseContainer) AddChild(child Child) {
 			Bottom: bn.Height + bn.Y,
 		}
 		child.setParent(_this.container)
-		child.setOwner(_this.container.GetOwner())
+		ow := _this.container.GetOwner()
+		if ow == nil {
+			ow = _this.container
+		}
+		child.setOwner(ow)
 		_this.logs[child.GetHandle()] = rect
 		_this.Childs[child.GetHandle()] = child
 	}

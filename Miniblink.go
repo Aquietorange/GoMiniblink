@@ -12,6 +12,8 @@ type DocumentReadyCallback func(args DocumentReadyEvArgs)
 type PaintUpdatedCallback func(args PaintUpdatedEvArgs)
 
 type Miniblink interface {
+	MouseIsEnable() bool
+	MouseEnable(b bool)
 	ToBitmap() *image.RGBA
 	CallJsFunc(name string, param ...interface{}) interface{}
 	JsFunc(name string, fn GoFn, state interface{})

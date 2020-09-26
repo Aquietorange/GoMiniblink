@@ -3371,13 +3371,10 @@ func SetWinEventHook(eventMin uint32, eventMax uint32, hmodWinEventProc HMODULE,
 }
 
 func SetWindowLong(hWnd HWND, index, value int64) int32 {
-	ret, _, err := syscall.Syscall(setWindowLong.Addr(), 3,
+	ret, _, _ := syscall.Syscall(setWindowLong.Addr(), 3,
 		uintptr(hWnd),
 		uintptr(index),
 		uintptr(value))
-	if err != 0 {
-		fmt.Println("SetWindowLong", err)
-	}
 	return int32(ret)
 }
 

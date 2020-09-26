@@ -30,7 +30,7 @@ func execGoFunc(ctx GoFnContext) interface{} {
 		wke := wkeHandle(uintptr(num))
 		mb := views[wke]
 		if impl, implOk := mb.(*freeMiniblink); implOk {
-			fn := impl._fnMap[fnName]
+			fn := impl.fnMap[fnName]
 			rs := fn.Call(mb, ctx.Param[3:])
 			es := mbApi.wkeGlobalExec(mb.GetHandle())
 			v := toJsValue(mb, es, rs)
@@ -41,27 +41,36 @@ func execGoFunc(ctx GoFnContext) interface{} {
 }
 
 type freeMiniblink struct {
-	_view      *cs.Control
-	_wke       wkeHandle
-	_fnMap     map[string]JsFnBinding
-	_jsIsReady bool
-	_frames    []FrameContext
-	_reqMap    map[wkeNetJob]*freeRequestBeforeEvArgs
+	view      *cs.Control
+	wke       wkeHandle
+	fnMap     map[string]JsFnBinding
+	jsIsReady bool
+	frames    []FrameContext
+	reqMap    map[wkeNetJob]*freeRequestBeforeEvArgs
+	lockMouse bool
 
-	_onRequest     RequestBeforeCallback
-	_onJsReady     JsReadyCallback
-	_onConsole     ConsoleCallback
-	_documentReady DocumentReadyCallback
-	_paintUpdated  PaintUpdatedCallback
+	onRequest     RequestBeforeCallback
+	onJsReady     JsReadyCallback
+	onConsole     ConsoleCallback
+	documentReady DocumentReadyCallback
+	paintUpdated  PaintUpdatedCallback
 }
 
 func (_this *freeMiniblink) init(control *cs.Control) *freeMiniblink {
-	_this._view = control
-	_this._fnMap = make(map[string]JsFnBinding)
-	_this._reqMap = make(map[wkeNetJob]*freeRequestBeforeEvArgs)
+	_this.view = control
+	_this.fnMap = make(map[string]JsFnBinding)
+	_this.reqMap = make(map[wkeNetJob]*freeRequestBeforeEvArgs)
 	_this.setView()
 	_this.mbInit()
 	return _this
+}
+
+func (_this *freeMiniblink) MouseIsEnable() bool {
+	return _this.lockMouse == false
+}
+
+func (_this *freeMiniblink) MouseEnable(b bool) {
+	_this.lockMouse = b == false
 }
 
 func (_this *freeMiniblink) CallJsFunc(name string, param ...interface{}) interface{} {
@@ -77,26 +86,26 @@ func (_this *freeMiniblink) CallJsFunc(name string, param ...interface{}) interf
 }
 
 func (_this *freeMiniblink) JsFunc(name string, fn GoFn, state interface{}) {
-	_this._fnMap[name] = JsFnBinding{
+	_this.fnMap[name] = JsFnBinding{
 		Name:  name,
 		State: state,
 		Fn:    fn,
 	}
-	if _this._jsIsReady {
-		for _, f := range _this._frames {
+	if _this.jsIsReady {
+		for _, f := range _this.frames {
 			f.RunJs(_this.getJsBindingScript(f.IsMain()))
 		}
 	}
 }
 
 func (_this *freeMiniblink) getJsBindingScript(isMain bool) string {
-	rsName := "rs" + strconv.FormatUint(uint64(_this._wke), 32)
+	rsName := "rs" + strconv.FormatUint(uint64(_this.wke), 32)
 	call := fnCall
 	if isMain == false {
 		call = fmt.Sprintf("window.top[%q]", call)
 	}
 	var list []string
-	for k := range _this._fnMap {
+	for k := range _this.fnMap {
 		js := fmt.Sprintf(`window[%q]=function(){
 							   var rs=%q;
 							   var arr = Array.prototype.slice.call(arguments);
@@ -104,61 +113,61 @@ func (_this *freeMiniblink) getJsBindingScript(isMain bool) string {
 							   %s.apply(null,args);
 							   return window.top[rs];
 						   };`,
-			k, rsName, strconv.FormatUint(uint64(_this._wke), 10), k, call)
+			k, rsName, strconv.FormatUint(uint64(_this.wke), 10), k, call)
 		list = append(list, js)
 	}
 	return strings.Join(list, ";")
 }
 
 func (_this *freeMiniblink) RunJs(script string) interface{} {
-	es := mbApi.wkeGlobalExec(_this._wke)
+	es := mbApi.wkeGlobalExec(_this.wke)
 	rs := mbApi.jsEval(es, script)
 	return toGoValue(_this, es, rs)
 }
 
 func (_this *freeMiniblink) SetOnDocumentReady(callback DocumentReadyCallback) {
-	_this._documentReady = callback
+	_this.documentReady = callback
 }
 
 func (_this *freeMiniblink) SetOnConsole(callback ConsoleCallback) {
-	_this._onConsole = callback
+	_this.onConsole = callback
 }
 
 func (_this *freeMiniblink) SetOnJsReady(callback JsReadyCallback) {
-	_this._onJsReady = callback
+	_this.onJsReady = callback
 }
 
 func (_this *freeMiniblink) SetOnRequestBefore(callback RequestBeforeCallback) {
-	_this._onRequest = callback
+	_this.onRequest = callback
 }
 
 func (_this *freeMiniblink) SetOnPaintUpdated(callback PaintUpdatedCallback) {
-	_this._paintUpdated = callback
+	_this.paintUpdated = callback
 }
 
 func (_this *freeMiniblink) mbInit() {
-	_this._wke = createWebView(_this)
-	_this.viewResize(_this._view.GetSize())
-	mbApi.wkeSetHandle(_this._wke, _this._view.GetHandle())
-	mbApi.wkeOnPaintBitUpdated(_this._wke, _this.onPaintBitUpdated, 0)
-	mbApi.wkeOnLoadUrlBegin(_this._wke, _this.onUrlBegin, 0)
-	mbApi.wkeOnLoadUrlEnd(_this._wke, _this.onUrlEnd, 0)
-	mbApi.wkeOnLoadUrlFail(_this._wke, _this.onUrlFail, 0)
-	mbApi.wkeOnDidCreateScriptContext(_this._wke, _this.onDidCreateScriptContext, 0)
-	mbApi.wkeOnConsole(_this._wke, _this.onConsole, 0)
-	mbApi.wkeOnDocumentReady(_this._wke, _this.onDocumentReady, 0)
+	_this.wke = createWebView(_this)
+	_this.viewResize(_this.view.GetBound().Rect)
+	mbApi.wkeSetHandle(_this.wke, _this.view.GetHandle())
+	mbApi.wkeOnPaintBitUpdated(_this.wke, _this.onPaintBitUpdated, 0)
+	mbApi.wkeOnLoadUrlBegin(_this.wke, _this.onUrlBegin, 0)
+	mbApi.wkeOnLoadUrlEnd(_this.wke, _this.onUrlEnd, 0)
+	mbApi.wkeOnLoadUrlFail(_this.wke, _this.onUrlFail, 0)
+	mbApi.wkeOnDidCreateScriptContext(_this.wke, _this.onDidCreateScriptContext, 0)
+	mbApi.wkeOnConsole(_this.wke, _this.jsConsole, 0)
+	mbApi.wkeOnDocumentReady(_this.wke, _this.onDocumentReady, 0)
 }
 
 func (_this *freeMiniblink) onDocumentReady(_ wkeHandle, _ uintptr, frame wkeFrame) uintptr {
 	args := new(freeDocumentReadyEvArgs).init(_this, frame)
-	if _this._documentReady != nil {
-		_this._documentReady(args)
+	if _this.documentReady != nil {
+		_this.documentReady(args)
 	}
 	return 0
 }
 
-func (_this *freeMiniblink) onConsole(_ wkeHandle, _ uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr {
-	if _this._onConsole == nil {
+func (_this *freeMiniblink) jsConsole(_ wkeHandle, _ uintptr, level int32, msg, name wkeString, line uint32, stack wkeString) uintptr {
+	if _this.onConsole == nil {
 		return 0
 	}
 	args := new(freeConsoleMessageEvArgs).init()
@@ -183,38 +192,38 @@ func (_this *freeMiniblink) onConsole(_ wkeHandle, _ uintptr, level int32, msg, 
 	default:
 		panic("无法识别的类型：" + strconv.Itoa(int(lv)))
 	}
-	_this._onConsole(args)
+	_this.onConsole(args)
 	return 0
 }
 
 func (_this *freeMiniblink) onDidCreateScriptContext(_ wkeHandle, _ uintptr, frame wkeFrame, _ uintptr, _, _ int) uintptr {
-	_this._jsIsReady = true
+	_this.jsIsReady = true
 	args := new(wkeJsReadyEvArgs).init(_this, frame)
-	_this._frames = append(_this._frames, args)
+	_this.frames = append(_this.frames, args)
 	args.RunJs(_this.getJsBindingScript(args.IsMain()))
-	if _this._onJsReady == nil {
+	if _this.onJsReady == nil {
 		return 0
 	}
-	_this._onJsReady(args)
+	_this.onJsReady(args)
 	return 0
 }
 
 func (_this *freeMiniblink) onUrlBegin(_ wkeHandle, _, _ uintptr, job wkeNetJob) uintptr {
-	if _this._onRequest == nil {
+	if _this.onRequest == nil {
 		return 0
 	}
 	e := new(freeRequestBeforeEvArgs).init(_this, job)
 	e.EvFinish().AddEx(func() {
-		delete(_this._reqMap, job)
+		delete(_this.reqMap, job)
 	})
-	_this._onRequest(e)
+	_this.onRequest(e)
 	e.onBegin()
-	_this._reqMap[job] = e
+	_this.reqMap[job] = e
 	return 0
 }
 
 func (_this *freeMiniblink) onUrlEnd(_ wkeHandle, _, _ uintptr, job wkeNetJob, buf uintptr, len int32) uintptr {
-	if req, ok := _this._reqMap[job]; ok {
+	if req, ok := _this.reqMap[job]; ok {
 		data := (*[1 << 30]byte)(unsafe.Pointer(buf))
 		rs := make([]byte, int(len))
 		for i := int32(0); i < len; i++ {
@@ -226,100 +235,108 @@ func (_this *freeMiniblink) onUrlEnd(_ wkeHandle, _, _ uintptr, job wkeNetJob, b
 }
 
 func (_this *freeMiniblink) onUrlFail(_ wkeHandle, _, _ uintptr, job wkeNetJob) uintptr {
-	if req, ok := _this._reqMap[job]; ok {
+	if req, ok := _this.reqMap[job]; ok {
 		req.onFail()
 	}
 	return 0
 }
 
 func (_this *freeMiniblink) setView() {
-	bakFocus := _this._view.OnFocus
-	_this._view.OnFocus = func() {
+	bakFocus := _this.view.OnFocus
+	_this.view.OnFocus = func() {
 		_this.viewFocus()
 		if bakFocus != nil {
 			bakFocus()
 		}
 	}
-	bakLostFocus := _this._view.OnLostFocus
-	_this._view.OnLostFocus = func() {
+	bakLostFocus := _this.view.OnLostFocus
+	_this.view.OnLostFocus = func() {
 		_this.viewLostFocus()
 		if bakLostFocus != nil {
 			bakLostFocus()
 		}
 	}
-	bakResize := _this._view.OnResize
-	_this._view.OnResize = func(e fm.Rect) {
+	bakResize := _this.view.OnResize
+	_this.view.OnResize = func(e fm.Rect) {
 		_this.viewResize(e)
 		if bakResize != nil {
 			bakResize(e)
 		}
 	}
-	bakPaint := _this._view.OnPaint
-	_this._view.OnPaint = func(e fm.PaintEvArgs) {
+	bakPaint := _this.view.OnPaint
+	_this.view.OnPaint = func(e fm.PaintEvArgs) {
 		_this.viewPaint(e)
 		if bakPaint != nil {
 			bakPaint(e)
 		}
 	}
-	bakMouseMove := _this._view.OnMouseMove
-	_this._view.OnMouseMove = func(e *fm.MouseEvArgs) {
-		_this.viewMouseMove(e)
+	bakMouseMove := _this.view.OnMouseMove
+	_this.view.OnMouseMove = func(e *fm.MouseEvArgs) {
+		if _this.lockMouse == false {
+			_this.viewMouseMove(e)
+		}
 		if bakMouseMove != nil {
 			bakMouseMove(e)
 		}
 	}
-	bakMouseDown := _this._view.OnMouseDown
-	_this._view.OnMouseDown = func(e *fm.MouseEvArgs) {
-		_this.viewMouseDown(e)
+	bakMouseDown := _this.view.OnMouseDown
+	_this.view.OnMouseDown = func(e *fm.MouseEvArgs) {
+		if _this.lockMouse == false {
+			_this.viewMouseDown(e)
+		}
 		if bakMouseDown != nil {
 			bakMouseDown(e)
 		}
 	}
-	bakMouseUp := _this._view.OnMouseUp
-	_this._view.OnMouseUp = func(e *fm.MouseEvArgs) {
-		_this.viewMouseUp(e)
+	bakMouseUp := _this.view.OnMouseUp
+	_this.view.OnMouseUp = func(e *fm.MouseEvArgs) {
+		if _this.lockMouse == false {
+			_this.viewMouseUp(e)
+		}
 		if bakMouseUp != nil {
 			bakMouseUp(e)
 		}
 	}
-	bakMouseWheel := _this._view.OnMouseWheel
-	_this._view.OnMouseWheel = func(e *fm.MouseEvArgs) {
-		_this.viewMouseWheel(e)
+	bakMouseWheel := _this.view.OnMouseWheel
+	_this.view.OnMouseWheel = func(e *fm.MouseEvArgs) {
+		if _this.lockMouse == false {
+			_this.viewMouseWheel(e)
+		}
 		if bakMouseWheel != nil {
 			bakMouseWheel(e)
 		}
 	}
-	bakSetCursor := _this._view.OnSetCursor
-	_this._view.OnSetCursor = func() bool {
+	bakSetCursor := _this.view.OnSetCursor
+	_this.view.OnSetCursor = func() bool {
 		b := _this.viewSetCursor()
 		if !b && bakSetCursor != nil {
 			b = bakSetCursor()
 		}
 		return b
 	}
-	bakKeyDown := _this._view.OnKeyDown
-	_this._view.OnKeyDown = func(e *fm.KeyEvArgs) {
+	bakKeyDown := _this.view.OnKeyDown
+	_this.view.OnKeyDown = func(e *fm.KeyEvArgs) {
 		_this.viewKeyDown(e)
 		if bakKeyDown != nil {
 			bakKeyDown(e)
 		}
 	}
-	bakKeyUp := _this._view.OnKeyUp
-	_this._view.OnKeyUp = func(e *fm.KeyEvArgs) {
+	bakKeyUp := _this.view.OnKeyUp
+	_this.view.OnKeyUp = func(e *fm.KeyEvArgs) {
 		_this.viewKeyUp(e)
 		if bakKeyUp != nil {
 			bakKeyUp(e)
 		}
 	}
-	bakKeyPress := _this._view.OnKeyPress
-	_this._view.OnKeyPress = func(e *fm.KeyPressEvArgs) {
+	bakKeyPress := _this.view.OnKeyPress
+	_this.view.OnKeyPress = func(e *fm.KeyPressEvArgs) {
 		_this.viewKeyPress(e)
 		if bakKeyPress != nil {
 			bakKeyPress(e)
 		}
 	}
-	bakImeStart := _this._view.OnImeStartComposition
-	_this._view.OnImeStartComposition = func() bool {
+	bakImeStart := _this.view.OnImeStartComposition
+	_this.view.OnImeStartComposition = func() bool {
 		b := _this.viewImeStart()
 		if !b && bakImeStart != nil {
 			b = bakImeStart()
@@ -329,7 +346,7 @@ func (_this *freeMiniblink) setView() {
 }
 
 func (_this *freeMiniblink) viewImeStart() bool {
-	rect := mbApi.wkeGetCaretRect(_this._wke)
+	rect := mbApi.wkeGetCaretRect(_this.wke)
 	comp := win.COMPOSITIONFORM{
 		DwStyle: win.CFS_POINT | win.CFS_FORCE_POSITION,
 		Pos: win.POINT{
@@ -337,7 +354,7 @@ func (_this *freeMiniblink) viewImeStart() bool {
 			Y: rect.y,
 		},
 	}
-	h := win.HWND(_this._view.GetHandle())
+	h := win.HWND(_this.view.GetHandle())
 	imc := win.ImmGetContext(h)
 	win.ImmSetCompositionWindow(imc, &comp)
 	win.ImmReleaseContext(h, imc)
@@ -345,7 +362,7 @@ func (_this *freeMiniblink) viewImeStart() bool {
 }
 
 func (_this *freeMiniblink) viewKeyPress(e *fm.KeyPressEvArgs) {
-	if mbApi.wkeFireKeyPressEvent(_this._wke, int([]rune(e.KeyChar)[0]), uint32(wkeKeyFlags_Repeat), e.IsSys) {
+	if mbApi.wkeFireKeyPressEvent(_this.wke, int([]rune(e.KeyChar)[0]), uint32(wkeKeyFlags_Repeat), e.IsSys) {
 		e.IsHandle = true
 	}
 }
@@ -370,18 +387,18 @@ func (_this *freeMiniblink) viewKeyEvent(e *fm.KeyEvArgs, isDown bool) bool {
 		flags |= int(wkeKeyFlags_Extend)
 	}
 	if isDown {
-		return mbApi.wkeFireKeyDownEvent(_this._wke, uint32(e.Value), uint32(flags), e.IsSys)
+		return mbApi.wkeFireKeyDownEvent(_this.wke, uint32(e.Value), uint32(flags), e.IsSys)
 	} else {
-		return mbApi.wkeFireKeyUpEvent(_this._wke, uint32(e.Value), uint32(flags), e.IsSys)
+		return mbApi.wkeFireKeyUpEvent(_this.wke, uint32(e.Value), uint32(flags), e.IsSys)
 	}
 }
 
 func (_this *freeMiniblink) LoadUri(uri string) {
-	mbApi.wkeLoadURL(_this._wke, uri)
+	mbApi.wkeLoadURL(_this.wke, uri)
 }
 
 func (_this *freeMiniblink) viewSetCursor() bool {
-	cur := mbApi.wkeGetCursorInfoType(_this._wke)
+	cur := mbApi.wkeGetCursorInfoType(_this.wke)
 	newCur := fm.CursorType_Default
 	switch cur {
 	case wkeCursorType_Pointer:
@@ -399,7 +416,7 @@ func (_this *freeMiniblink) viewSetCursor() bool {
 	default:
 		fmt.Println("未实现的鼠标指针类型：" + strconv.Itoa(int(cur)))
 	}
-	_this._view.SetCursor(newCur)
+	_this.view.SetCursor(newCur)
 	return true
 }
 
@@ -421,7 +438,8 @@ func (_this *freeMiniblink) viewMouseWheel(e *fm.MouseEvArgs) {
 	if e.Button&fm.MouseButtons_Middle != 0 {
 		flags |= wkeMouseFlags_MBUTTON
 	}
-	if mbApi.wkeFireMouseWheelEvent(_this._wke, int32(e.X), int32(e.Y), int32(e.Delta), int32(flags)) {
+	if mbApi.wkeFireMouseWheelEvent(_this.wke, int32(e.X), int32(e.Y), int32(e.Delta), int32(flags)) {
+		fmt.Println(e.X, e.Y, e.Delta, flags)
 		e.IsHandle = true
 	}
 }
@@ -474,7 +492,7 @@ func (_this *freeMiniblink) viewMouseEvent(e *fm.MouseEvArgs, isDown bool) {
 			msg = win.WM_MBUTTONUP
 		}
 	}
-	if msg != 0 && mbApi.wkeFireMouseEvent(_this._wke, int32(msg), int32(e.X), int32(e.Y), int32(flags)) {
+	if msg != 0 && mbApi.wkeFireMouseEvent(_this.wke, int32(msg), int32(e.X), int32(e.Y), int32(flags)) {
 		e.IsHandle = true
 	}
 }
@@ -487,18 +505,18 @@ func (_this *freeMiniblink) viewMouseMove(e *fm.MouseEvArgs) {
 	if e.Button&fm.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 	}
-	if mbApi.wkeFireMouseEvent(_this._wke, int32(win.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
+	if mbApi.wkeFireMouseEvent(_this.wke, int32(win.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
 		e.IsHandle = true
 	}
 }
 
 func (_this *freeMiniblink) ToBitmap() *image.RGBA {
-	w := mbApi.wkeGetWidth(_this._wke)
-	h := mbApi.wkeGetHeight(_this._wke)
+	w := mbApi.wkeGetWidth(_this.wke)
+	h := mbApi.wkeGetHeight(_this.wke)
 	w = uint32(math.Max(float64(w), 0))
 	h = uint32(math.Max(float64(h), 0))
 	view := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-	mbApi.wkePaint(_this._wke, view.Pix, 0)
+	mbApi.wkePaint(_this.wke, view.Pix, 0)
 	return view
 }
 
@@ -532,27 +550,27 @@ func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, re
 			Height: bh,
 		},
 	})
-	if _this._paintUpdated != nil {
-		_this._paintUpdated(args)
+	if _this.paintUpdated != nil {
+		_this.paintUpdated(args)
 	}
 	if args.IsCancel() == false {
-		_this._view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+		_this.view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
 	}
 	return 0
 }
 
 func (_this *freeMiniblink) viewResize(e fm.Rect) {
-	mbApi.wkeResize(_this._wke, uint32(e.Width), uint32(e.Height))
+	mbApi.wkeResize(_this.wke, uint32(e.Width), uint32(e.Height))
 }
 
 func (_this *freeMiniblink) viewLostFocus() {
-	mbApi.wkeKillFocus(_this._wke)
+	mbApi.wkeKillFocus(_this.wke)
 }
 
 func (_this *freeMiniblink) viewFocus() {
-	mbApi.wkeSetFocus(_this._wke)
+	mbApi.wkeSetFocus(_this.wke)
 }
 
 func (_this *freeMiniblink) GetHandle() wkeHandle {
-	return _this._wke
+	return _this.wke
 }

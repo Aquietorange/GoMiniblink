@@ -24,13 +24,13 @@ type Provider struct {
 	defOwner     win.HWND
 	defIcon      win.HICON
 	mainThreadId uint32
-	watchAll     map[win.HWND]windowsMsgProc
+	watchAll     map[win.HWND][]windowsMsgProc
 	forms        map[win.HWND]br.Form
 }
 
 func (_this *Provider) Init() *Provider {
 	_this.forms = make(map[win.HWND]br.Form)
-	_this.watchAll = make(map[win.HWND]windowsMsgProc)
+	_this.watchAll = make(map[win.HWND][]windowsMsgProc)
 	_this.tmpWnd = make(map[uintptr]baseWindow)
 	_this.handleWnds = make(map[win.HWND]baseWindow)
 	_this.className = "goMiniblinkClass"
@@ -41,11 +41,7 @@ func (_this *Provider) Init() *Provider {
 }
 
 func (_this *Provider) watch(wnd baseWindow, proc windowsMsgProc) {
-	_this.watchAll[wnd.hWnd()] = proc
-}
-
-func (_this *Provider) unWatch(wnd baseWindow) {
-	delete(_this.watchAll, wnd.hWnd())
+	_this.watchAll[wnd.hWnd()] = append(_this.watchAll[wnd.hWnd()], proc)
 }
 
 func (_this *Provider) MouseLocation() fm.Point {
@@ -137,9 +133,11 @@ func (_this *Provider) classMsgProc(hWnd win.HWND, msg uint32, wParam uintptr, l
 			}
 		}
 	}
-	for _, proc := range _this.watchAll {
-		if rs := proc(hWnd, msg, wParam, lParam); rs != 0 {
-			return rs
+	for _, list := range _this.watchAll {
+		for _, proc := range list {
+			if rs := proc(hWnd, msg, wParam, lParam); rs != 0 {
+				return rs
+			}
 		}
 	}
 	if wnd, ok := _this.handleWnds[hWnd]; ok {

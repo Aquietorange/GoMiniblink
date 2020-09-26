@@ -18,15 +18,15 @@ func main() {
 	frm.SetSize(600, 600)
 
 	ctrl := new(cs.Control).Init()
-	ctrl.SetSize(150, 150)
-	ctrl.SetLocation(60, 60)
+	ctrl.SetSize(300, 300)
+	ctrl.SetLocation(100, 100)
 	ctrl.SetBgColor(0x2FAEE3)
 	frm.AddChild(ctrl)
 	ctrl.EvMouseClick["show_pos"] = func(s cs.GUI, e *fm.MouseEvArgs) {
-		ctrl.SetAnchor(fm.AnchorStyle_Left)
+
 	}
 	frm.EvMouseClick["show_click"] = func(s cs.GUI, e *fm.MouseEvArgs) {
-		ctrl.SetAnchor(fm.AnchorStyle_Fill)
+
 	}
 	cs.Run(frm)
 }

@@ -24,12 +24,12 @@ func (_this *winContainer) GetChilds() []br.Control {
 func (_this *winContainer) AddControl(control br.Control) {
 	if win.SetParent(win.HWND(control.GetHandle()), win.HWND(_this.GetHandle())) != 0 {
 		if wc, ok := control.(*winControl); ok {
-			wc.parent = _this
-		}
-		if ow, ok := _this._self.(br.Form); ok {
-			_this.owner = ow
-		} else {
-			_this.owner = _this.GetOwner()
+			wc.parent = _this._self
+			if ow, ok := _this._self.(br.Form); ok {
+				wc.owner = ow
+			} else {
+				wc.owner = _this.GetOwner()
+			}
 		}
 	}
 	_this._ctrls = append(_this._ctrls, control)
