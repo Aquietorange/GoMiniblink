@@ -1,7 +1,7 @@
 package bridge
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	fm "qq2564874169/goMiniblink/forms"
 )
 
 type WindowLostFocusProc func() bool
@@ -9,19 +9,19 @@ type WindowFocusProc func() bool
 type WindowImeStartCompositionProc func() bool
 type WindowSetCursorProc func() bool
 type WindowShowProc func()
-type WindowCreateProc func(handle uintptr) bool
+type WindowCreateProc func(handle uintptr)
 type WindowDestroyProc func()
-type WindowResizeProc func(e f.Rect) bool
-type WindowMoveProc func(e f.Point) bool
-type WindowMouseMoveProc func(e *f.MouseEvArgs)
-type WindowMouseDownProc func(e *f.MouseEvArgs)
-type WindowMouseUpProc func(e *f.MouseEvArgs)
-type WindowMouseWheelProc func(e *f.MouseEvArgs)
-type WindowMouseClickProc func(e *f.MouseEvArgs)
-type WindowPaintProc func(e f.PaintEvArgs) bool
-type WindowKeyDownProc func(e *f.KeyEvArgs)
-type WindowKeyUpProc func(e *f.KeyEvArgs)
-type WindowKeyPressProc func(e *f.KeyPressEvArgs)
+type WindowResizeProc func(e fm.Rect)
+type WindowMoveProc func(e fm.Point) bool
+type WindowMouseMoveProc func(e *fm.MouseEvArgs)
+type WindowMouseDownProc func(e *fm.MouseEvArgs)
+type WindowMouseUpProc func(e *fm.MouseEvArgs)
+type WindowMouseWheelProc func(e *fm.MouseEvArgs)
+type WindowMouseClickProc func(e *fm.MouseEvArgs)
+type WindowPaintProc func(e fm.PaintEvArgs) bool
+type WindowKeyDownProc func(e *fm.KeyEvArgs)
+type WindowKeyUpProc func(e *fm.KeyEvArgs)
+type WindowKeyPressProc func(e *fm.KeyPressEvArgs)
 
 type Window interface {
 	GetHandle() uintptr
@@ -48,18 +48,17 @@ type Window interface {
 	Invoke(fn func(state interface{}), state interface{})
 	IsInvoke() bool
 	SetSize(w int, h int)
-	GetSize() (w, h int)
 	SetLocation(x int, y int)
-	GetLocation() (x, y int)
+	GetBound() fm.Bound
 	Show()
 	Hide()
 	SetBgColor(color int32)
-	CreateGraphics() f.Graphics
-	SetCursor(cursor f.CursorType)
-	GetCursor() f.CursorType
+	CreateGraphics() fm.Graphics
+	SetCursor(cursor fm.CursorType)
+	GetCursor() fm.CursorType
 	GetParent() Control
 	GetOwner() Form
-	MousePosition() f.Point
+	ToClientPoint(p fm.Point) fm.Point
 	IsEnable() bool
 	Enable(b bool)
 }

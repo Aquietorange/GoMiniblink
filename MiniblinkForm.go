@@ -3,9 +3,9 @@ package GoMiniblink
 import (
 	"fmt"
 	"image"
-	f "qq2564874169/goMiniblink/forms"
-	c "qq2564874169/goMiniblink/forms/controls"
-	"qq2564874169/goMiniblink/forms/windows/win32"
+	fm "qq2564874169/goMiniblink/forms"
+	cs "qq2564874169/goMiniblink/forms/controls"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"time"
 	"unsafe"
 )
@@ -18,7 +18,7 @@ var (
 )
 
 type MiniblinkForm struct {
-	c.Form
+	cs.Form
 	View *MiniblinkBrowser
 
 	_isLoad        bool
@@ -31,11 +31,11 @@ type MiniblinkForm struct {
 func (_this *MiniblinkForm) Init() *MiniblinkForm {
 	_this.Form.Init()
 	_this.View = new(MiniblinkBrowser).Init()
-	_this.View.SetAnchor(f.AnchorStyle_Top | f.AnchorStyle_Right | f.AnchorStyle_Bottom | f.AnchorStyle_Left)
+	_this.View.SetAnchor(fm.AnchorStyle_Top | fm.AnchorStyle_Right | fm.AnchorStyle_Bottom | fm.AnchorStyle_Left)
 	_this.AddChild(_this.View)
 
 	bakOnResize := _this.OnResize
-	_this.OnResize = func(e f.Rect) {
+	_this.OnResize = func(e fm.Rect) {
 		_this.View.SetSize(e.Width, e.Height)
 		bakOnResize(e)
 	}
@@ -44,14 +44,14 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 		_this._wke = wkeHandle(_this.View.GetMiniblinkHandle())
 		_this.View.OnFocus()
 		_this.View.JsFuncEx(_fnMax, func() {
-			if _this.GetState() == f.FormState_Max {
-				_this.SetState(f.FormState_Normal)
+			if _this.GetState() == fm.FormState_Max {
+				_this.SetState(fm.FormState_Normal)
 			} else {
-				_this.SetState(f.FormState_Max)
+				_this.SetState(fm.FormState_Max)
 			}
 		})
 		_this.View.JsFuncEx(_fnMin, func() {
-			_this.SetState(f.FormState_Min)
+			_this.SetState(fm.FormState_Min)
 		})
 		_this.View.JsFuncEx(_fnClose, func() {
 			_this.Close()
@@ -78,37 +78,37 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 
 func (_this *MiniblinkForm) NoneBorderResize() {
 	padd := 5
-	hWnd := win32.HWND(_this.GetHandle())
+	hWnd := win.HWND(_this.GetHandle())
 	onMove := _this.View.OnMouseMove
 	onDown := _this.View.OnMouseDown
-	_this.View.OnMouseDown = func(e *f.MouseEvArgs) {
-		if e.Button&f.MouseButtons_Left != f.MouseButtons_Left {
+	_this.View.OnMouseDown = func(e *fm.MouseEvArgs) {
+		if e.Button&fm.MouseButtons_Left != fm.MouseButtons_Left {
 			onDown(e)
 			return
 		}
 		switch _this._rsState {
 		case 8:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF003), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF003), 0)
 		case 2:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF006), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF006), 0)
 		case 4:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF001), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF001), 0)
 		case 6:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF002), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF002), 0)
 		case 7:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF004), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF004), 0)
 		case 9:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF005), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF005), 0)
 		case 1:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF007), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF007), 0)
 		case 3:
-			win32.SendMessage(hWnd, win32.WM_SYSCOMMAND, uintptr(win32.SC_SIZE|0xF008), 0)
+			win.SendMessage(hWnd, win.WM_SYSCOMMAND, uintptr(win.SC_SIZE|0xF008), 0)
 		default:
 			onDown(e)
 		}
 		_this._rsState = 0
 	}
-	_this.View.OnMouseMove = func(e *f.MouseEvArgs) {
+	_this.View.OnMouseMove = func(e *fm.MouseEvArgs) {
 		size := _this.GetSize()
 		if e.X <= padd {
 			if e.Y <= padd {
@@ -147,13 +147,13 @@ func (_this *MiniblinkForm) NoneBorderResize() {
 		}
 		switch _this._rsState {
 		case 8, 2:
-			_this.SetCursor(f.CursorType_SIZENS)
+			_this.SetCursor(fm.CursorType_SIZENS)
 		case 4, 6:
-			_this.SetCursor(f.CursorType_SIZEWE)
+			_this.SetCursor(fm.CursorType_SIZEWE)
 		case 7, 3:
-			_this.SetCursor(f.CursorType_SIZENWSE)
+			_this.SetCursor(fm.CursorType_SIZENWSE)
 		case 9, 1:
-			_this.SetCursor(f.CursorType_SIZENESW)
+			_this.SetCursor(fm.CursorType_SIZENESW)
 		}
 		onMove(e)
 	}
@@ -167,11 +167,11 @@ func (_this *MiniblinkForm) TransparentMode() {
 		panic("必须在窗口加载完毕之前设置")
 	}
 	_this._isTransparent = true
-	_this.SetBorderStyle(f.FormBorder_None)
-	hWnd := win32.HWND(_this.GetHandle())
-	style := win32.GetWindowLong(hWnd, win32.GWL_EXSTYLE)
-	if style&win32.WS_EX_LAYERED != win32.WS_EX_LAYERED {
-		win32.SetWindowLong(hWnd, win32.GWL_EXSTYLE, style|win32.WS_EX_LAYERED)
+	_this.SetBorderStyle(fm.FormBorder_None)
+	hWnd := win.HWND(_this.GetHandle())
+	style := win.GetWindowLong(hWnd, win.GWL_EXSTYLE)
+	if style&win.WS_EX_LAYERED != win.WS_EX_LAYERED {
+		win.SetWindowLong(hWnd, win.GWL_EXSTYLE, style|win.WS_EX_LAYERED)
 	}
 	mbApi.wkeSetTransparent(_this._wke, true)
 	_this.View.OnPaintUpdated = func(e PaintUpdatedEvArgs) {
@@ -181,27 +181,27 @@ func (_this *MiniblinkForm) TransparentMode() {
 }
 
 func (_this *MiniblinkForm) transparentPaint(image *image.RGBA, width, height int) {
-	hWnd := win32.HWND(_this.GetHandle())
-	hdc := win32.GetDC(hWnd)
-	memDc := win32.CreateCompatibleDC(0)
-	src := win32.POINT{}
-	dst := win32.POINT{
+	hWnd := win.HWND(_this.GetHandle())
+	hdc := win.GetDC(hWnd)
+	memDc := win.CreateCompatibleDC(0)
+	src := win.POINT{}
+	dst := win.POINT{
 		X: int32(_this.GetLocation().X),
 		Y: int32(_this.GetLocation().Y),
 	}
-	size := win32.SIZE{
+	size := win.SIZE{
 		CX: int32(width),
 		CY: int32(height),
 	}
-	var head win32.BITMAPV5HEADER
+	var head win.BITMAPV5HEADER
 	head.BiSize = uint32(unsafe.Sizeof(head))
 	head.BiWidth = int32(width)
 	head.BiHeight = int32(height * -1)
 	head.BiBitCount = 32
 	head.BiPlanes = 1
-	head.BiCompression = win32.BI_RGB
+	head.BiCompression = win.BI_RGB
 	var lpBits unsafe.Pointer
-	bmp := win32.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, win32.DIB_RGB_COLORS, &lpBits, 0, 0)
+	bmp := win.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, win.DIB_RGB_COLORS, &lpBits, 0, 0)
 	bits := (*[1 << 30]byte)(lpBits)
 	stride := width * 4
 	for y := 0; y < height; y++ {
@@ -211,18 +211,18 @@ func (_this *MiniblinkForm) transparentPaint(image *image.RGBA, width, height in
 			bits[dp] = image.Pix[sp]
 		}
 	}
-	oldBits := win32.SelectObject(memDc, win32.HGDIOBJ(bmp))
+	oldBits := win.SelectObject(memDc, win.HGDIOBJ(bmp))
 	if bmp != 0 {
 		defer func() {
-			win32.SelectObject(memDc, oldBits)
-			win32.DeleteObject(win32.HGDIOBJ(bmp))
+			win.SelectObject(memDc, oldBits)
+			win.DeleteObject(win.HGDIOBJ(bmp))
 		}()
 	}
-	blend := win32.BLENDFUNCTION{
+	blend := win.BLENDFUNCTION{
 		SourceConstantAlpha: 255,
-		AlphaFormat:         win32.AC_SRC_ALPHA,
+		AlphaFormat:         win.AC_SRC_ALPHA,
 	}
-	win32.UpdateLayeredWindow(hWnd, 0, &dst, &size, memDc, &src, 0, &blend, 2)
+	win.UpdateLayeredWindow(hWnd, 0, &dst, &size, memDc, &src, 0, &blend, 2)
 }
 
 func (_this *MiniblinkForm) setFormFn(frame FrameContext) {
@@ -289,37 +289,37 @@ func (_this *MiniblinkForm) setFormFn(frame FrameContext) {
 }
 
 func (_this *MiniblinkForm) fnDrop() {
-	if _this.GetState() == f.FormState_Max ||
-		c.App.MouseIsDown()[f.MouseButtons_Left] == false {
+	if _this.GetState() != fm.FormState_Normal ||
+		cs.App.MouseIsDown()[fm.MouseButtons_Left] == false {
 		return
 	}
-	//win32.SendMessage(win32.HWND(_this.GetHandle()), win32.WM_SYSCOMMAND, win32.SC_MOVE|win32.HTCAPTION, 0)
-	me := _this.View.GetMouseEnable()
-	srcMs := c.App.MouseLocation()
-	srcFrm := _this.GetLocation()
-	if me {
-		_this.View.SetMouseEnable(false)
-	}
-	_this._isDrop = true
-	_this.watchMouseMove(func(p f.Point) {
-		var nx = p.X - srcMs.X
-		var ny = p.Y - srcMs.Y
-		nx = srcFrm.X + nx
-		ny = srcFrm.Y + ny
-		_this.SetLocation(nx, ny)
-	}, func() {
-		_this.View.SetMouseEnable(me)
-		_this.View.SetCursor(f.CursorType_Default)
-		_this._isDrop = false
-	})
-	_this.View.SetCursor(f.CursorType_SIZEALL)
+	win.SendMessage(win.HWND(_this.GetHandle()), win.WM_SYSCOMMAND, win.SC_MOVE|win.HTCAPTION, 0)
+	//me := _this.View.GetMouseEnable()
+	//srcMs := cs.App.MouseLocation()
+	//srcFrm := _this.GetLocation()
+	//if me {
+	//	_this.View.SetMouseEnable(false)
+	//}
+	//_this._isDrop = true
+	//_this.watchMouseMove(func(p fm.Point) {
+	//	var nx = p.X - srcMs.X
+	//	var ny = p.Y - srcMs.Y
+	//	nx = srcFrm.X + nx
+	//	ny = srcFrm.Y + ny
+	//	_this.SetLocation(nx, ny)
+	//}, func() {
+	//	_this.View.SetMouseEnable(me)
+	//	_this.View.SetCursor(fm.CursorType_Default)
+	//	_this._isDrop = false
+	//})
+	//_this.View.SetCursor(fm.CursorType_SIZEALL)
 }
 
-func (_this *MiniblinkForm) watchMouseMove(onMove func(p f.Point), onEnd func()) {
-	go func(mv func(p f.Point), end func()) {
-		pre := c.App.MouseLocation()
-		for c.App.MouseIsDown()[f.MouseButtons_Left] {
-			p := c.App.MouseLocation()
+func (_this *MiniblinkForm) watchMouseMove(onMove func(p fm.Point), onEnd func()) {
+	go func(mv func(p fm.Point), end func()) {
+		pre := cs.App.MouseLocation()
+		for cs.App.MouseIsDown()[fm.MouseButtons_Left] {
+			p := cs.App.MouseLocation()
 			if pre.IsEqual(p) == false {
 				_this.Invoke(func(state interface{}) {
 					mv(p)

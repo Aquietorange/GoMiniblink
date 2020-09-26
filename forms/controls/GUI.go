@@ -1,11 +1,10 @@
 package controls
 
-import f "qq2564874169/goMiniblink/forms"
+import fm "qq2564874169/goMiniblink/forms"
 
 type GUI interface {
 	GetHandle() uintptr
-	GetSize() f.Rect
-	GetLocation() f.Point
+	GetBound() fm.Bound
 	SetSize(width, height int)
 	SetLocation(x, y int)
 	SetBgColor(color int32)
@@ -13,4 +12,6 @@ type GUI interface {
 	Invoke(fn func(state interface{}), state interface{})
 	Enable(b bool)
 	IsEnable() bool
+	GetParent() GUI
+	GetOwner() GUI
 }

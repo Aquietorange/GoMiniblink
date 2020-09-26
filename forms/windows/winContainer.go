@@ -33,6 +33,7 @@ func (_this *winContainer) AddControl(control br.Control) {
 		}
 	}
 	_this._ctrls = append(_this._ctrls, control)
+	control.Show()
 }
 
 func (_this *winContainer) RemoveControl(control br.Control) {

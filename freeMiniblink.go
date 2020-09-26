@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"image"
 	"math"
-	f "qq2564874169/goMiniblink/forms"
-	c "qq2564874169/goMiniblink/forms/controls"
-	w "qq2564874169/goMiniblink/forms/windows/win32"
+	fm "qq2564874169/goMiniblink/forms"
+	cs "qq2564874169/goMiniblink/forms/controls"
+	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +41,7 @@ func execGoFunc(ctx GoFnContext) interface{} {
 }
 
 type freeMiniblink struct {
-	_view      *c.Control
+	_view      *cs.Control
 	_wke       wkeHandle
 	_fnMap     map[string]JsFnBinding
 	_jsIsReady bool
@@ -55,7 +55,7 @@ type freeMiniblink struct {
 	_paintUpdated  PaintUpdatedCallback
 }
 
-func (_this *freeMiniblink) init(control *c.Control) *freeMiniblink {
+func (_this *freeMiniblink) init(control *cs.Control) *freeMiniblink {
 	_this._view = control
 	_this._fnMap = make(map[string]JsFnBinding)
 	_this._reqMap = make(map[wkeNetJob]*freeRequestBeforeEvArgs)
@@ -96,15 +96,15 @@ func (_this *freeMiniblink) getJsBindingScript(isMain bool) string {
 		call = fmt.Sprintf("window.top[%q]", call)
 	}
 	var list []string
-	for k, _ := range _this._fnMap {
-		js := `window[%q]=function(){
-               var rs=%q;
-               var arr = Array.prototype.slice.call(arguments);
-               var args = [%q,%q,rs].concat(arr);
-               %s.apply(null,args);
-               return window.top[rs];
-           };`
-		js = fmt.Sprintf(js, k, rsName, strconv.FormatUint(uint64(_this._wke), 10), k, call)
+	for k := range _this._fnMap {
+		js := fmt.Sprintf(`window[%q]=function(){
+							   var rs=%q;
+							   var arr = Array.prototype.slice.call(arguments);
+							   var args = [%q,%q,rs].concat(arr);
+							   %s.apply(null,args);
+							   return window.top[rs];
+						   };`,
+			k, rsName, strconv.FormatUint(uint64(_this._wke), 10), k, call)
 		list = append(list, js)
 	}
 	return strings.Join(list, ";")
@@ -248,42 +248,42 @@ func (_this *freeMiniblink) setView() {
 		}
 	}
 	bakResize := _this._view.OnResize
-	_this._view.OnResize = func(e f.Rect) {
+	_this._view.OnResize = func(e fm.Rect) {
 		_this.viewResize(e)
 		if bakResize != nil {
 			bakResize(e)
 		}
 	}
 	bakPaint := _this._view.OnPaint
-	_this._view.OnPaint = func(e f.PaintEvArgs) {
+	_this._view.OnPaint = func(e fm.PaintEvArgs) {
 		_this.viewPaint(e)
 		if bakPaint != nil {
 			bakPaint(e)
 		}
 	}
 	bakMouseMove := _this._view.OnMouseMove
-	_this._view.OnMouseMove = func(e *f.MouseEvArgs) {
+	_this._view.OnMouseMove = func(e *fm.MouseEvArgs) {
 		_this.viewMouseMove(e)
 		if bakMouseMove != nil {
 			bakMouseMove(e)
 		}
 	}
 	bakMouseDown := _this._view.OnMouseDown
-	_this._view.OnMouseDown = func(e *f.MouseEvArgs) {
+	_this._view.OnMouseDown = func(e *fm.MouseEvArgs) {
 		_this.viewMouseDown(e)
 		if bakMouseDown != nil {
 			bakMouseDown(e)
 		}
 	}
 	bakMouseUp := _this._view.OnMouseUp
-	_this._view.OnMouseUp = func(e *f.MouseEvArgs) {
+	_this._view.OnMouseUp = func(e *fm.MouseEvArgs) {
 		_this.viewMouseUp(e)
 		if bakMouseUp != nil {
 			bakMouseUp(e)
 		}
 	}
 	bakMouseWheel := _this._view.OnMouseWheel
-	_this._view.OnMouseWheel = func(e *f.MouseEvArgs) {
+	_this._view.OnMouseWheel = func(e *fm.MouseEvArgs) {
 		_this.viewMouseWheel(e)
 		if bakMouseWheel != nil {
 			bakMouseWheel(e)
@@ -298,21 +298,21 @@ func (_this *freeMiniblink) setView() {
 		return b
 	}
 	bakKeyDown := _this._view.OnKeyDown
-	_this._view.OnKeyDown = func(e *f.KeyEvArgs) {
+	_this._view.OnKeyDown = func(e *fm.KeyEvArgs) {
 		_this.viewKeyDown(e)
 		if bakKeyDown != nil {
 			bakKeyDown(e)
 		}
 	}
 	bakKeyUp := _this._view.OnKeyUp
-	_this._view.OnKeyUp = func(e *f.KeyEvArgs) {
+	_this._view.OnKeyUp = func(e *fm.KeyEvArgs) {
 		_this.viewKeyUp(e)
 		if bakKeyUp != nil {
 			bakKeyUp(e)
 		}
 	}
 	bakKeyPress := _this._view.OnKeyPress
-	_this._view.OnKeyPress = func(e *f.KeyPressEvArgs) {
+	_this._view.OnKeyPress = func(e *fm.KeyPressEvArgs) {
 		_this.viewKeyPress(e)
 		if bakKeyPress != nil {
 			bakKeyPress(e)
@@ -330,43 +330,43 @@ func (_this *freeMiniblink) setView() {
 
 func (_this *freeMiniblink) viewImeStart() bool {
 	rect := mbApi.wkeGetCaretRect(_this._wke)
-	comp := w.COMPOSITIONFORM{
-		DwStyle: w.CFS_POINT | w.CFS_FORCE_POSITION,
-		Pos: w.POINT{
+	comp := win.COMPOSITIONFORM{
+		DwStyle: win.CFS_POINT | win.CFS_FORCE_POSITION,
+		Pos: win.POINT{
 			X: rect.x,
 			Y: rect.y,
 		},
 	}
-	h := w.HWND(_this._view.GetHandle())
-	imc := w.ImmGetContext(h)
-	w.ImmSetCompositionWindow(imc, &comp)
-	w.ImmReleaseContext(h, imc)
+	h := win.HWND(_this._view.GetHandle())
+	imc := win.ImmGetContext(h)
+	win.ImmSetCompositionWindow(imc, &comp)
+	win.ImmReleaseContext(h, imc)
 	return true
 }
 
-func (_this *freeMiniblink) viewKeyPress(e *f.KeyPressEvArgs) {
+func (_this *freeMiniblink) viewKeyPress(e *fm.KeyPressEvArgs) {
 	if mbApi.wkeFireKeyPressEvent(_this._wke, int([]rune(e.KeyChar)[0]), uint32(wkeKeyFlags_Repeat), e.IsSys) {
 		e.IsHandle = true
 	}
 }
 
-func (_this *freeMiniblink) viewKeyUp(e *f.KeyEvArgs) {
+func (_this *freeMiniblink) viewKeyUp(e *fm.KeyEvArgs) {
 	if _this.viewKeyEvent(e, false) {
 		e.IsHandle = true
 	}
 }
 
-func (_this *freeMiniblink) viewKeyDown(e *f.KeyEvArgs) {
+func (_this *freeMiniblink) viewKeyDown(e *fm.KeyEvArgs) {
 	if _this.viewKeyEvent(e, true) {
 		e.IsHandle = true
 	}
 }
 
-func (_this *freeMiniblink) viewKeyEvent(e *f.KeyEvArgs, isDown bool) bool {
+func (_this *freeMiniblink) viewKeyEvent(e *fm.KeyEvArgs, isDown bool) bool {
 	flags := int(wkeKeyFlags_Repeat)
 	switch e.Key {
-	case f.Keys_Insert, f.Keys_Delete, f.Keys_Home, f.Keys_End, f.Keys_PageUp,
-		f.Keys_PageDown, f.Keys_Left, f.Keys_Right, f.Keys_Up, f.Keys_Down:
+	case fm.Keys_Insert, fm.Keys_Delete, fm.Keys_Home, fm.Keys_End, fm.Keys_PageUp,
+		fm.Keys_PageDown, fm.Keys_Left, fm.Keys_Right, fm.Keys_Up, fm.Keys_Down:
 		flags |= int(wkeKeyFlags_Extend)
 	}
 	if isDown {
@@ -382,20 +382,20 @@ func (_this *freeMiniblink) LoadUri(uri string) {
 
 func (_this *freeMiniblink) viewSetCursor() bool {
 	cur := mbApi.wkeGetCursorInfoType(_this._wke)
-	newCur := f.CursorType_Default
+	newCur := fm.CursorType_Default
 	switch cur {
 	case wkeCursorType_Pointer:
-		newCur = f.CursorType_ARROW
+		newCur = fm.CursorType_ARROW
 	case wkeCursorType_Hand:
-		newCur = f.CursorType_HAND
+		newCur = fm.CursorType_HAND
 	case wkeCursorType_IBeam:
-		newCur = f.CursorType_IBEAM
+		newCur = fm.CursorType_IBEAM
 	case wkeCursorType_ColumnResize:
-		newCur = f.CursorType_SIZEWE
+		newCur = fm.CursorType_SIZEWE
 	case wkeCursorType_RowResize:
-		newCur = f.CursorType_SIZENS
+		newCur = fm.CursorType_SIZENS
 	case wkeCursorType_Cross:
-		newCur = f.CursorType_CROSS
+		newCur = fm.CursorType_CROSS
 	default:
 		fmt.Println("未实现的鼠标指针类型：" + strconv.Itoa(int(cur)))
 	}
@@ -403,22 +403,22 @@ func (_this *freeMiniblink) viewSetCursor() bool {
 	return true
 }
 
-func (_this *freeMiniblink) viewMouseWheel(e *f.MouseEvArgs) {
+func (_this *freeMiniblink) viewMouseWheel(e *fm.MouseEvArgs) {
 	flags := wkeMouseFlags_None
-	keys := c.App.ModifierKeys()
-	if s, ok := keys[f.Keys_Ctrl]; ok && s {
+	keys := cs.App.ModifierKeys()
+	if s, ok := keys[fm.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
-	if s, ok := keys[f.Keys_Shift]; ok && s {
+	if s, ok := keys[fm.Keys_Shift]; ok && s {
 		flags |= wkeMouseFlags_SHIFT
 	}
-	if e.Button&f.MouseButtons_Left != 0 {
+	if e.Button&fm.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
 	}
-	if e.Button&f.MouseButtons_Right != 0 {
+	if e.Button&fm.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 	}
-	if e.Button&f.MouseButtons_Middle != 0 {
+	if e.Button&fm.MouseButtons_Middle != 0 {
 		flags |= wkeMouseFlags_MBUTTON
 	}
 	if mbApi.wkeFireMouseWheelEvent(_this._wke, int32(e.X), int32(e.Y), int32(e.Delta), int32(flags)) {
@@ -426,52 +426,52 @@ func (_this *freeMiniblink) viewMouseWheel(e *f.MouseEvArgs) {
 	}
 }
 
-func (_this *freeMiniblink) viewMouseUp(e *f.MouseEvArgs) {
+func (_this *freeMiniblink) viewMouseUp(e *fm.MouseEvArgs) {
 	_this.viewMouseEvent(e, false)
 }
 
-func (_this *freeMiniblink) viewMouseDown(e *f.MouseEvArgs) {
+func (_this *freeMiniblink) viewMouseDown(e *fm.MouseEvArgs) {
 	_this.viewMouseEvent(e, true)
 }
 
-func (_this *freeMiniblink) viewMouseEvent(e *f.MouseEvArgs, isDown bool) {
+func (_this *freeMiniblink) viewMouseEvent(e *fm.MouseEvArgs, isDown bool) {
 	flags := wkeMouseFlags_None
-	keys := c.App.ModifierKeys()
-	if s, ok := keys[f.Keys_Ctrl]; ok && s {
+	keys := cs.App.ModifierKeys()
+	if s, ok := keys[fm.Keys_Ctrl]; ok && s {
 		flags |= wkeMouseFlags_CONTROL
 	}
-	if s, ok := keys[f.Keys_Shift]; ok && s {
+	if s, ok := keys[fm.Keys_Shift]; ok && s {
 		flags |= wkeMouseFlags_SHIFT
 	}
 	msg := 0
-	if e.Button&f.MouseButtons_Left != 0 {
+	if e.Button&fm.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
 		if e.IsDouble {
-			msg = w.WM_LBUTTONDBLCLK
+			msg = win.WM_LBUTTONDBLCLK
 		} else if isDown {
-			msg = w.WM_LBUTTONDOWN
+			msg = win.WM_LBUTTONDOWN
 		} else {
-			msg = w.WM_LBUTTONUP
+			msg = win.WM_LBUTTONUP
 		}
 	}
-	if e.Button&f.MouseButtons_Right != 0 {
+	if e.Button&fm.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 		if e.IsDouble {
-			msg = w.WM_RBUTTONDBLCLK
+			msg = win.WM_RBUTTONDBLCLK
 		} else if isDown {
-			msg = w.WM_RBUTTONDOWN
+			msg = win.WM_RBUTTONDOWN
 		} else {
-			msg = w.WM_RBUTTONUP
+			msg = win.WM_RBUTTONUP
 		}
 	}
-	if e.Button&f.MouseButtons_Middle != 0 {
+	if e.Button&fm.MouseButtons_Middle != 0 {
 		flags |= wkeMouseFlags_MBUTTON
 		if e.IsDouble {
-			msg = w.WM_MBUTTONDBLCLK
+			msg = win.WM_MBUTTONDBLCLK
 		} else if isDown {
-			msg = w.WM_MBUTTONDOWN
+			msg = win.WM_MBUTTONDOWN
 		} else {
-			msg = w.WM_MBUTTONUP
+			msg = win.WM_MBUTTONUP
 		}
 	}
 	if msg != 0 && mbApi.wkeFireMouseEvent(_this._wke, int32(msg), int32(e.X), int32(e.Y), int32(flags)) {
@@ -479,15 +479,15 @@ func (_this *freeMiniblink) viewMouseEvent(e *f.MouseEvArgs, isDown bool) {
 	}
 }
 
-func (_this *freeMiniblink) viewMouseMove(e *f.MouseEvArgs) {
+func (_this *freeMiniblink) viewMouseMove(e *fm.MouseEvArgs) {
 	flags := wkeMouseFlags_None
-	if e.Button&f.MouseButtons_Left != 0 {
+	if e.Button&fm.MouseButtons_Left != 0 {
 		flags |= wkeMouseFlags_LBUTTON
 	}
-	if e.Button&f.MouseButtons_Right != 0 {
+	if e.Button&fm.MouseButtons_Right != 0 {
 		flags |= wkeMouseFlags_RBUTTON
 	}
-	if mbApi.wkeFireMouseEvent(_this._wke, int32(w.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
+	if mbApi.wkeFireMouseEvent(_this._wke, int32(win.WM_MOUSEMOVE), int32(e.X), int32(e.Y), int32(flags)) {
 		e.IsHandle = true
 	}
 }
@@ -502,7 +502,7 @@ func (_this *freeMiniblink) ToBitmap() *image.RGBA {
 	return view
 }
 
-func (_this *freeMiniblink) viewPaint(e f.PaintEvArgs) {
+func (_this *freeMiniblink) viewPaint(e fm.PaintEvArgs) {
 	img := _this.ToBitmap()
 	if img.Bounds().Empty() == false {
 		e.Graphics.DrawImage(img, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
@@ -522,12 +522,12 @@ func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, re
 			bmp.Pix[sp] = pixs[dp]
 		}
 	}
-	args := new(freePaintUpdatedEvArgs).init(bmp, f.Bound{
-		Point: f.Point{
+	args := new(freePaintUpdatedEvArgs).init(bmp, fm.Bound{
+		Point: fm.Point{
 			X: bx,
 			Y: by,
 		},
-		Rect: f.Rect{
+		Rect: fm.Rect{
 			Width:  bw,
 			Height: bh,
 		},
@@ -541,7 +541,7 @@ func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, re
 	return 0
 }
 
-func (_this *freeMiniblink) viewResize(e f.Rect) {
+func (_this *freeMiniblink) viewResize(e fm.Rect) {
 	mbApi.wkeResize(_this._wke, uint32(e.Width), uint32(e.Height))
 }
 

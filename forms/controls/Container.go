@@ -1,7 +1,7 @@
 package controls
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	fm "qq2564874169/goMiniblink/forms"
 	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
@@ -14,57 +14,75 @@ type Container interface {
 type Child interface {
 	GUI
 
+	setOwner(owner GUI)
+	setParent(parent GUI)
 	toControl() br.Control
-	getAnchor() f.AnchorStyle
+	GetAnchor() fm.AnchorStyle
+	SetAnchor(style fm.AnchorStyle)
 }
 
 type BaseContainer struct {
 	Childs map[uintptr]Child
 
 	container Container
-	logAnchor map[uintptr]f.Bound2
+	logs      map[uintptr]fm.Bound2
 }
 
 func (_this *BaseContainer) Init(container Container) *BaseContainer {
 	_this.Childs = make(map[uintptr]Child)
-	_this.logAnchor = make(map[uintptr]f.Bound2)
+	_this.logs = make(map[uintptr]fm.Bound2)
 	_this.container = container
 	var bakResize br.WindowResizeProc
-	bakResize = container.toControls().SetOnResize(func(e f.Rect) bool {
-		b := false
+	bakResize = container.toControls().SetOnResize(func(e fm.Rect) {
+		_this.onAnchor(e)
 		if bakResize != nil {
-			b = bakResize(e)
+			bakResize(e)
 		}
-		if !b {
-			_this.onAnchor(e)
-		}
-		return b
 	})
 	return _this
 }
 
-func (_this *BaseContainer) onAnchor(rect f.Rect) {
-	def := f.AnchorStyle_Left | f.AnchorStyle_Top
+func (_this *BaseContainer) onAnchor(rect fm.Rect) {
 	for _, n := range _this.Childs {
-		anc := n.getAnchor()
-		if anc == def {
-			continue
+		b := _this.logs[n.GetHandle()]
+		anc := n.GetAnchor()
+		bound := n.GetBound()
+		pos := bound.Point
+		sz := bound.Rect
+		if anc == fm.AnchorStyle_Fill {
+			sz = _this.container.GetBound().Rect
+			pos = fm.Point{}
+		} else {
+			pos = fm.Point{
+				X: b.Left,
+				Y: b.Top,
+			}
+			sz = fm.Rect{
+				Width:  b.Right - b.Left,
+				Height: b.Bottom - b.Top,
+			}
+			if anc&fm.AnchorStyle_Left != 0 {
+				pos.X = b.Left
+			}
+			if anc&fm.AnchorStyle_Right != 0 {
+				if anc&fm.AnchorStyle_Left != 0 {
+					sz.Width = rect.Width - b.Left - b.Right
+				} else {
+					pos.X = rect.Width - b.Right - sz.Width
+				}
+			}
+			if anc&fm.AnchorStyle_Top != 0 {
+				pos.Y = b.Top
+			}
+			if anc&fm.AnchorStyle_Bottom != 0 {
+				if anc&fm.AnchorStyle_Top != 0 {
+					sz.Height = rect.Height - b.Top - b.Bottom
+				} else {
+					pos.Y = rect.Height - b.Bottom - sz.Height
+				}
+			}
 		}
-		b := _this.logAnchor[n.GetHandle()]
-		pos := n.GetLocation()
-		sz := n.GetSize()
-		if anc&f.AnchorStyle_Left != 0 && anc&f.AnchorStyle_Right != 0 {
-			sz.Width = rect.Width - b.Left - b.Right
-			pos.X = b.Left
-		} else if anc&f.AnchorStyle_Right != 0 {
-			pos.X = rect.Width - b.Right - sz.Width
-		}
-		if anc&f.AnchorStyle_Top != 0 && anc&f.AnchorStyle_Bottom != 0 {
-			sz.Height = rect.Height - b.Top - b.Bottom
-			pos.Y = b.Top
-		} else if anc&f.AnchorStyle_Bottom != 0 {
-			pos.Y = rect.Height - b.Bottom - sz.Height
-		}
+
 		n.SetSize(sz.Width, sz.Height)
 		n.SetLocation(pos.X, pos.Y)
 	}
@@ -73,24 +91,26 @@ func (_this *BaseContainer) onAnchor(rect f.Rect) {
 func (_this *BaseContainer) AddChild(child Child) {
 	if _, ok := _this.Childs[child.GetHandle()]; ok == false {
 		_this.container.toControls().AddControl(child.toControl())
-		_this.Childs[child.GetHandle()] = child
-		ps := _this.container.GetSize()
-		cp := child.GetLocation()
-		cs := child.GetSize()
-		rect := f.Bound2{
-			Left:   cp.X,
-			Top:    cp.Y,
-			Right:  ps.Width - cs.Width - cp.X,
-			Bottom: ps.Height - cs.Height - cp.Y,
+		bn := child.GetBound()
+		rect := fm.Bound2{
+			Left:   bn.X,
+			Top:    bn.Y,
+			Right:  bn.Width + bn.X,
+			Bottom: bn.Height + bn.Y,
 		}
-		_this.logAnchor[child.GetHandle()] = rect
+		child.setParent(_this.container)
+		child.setOwner(_this.container.GetOwner())
+		_this.logs[child.GetHandle()] = rect
+		_this.Childs[child.GetHandle()] = child
 	}
 }
 
 func (_this *BaseContainer) RemoveChild(child Child) {
 	if _, ok := _this.Childs[child.GetHandle()]; ok {
 		_this.container.toControls().RemoveControl(child.toControl())
+		child.setParent(nil)
+		child.setOwner(nil)
 		delete(_this.Childs, child.GetHandle())
-		delete(_this.logAnchor, child.GetHandle())
+		delete(_this.logs, child.GetHandle())
 	}
 }

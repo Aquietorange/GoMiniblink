@@ -1,46 +1,49 @@
 package controls
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	fm "qq2564874169/goMiniblink/forms"
 	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
 type BaseUI struct {
-	EvKeyDown map[string]func(s GUI, e *f.KeyEvArgs)
-	OnKeyDown func(e *f.KeyEvArgs)
+	EvLoad map[string]func(s GUI)
+	OnLoad func()
 
-	EvKeyUp map[string]func(s GUI, e *f.KeyEvArgs)
-	OnKeyUp func(e *f.KeyEvArgs)
+	EvKeyDown map[string]func(s GUI, e *fm.KeyEvArgs)
+	OnKeyDown func(e *fm.KeyEvArgs)
 
-	EvKeyPress map[string]func(s GUI, e *f.KeyPressEvArgs)
-	OnKeyPress func(e *f.KeyPressEvArgs)
+	EvKeyUp map[string]func(s GUI, e *fm.KeyEvArgs)
+	OnKeyUp func(e *fm.KeyEvArgs)
+
+	EvKeyPress map[string]func(s GUI, e *fm.KeyPressEvArgs)
+	OnKeyPress func(e *fm.KeyPressEvArgs)
 
 	EvShow map[string]func(s GUI)
 	OnShow func()
 
-	EvResize map[string]func(s GUI, e f.Rect)
-	OnResize func(e f.Rect)
+	EvResize map[string]func(s GUI, e fm.Rect)
+	OnResize func(e fm.Rect)
 
-	EvMove map[string]func(s GUI, e f.Point)
-	OnMove func(e f.Point)
+	EvMove map[string]func(s GUI, e fm.Point)
+	OnMove func(e fm.Point)
 
-	EvMouseMove map[string]func(s GUI, e *f.MouseEvArgs)
-	OnMouseMove func(e *f.MouseEvArgs)
+	EvMouseMove map[string]func(s GUI, e *fm.MouseEvArgs)
+	OnMouseMove func(e *fm.MouseEvArgs)
 
-	EvMouseDown map[string]func(s GUI, e *f.MouseEvArgs)
-	OnMouseDown func(e *f.MouseEvArgs)
+	EvMouseDown map[string]func(s GUI, e *fm.MouseEvArgs)
+	OnMouseDown func(e *fm.MouseEvArgs)
 
-	EvMouseUp map[string]func(s GUI, e *f.MouseEvArgs)
-	OnMouseUp func(e *f.MouseEvArgs)
+	EvMouseUp map[string]func(s GUI, e *fm.MouseEvArgs)
+	OnMouseUp func(e *fm.MouseEvArgs)
 
-	EvMouseWheel map[string]func(s GUI, e *f.MouseEvArgs)
-	OnMouseWheel func(e *f.MouseEvArgs)
+	EvMouseWheel map[string]func(s GUI, e *fm.MouseEvArgs)
+	OnMouseWheel func(e *fm.MouseEvArgs)
 
-	EvMouseClick map[string]func(s GUI, e *f.MouseEvArgs)
-	OnMouseClick func(e *f.MouseEvArgs)
+	EvMouseClick map[string]func(s GUI, e *fm.MouseEvArgs)
+	OnMouseClick func(e *fm.MouseEvArgs)
 
-	EvPaint map[string]func(s GUI, e f.PaintEvArgs)
-	OnPaint func(e f.PaintEvArgs)
+	EvPaint map[string]func(s GUI, e fm.PaintEvArgs)
+	OnPaint func(e fm.PaintEvArgs)
 
 	EvFocus map[string]func(s GUI)
 	OnFocus func()
@@ -53,52 +56,58 @@ type BaseUI struct {
 
 	instance GUI
 	impl     br.Window
+	skipLoad bool
+	parent   GUI
+	owner    GUI
 }
 
 func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 	_this.instance = instance
 	_this.impl = impl
 
-	_this.EvKeyPress = make(map[string]func(s GUI, e *f.KeyPressEvArgs))
+	_this.EvLoad = make(map[string]func(GUI))
+	_this.OnLoad = _this.defOnLoad
+
+	_this.EvKeyPress = make(map[string]func(GUI, *fm.KeyPressEvArgs))
 	_this.OnKeyPress = _this.defOnKeyPress
 
-	_this.EvKeyDown = make(map[string]func(s GUI, e *f.KeyEvArgs))
+	_this.EvKeyDown = make(map[string]func(GUI, *fm.KeyEvArgs))
 	_this.OnKeyDown = _this.defOnKeyDown
 
-	_this.EvKeyUp = make(map[string]func(s GUI, e *f.KeyEvArgs))
+	_this.EvKeyUp = make(map[string]func(GUI, *fm.KeyEvArgs))
 	_this.OnKeyUp = _this.defOnKeyUp
 
-	_this.EvPaint = make(map[string]func(s GUI, e f.PaintEvArgs))
+	_this.EvPaint = make(map[string]func(GUI, fm.PaintEvArgs))
 	_this.OnPaint = _this.defOnPaint
 
-	_this.EvShow = make(map[string]func(s GUI))
-	_this.OnShow = _this.defOnLoad
+	_this.EvShow = make(map[string]func(GUI))
+	_this.OnShow = _this.defOnShow
 
-	_this.EvResize = make(map[string]func(s GUI, e f.Rect))
+	_this.EvResize = make(map[string]func(GUI, fm.Rect))
 	_this.OnResize = _this.defOnResize
 
-	_this.EvMove = make(map[string]func(s GUI, e f.Point))
+	_this.EvMove = make(map[string]func(GUI, fm.Point))
 	_this.OnMove = _this.defOnMove
 
-	_this.EvMouseMove = make(map[string]func(s GUI, e *f.MouseEvArgs))
+	_this.EvMouseMove = make(map[string]func(GUI, *fm.MouseEvArgs))
 	_this.OnMouseMove = _this.defOnMouseMove
 
-	_this.EvMouseDown = make(map[string]func(s GUI, e *f.MouseEvArgs))
+	_this.EvMouseDown = make(map[string]func(GUI, *fm.MouseEvArgs))
 	_this.OnMouseDown = _this.defOnMouseDown
 
-	_this.EvMouseUp = make(map[string]func(s GUI, e *f.MouseEvArgs))
+	_this.EvMouseUp = make(map[string]func(GUI, *fm.MouseEvArgs))
 	_this.OnMouseUp = _this.defOnMouseUp
 
-	_this.EvMouseWheel = make(map[string]func(s GUI, e *f.MouseEvArgs))
+	_this.EvMouseWheel = make(map[string]func(GUI, *fm.MouseEvArgs))
 	_this.OnMouseWheel = _this.defOnMouseWheel
 
-	_this.EvMouseClick = make(map[string]func(s GUI, e *f.MouseEvArgs))
+	_this.EvMouseClick = make(map[string]func(GUI, *fm.MouseEvArgs))
 	_this.OnMouseClick = _this.defOnMouseClick
 
-	_this.EvFocus = make(map[string]func(s GUI))
+	_this.EvFocus = make(map[string]func(GUI))
 	_this.OnFocus = _this.defOnFocus
 
-	_this.EvLostFocus = make(map[string]func(s GUI))
+	_this.EvLostFocus = make(map[string]func(GUI))
 	_this.OnLostFocus = _this.defOnLostFocus
 
 	var bakImeStart br.WindowImeStartCompositionProc
@@ -150,116 +159,114 @@ func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 	})
 
 	var bakKeyPress br.WindowKeyPressProc
-	bakKeyPress = _this.impl.SetOnKeyPress(func(e *f.KeyPressEvArgs) {
+	bakKeyPress = _this.impl.SetOnKeyPress(func(e *fm.KeyPressEvArgs) {
 		if bakKeyPress != nil {
 			bakKeyPress(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnKeyPress != nil {
 			_this.OnKeyPress(e)
 		}
 	})
 
 	var bakKeyUp br.WindowKeyUpProc
-	bakKeyUp = _this.impl.SetOnKeyUp(func(e *f.KeyEvArgs) {
+	bakKeyUp = _this.impl.SetOnKeyUp(func(e *fm.KeyEvArgs) {
 		if bakKeyUp != nil {
 			bakKeyUp(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnKeyUp != nil {
 			_this.OnKeyUp(e)
 		}
 	})
 
 	var bakKeyDown br.WindowKeyDownProc
-	bakKeyDown = _this.impl.SetOnKeyDown(func(e *f.KeyEvArgs) {
+	bakKeyDown = _this.impl.SetOnKeyDown(func(e *fm.KeyEvArgs) {
 		if bakKeyDown != nil {
 			bakKeyDown(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnKeyDown != nil {
 			_this.OnKeyDown(e)
 		}
 	})
 
 	var bakPaint br.WindowPaintProc
-	bakPaint = _this.impl.SetOnPaint(func(e f.PaintEvArgs) bool {
+	bakPaint = _this.impl.SetOnPaint(func(e fm.PaintEvArgs) bool {
 		b := false
 		if bakPaint != nil {
 			b = bakPaint(e)
 		}
-		if !b {
+		if !b && _this.OnPaint != nil {
 			_this.OnPaint(e)
 		}
 		return b
 	})
 
 	var bakMouseClick br.WindowMouseClickProc
-	bakMouseClick = _this.impl.SetOnMouseClick(func(e *f.MouseEvArgs) {
+	bakMouseClick = _this.impl.SetOnMouseClick(func(e *fm.MouseEvArgs) {
 		if bakMouseClick != nil {
 			bakMouseClick(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnMouseClick != nil {
 			_this.OnMouseClick(e)
 		}
 	})
 
 	var bakMouseWheel br.WindowMouseWheelProc
-	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e *f.MouseEvArgs) {
+	bakMouseWheel = _this.impl.SetOnMouseWheel(func(e *fm.MouseEvArgs) {
 		if bakMouseWheel != nil {
 			bakMouseWheel(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnMouseWheel != nil {
 			_this.OnMouseWheel(e)
 		}
 	})
 
 	var bakMouseUp br.WindowMouseUpProc
-	bakMouseUp = _this.impl.SetOnMouseUp(func(e *f.MouseEvArgs) {
+	bakMouseUp = _this.impl.SetOnMouseUp(func(e *fm.MouseEvArgs) {
 		if bakMouseUp != nil {
 			bakMouseUp(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnMouseUp != nil {
 			_this.OnMouseUp(e)
 		}
 	})
 
 	var bakMouseDown br.WindowMouseDownProc
-	bakMouseDown = _this.impl.SetOnMouseDown(func(e *f.MouseEvArgs) {
+	bakMouseDown = _this.impl.SetOnMouseDown(func(e *fm.MouseEvArgs) {
 		if bakMouseDown != nil {
 			bakMouseDown(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnMouseDown != nil {
 			_this.OnMouseDown(e)
 		}
 	})
 
 	var bakMouseMove br.WindowMouseMoveProc
-	bakMouseMove = _this.impl.SetOnMouseMove(func(e *f.MouseEvArgs) {
+	bakMouseMove = _this.impl.SetOnMouseMove(func(e *fm.MouseEvArgs) {
 		if bakMouseMove != nil {
 			bakMouseMove(e)
 		}
-		if !e.IsHandle {
+		if !e.IsHandle && _this.OnMouseMove != nil {
 			_this.OnMouseMove(e)
 		}
 	})
 
 	var bakResize br.WindowResizeProc
-	bakResize = _this.impl.SetOnResize(func(e f.Rect) bool {
-		b := false
+	bakResize = _this.impl.SetOnResize(func(e fm.Rect) {
 		if bakResize != nil {
-			b = bakResize(e)
+			bakResize(e)
 		}
-		if !b {
+		if _this.OnResize != nil {
 			_this.OnResize(e)
 		}
-		return b
 	})
 
 	var bakMove br.WindowMoveProc
-	bakMove = _this.impl.SetOnMove(func(e f.Point) bool {
+	bakMove = _this.impl.SetOnMove(func(e fm.Point) bool {
 		b := false
 		if bakMove != nil {
 			b = bakMove(e)
 		}
-		if !b {
+		if !b && _this.OnMove != nil {
 			_this.OnMove(e)
 		}
 		return b
@@ -267,10 +274,18 @@ func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 
 	var bakShow br.WindowShowProc
 	bakShow = _this.impl.SetOnShow(func() {
+		if _this.skipLoad == false {
+			_this.skipLoad = true
+			if _this.OnLoad != nil {
+				_this.OnLoad()
+			}
+		}
 		if bakShow != nil {
 			bakShow()
 		}
-		_this.OnShow()
+		if _this.OnShow != nil {
+			_this.OnShow()
+		}
 	})
 	return _this
 }
@@ -283,15 +298,15 @@ func (_this *BaseUI) IsEnable() bool {
 	return _this.impl.IsEnable()
 }
 
-func (_this *BaseUI) CreateGraphics() f.Graphics {
+func (_this *BaseUI) CreateGraphics() fm.Graphics {
 	return _this.impl.CreateGraphics()
 }
 
-func (_this *BaseUI) SetCursor(cursor f.CursorType) {
+func (_this *BaseUI) SetCursor(cursor fm.CursorType) {
 	_this.impl.SetCursor(cursor)
 }
 
-func (_this *BaseUI) GetCursor() f.CursorType {
+func (_this *BaseUI) GetCursor() fm.CursorType {
 	return _this.impl.GetCursor()
 }
 
@@ -303,20 +318,8 @@ func (_this *BaseUI) SetLocation(x, y int) {
 	_this.impl.SetLocation(x, y)
 }
 
-func (_this *BaseUI) GetLocation() f.Point {
-	x, y := _this.impl.GetLocation()
-	return f.Point{
-		X: x,
-		Y: y,
-	}
-}
-
-func (_this *BaseUI) GetSize() f.Rect {
-	w, h := _this.impl.GetSize()
-	return f.Rect{
-		Width:  w,
-		Height: h,
-	}
+func (_this *BaseUI) GetBound() fm.Bound {
+	return _this.impl.GetBound()
 }
 
 func (_this *BaseUI) SetSize(width, height int) {
@@ -341,4 +344,12 @@ func (_this *BaseUI) Show() {
 
 func (_this *BaseUI) Hide() {
 	_this.impl.Hide()
+}
+
+func (_this *BaseUI) GetParent() GUI {
+	return _this.parent
+}
+
+func (_this *BaseUI) GetOwner() GUI {
+	return _this.owner
 }

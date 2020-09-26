@@ -1,7 +1,7 @@
 package windows
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	fm "qq2564874169/goMiniblink/forms"
 	br "qq2564874169/goMiniblink/forms/bridge"
 	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"unsafe"
@@ -12,7 +12,7 @@ type winForm struct {
 	_onClose  func() (cancel bool)
 	_onState  br.FormStateProc
 	_onActive br.FormActiveProc
-	_border   f.FormBorder
+	_border   fm.FormBorder
 	_isModal  bool
 }
 
@@ -56,11 +56,11 @@ func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		if _this._onState != nil {
 			switch int(wParam) {
 			case win.SIZE_RESTORED:
-				_this._onState(f.FormState_Normal)
+				_this._onState(fm.FormState_Normal)
 			case win.SIZE_MAXIMIZED:
-				_this._onState(f.FormState_Max)
+				_this._onState(fm.FormState_Max)
 			case win.SIZE_MINIMIZED:
-				_this._onState(f.FormState_Min)
+				_this._onState(fm.FormState_Min)
 			}
 		}
 	case win.WM_ACTIVATE:
@@ -88,7 +88,7 @@ func (_this *winForm) NoneBorderResize() {
 	padd := 5
 	rsState := new(int)
 	_this.app.watch(_this, func(hWnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr {
-		if _this._border != f.FormBorder_None {
+		if _this._border != fm.FormBorder_None {
 			return 0
 		}
 		switch msg {
@@ -102,12 +102,12 @@ func (_this *winForm) NoneBorderResize() {
 					return 0
 				}
 			}
-			w, h := _this.GetSize()
-			p := _this.MousePosition()
+			sz := _this.GetBound().Rect
+			p := _this.ToClientPoint(_this.app.MouseLocation())
 			if p.X <= padd {
 				if p.Y <= padd {
 					*rsState = 7
-				} else if p.Y+padd >= h {
+				} else if p.Y+padd >= sz.Height {
 					*rsState = 1
 				} else {
 					*rsState = 4
@@ -115,23 +115,23 @@ func (_this *winForm) NoneBorderResize() {
 			} else if p.Y <= padd {
 				if p.X <= padd {
 					*rsState = 7
-				} else if p.X+padd >= w {
+				} else if p.X+padd >= sz.Width {
 					*rsState = 9
 				} else {
 					*rsState = 8
 				}
-			} else if p.X+padd >= w {
+			} else if p.X+padd >= sz.Width {
 				if p.Y <= padd {
 					*rsState = 9
-				} else if p.Y+padd >= h {
+				} else if p.Y+padd >= sz.Height {
 					*rsState = 3
 				} else {
 					*rsState = 6
 				}
-			} else if p.Y+padd >= h {
+			} else if p.Y+padd >= sz.Height {
 				if p.X <= padd {
 					*rsState = 1
-				} else if p.X+padd >= w {
+				} else if p.X+padd >= sz.Width {
 					*rsState = 3
 				} else {
 					*rsState = 2
@@ -140,18 +140,18 @@ func (_this *winForm) NoneBorderResize() {
 				*rsState = 0
 			}
 		case win.WM_SETCURSOR:
-			cur := f.CursorType_Default
+			cur := fm.CursorType_Default
 			switch *rsState {
 			case 8, 2:
-				cur = f.CursorType_SIZENS
+				cur = fm.CursorType_SIZENS
 			case 4, 6:
-				cur = f.CursorType_SIZEWE
+				cur = fm.CursorType_SIZEWE
 			case 7, 3:
-				cur = f.CursorType_SIZENWSE
+				cur = fm.CursorType_SIZENWSE
 			case 9, 1:
-				cur = f.CursorType_SIZENESW
+				cur = fm.CursorType_SIZENESW
 			}
-			if cur != f.CursorType_Default {
+			if cur != fm.CursorType_Default {
 				res := win.MAKEINTRESOURCE(uintptr(toWinCursor(cur)))
 				win.SetCursor(win.LoadCursor(0, res))
 				return 1
@@ -233,14 +233,14 @@ func (_this *winForm) SetTitle(title string) {
 	win.SetWindowText(_this.handle, title)
 }
 
-func (_this *winForm) SetBorderStyle(border f.FormBorder) {
+func (_this *winForm) SetBorderStyle(border fm.FormBorder) {
 	style := win.GetWindowLong(_this.handle, win.GWL_STYLE)
 	switch border {
-	case f.FormBorder_Default:
+	case fm.FormBorder_Default:
 		style |= win.WS_OVERLAPPEDWINDOW
-	case f.FormBorder_None:
+	case fm.FormBorder_None:
 		style &= ^win.WS_SIZEBOX & ^win.WS_CAPTION
-	case f.FormBorder_Disable_Resize:
+	case fm.FormBorder_Disable_Resize:
 		style &= ^win.WS_SIZEBOX
 	}
 	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)

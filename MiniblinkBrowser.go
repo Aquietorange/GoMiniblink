@@ -44,15 +44,9 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.OnDocumentReady = _this.defOnDocumentReady
 	_this.OnPaintUpdated = _this.defOnPaintUpdated
 
-	bakLoad := _this.Control.OnShow
-	_this.Control.OnShow = func() {
-		_this._mb = new(freeMiniblink).init(&_this.Control)
-		_this.mbInit()
-		if bakLoad != nil {
-			bakLoad()
-		}
-	}
 	_this.EvRequestBefore["__goMiniblink"] = _this.loadRes
+	_this._mb = new(freeMiniblink).init(&_this.Control)
+	_this.mbInit()
 	return _this
 }
 

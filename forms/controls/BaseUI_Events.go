@@ -2,6 +2,12 @@ package controls
 
 import f "qq2564874169/goMiniblink/forms"
 
+func (_this *BaseUI) defOnLoad() {
+	for _, v := range _this.EvLoad {
+		v(_this.instance)
+	}
+}
+
 func (_this *BaseUI) defOnLostFocus() {
 	for _, v := range _this.EvLostFocus {
 		v(_this.instance)
@@ -68,25 +74,19 @@ func (_this *BaseUI) defOnMouseMove(e *f.MouseEvArgs) {
 	}
 }
 
-func (_this *BaseUI) defOnLoad() {
+func (_this *BaseUI) defOnShow() {
 	for _, v := range _this.EvShow {
 		v(_this.instance)
 	}
 }
 
 func (_this *BaseUI) defOnResize(e f.Rect) {
-	if _this.GetSize().IsEmpty() || _this.GetSize().IsEqual(e) {
-		return
-	}
 	for _, v := range _this.EvResize {
 		v(_this.instance, e)
 	}
 }
 
 func (_this *BaseUI) defOnMove(e f.Point) {
-	if _this.GetLocation().IsEqual(e) {
-		return
-	}
 	for _, v := range _this.EvMove {
 		v(_this.instance, e)
 	}

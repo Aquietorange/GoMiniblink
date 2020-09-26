@@ -45,12 +45,13 @@ const (
 )
 
 //窗体的首次显示位置
-type FormStartPosition int
+type FormStart int
 
 //窗体的首次显示位置
 const (
-	FormStartPosition_Manual FormStartPosition = iota
-	FormStartPosition_Screen_Center
+	FormStart_Default FormStart = iota
+	FormStart_Manual
+	FormStart_Screen_Center
 )
 
 type MouseButtons int
@@ -71,4 +72,5 @@ const (
 	AnchorStyle_Right  AnchorStyle = 2
 	AnchorStyle_Top    AnchorStyle = 4
 	AnchorStyle_Bottom AnchorStyle = 8
+	AnchorStyle_Fill   AnchorStyle = 16
 )

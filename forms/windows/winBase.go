@@ -149,9 +149,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		if _this.onResize != nil {
 			w, h := win.GET_X_LPARAM(lParam), win.GET_Y_LPARAM(lParam)
 			rect := fm.Rect{Width: int(w), Height: int(h)}
-			if _this.onResize(rect) {
-				ret = 1
-			}
+			_this.onResize(rect)
 		}
 	case win.WM_MOVE:
 		if _this.onMove != nil {
@@ -429,13 +427,21 @@ func (_this *winBase) Enable(b bool) {
 	win.SetWindowLong(_this.handle, win.GWL_STYLE, style)
 }
 
-func (_this *winBase) GetSize() (width, height int) {
-	rect := win.RECT{}
-	win.GetWindowRect(_this.handle, &rect)
-	return int(rect.Right - rect.Left), int(rect.Bottom - rect.Top)
-}
-
 func (_this *winBase) SetSize(width, height int) {
+	wndRect := win.RECT{}
+	win.GetWindowRect(_this.handle, &wndRect)
+	ww := wndRect.Right - wndRect.Left
+	wh := wndRect.Bottom - wndRect.Top
+	clientRect := win.RECT{}
+	win.GetClientRect(_this.handle, &clientRect)
+	cw := clientRect.Right - clientRect.Left
+	ch := clientRect.Bottom - clientRect.Top
+	if cw < ww {
+		width += int(ww - cw)
+	}
+	if ch < wh {
+		height += int(wh - ch)
+	}
 	win.SetWindowPos(_this.handle, 0, 0, 0, int32(width), int32(height), win.SWP_NOMOVE|win.SWP_NOZORDER|win.SWP_NOACTIVATE)
 }
 
@@ -443,10 +449,29 @@ func (_this *winBase) SetLocation(x, y int) {
 	win.SetWindowPos(_this.handle, 0, int32(x), int32(y), 0, 0, win.SWP_NOSIZE|win.SWP_NOZORDER|win.SWP_NOACTIVATE)
 }
 
-func (_this *winBase) GetLocation() (x, y int) {
+func (_this *winBase) GetBound() fm.Bound {
 	rect := win.RECT{}
 	win.GetWindowRect(_this.handle, &rect)
-	return int(rect.Left), int(rect.Top)
+	bn := fm.Bound{
+		Point: fm.Point{
+			X: int(rect.Left),
+			Y: int(rect.Top),
+		},
+	}
+	win.GetClientRect(_this.handle, &rect)
+	bn.Rect = fm.Rect{
+		Width:  int(rect.Right - rect.Left),
+		Height: int(rect.Bottom - rect.Top),
+	}
+	if _this.GetParent() != nil {
+		p := win.POINT{
+			X: int32(bn.X),
+			Y: int32(bn.Y),
+		}
+		win.ScreenToClient(win.HWND(_this.GetParent().GetHandle()), &p)
+		bn.X, bn.Y = int(p.X), int(p.Y)
+	}
+	return bn
 }
 
 func (_this *winBase) GetParent() br.Control {
@@ -457,8 +482,7 @@ func (_this *winBase) GetOwner() br.Form {
 	return _this.owner
 }
 
-func (_this *winBase) MousePosition() fm.Point {
-	p := _this.app.MouseLocation()
+func (_this *winBase) ToClientPoint(p fm.Point) fm.Point {
 	sp := win.POINT{
 		X: int32(p.X),
 		Y: int32(p.Y),

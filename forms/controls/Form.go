@@ -1,7 +1,7 @@
 package controls
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	fm "qq2564874169/goMiniblink/forms"
 	br "qq2564874169/goMiniblink/forms/bridge"
 )
 
@@ -9,16 +9,15 @@ type Form struct {
 	BaseUI
 	BaseContainer
 
-	EvState map[string]func(target interface{}, state f.FormState)
-	OnState func(state f.FormState)
+	EvState map[string]func(s GUI, state fm.FormState)
+	OnState func(state fm.FormState)
 
 	impl          br.Form
-	isInit        bool
 	title         string
 	showInTaskbar bool
-	border        f.FormBorder
-	state         f.FormState
-	startPos      f.FormStartPosition
+	border        fm.FormBorder
+	state         fm.FormState
+	startPos      fm.FormStart
 }
 
 func (_this *Form) getFormImpl() br.Form {
@@ -29,14 +28,14 @@ func (_this *Form) InitEx(param br.FormParam) *Form {
 	_this.impl = App.NewForm(param)
 	_this.BaseUI.Init(_this, _this.impl)
 	_this.BaseContainer.Init(_this)
-	_this.EvState = make(map[string]func(interface{}, f.FormState))
+	_this.EvState = make(map[string]func(GUI, fm.FormState))
 	_this.title = ""
-	_this.border = f.FormBorder_Default
-	_this.state = f.FormState_Normal
-	_this.startPos = f.FormStartPosition_Screen_Center
+	_this.state = fm.FormState_Normal
+	_this.border = fm.FormBorder_Default
+	_this.startPos = fm.FormStart_Default
+
 	_this.showInTaskbar = true
-	_this.registerEvents()
-	_this.isInit = true
+	_this.setOn()
 	return _this
 }
 
@@ -52,32 +51,32 @@ func (_this *Form) toControls() br.Controls {
 	return _this.impl
 }
 
-func (_this *Form) registerEvents() {
+func (_this *Form) setOn() {
 	_this.OnState = _this.defOnState
 	var bakState br.FormStateProc
-	bakState = _this.impl.SetOnState(func(state f.FormState) {
+	bakState = _this.impl.SetOnState(func(state fm.FormState) {
 		if bakState != nil {
 			bakState(state)
 		}
 		_this.state = state
 		_this.OnState(state)
 	})
-	var bakShow br.WindowShowProc
-	bakShow = _this.impl.SetOnShow(func() {
+	bakLoad := _this.OnLoad
+	_this.OnLoad = func() {
 		switch _this.startPos {
-		case f.FormStartPosition_Screen_Center:
+		case fm.FormStart_Screen_Center:
 			scr := App.GetScreen()
-			size := _this.GetSize()
+			size := _this.GetBound().Rect
 			x, y := scr.WorkArea.Width/2-size.Width/2, scr.WorkArea.Height/2-size.Height/2
 			_this.impl.SetLocation(x, y)
+		case fm.FormStart_Default:
+			_this.impl.SetLocation(100, 100)
 		}
-		if bakShow != nil {
-			bakShow()
-		}
-	})
+		bakLoad()
+	}
 }
 
-func (_this *Form) defOnState(state f.FormState) {
+func (_this *Form) defOnState(state fm.FormState) {
 	for _, v := range _this.EvState {
 		v(_this, state)
 	}
@@ -88,34 +87,34 @@ func (_this *Form) SetTitle(title string) {
 	_this.impl.SetTitle(_this.title)
 }
 
-func (_this *Form) SetBorderStyle(style f.FormBorder) {
+func (_this *Form) SetBorderStyle(style fm.FormBorder) {
 	_this.border = style
 	_this.impl.SetBorderStyle(_this.border)
 }
 
-func (_this *Form) GetBorderStyle() f.FormBorder {
+func (_this *Form) GetBorderStyle() fm.FormBorder {
 	return _this.border
 }
 
-func (_this *Form) SetState(state f.FormState) {
+func (_this *Form) SetState(state fm.FormState) {
 	if _this.state == state {
 		return
 	}
 	switch state {
-	case f.FormState_Max:
+	case fm.FormState_Max:
 		_this.impl.ShowToMax()
-	case f.FormState_Min:
+	case fm.FormState_Min:
 		_this.impl.ShowToMin()
-	case f.FormState_Normal:
+	case fm.FormState_Normal:
 		_this.impl.Show()
 	}
 }
 
-func (_this *Form) GetState() f.FormState {
+func (_this *Form) GetState() fm.FormState {
 	return _this.state
 }
 
-func (_this *Form) SetStartPosition(pos f.FormStartPosition) {
+func (_this *Form) SetStartPosition(pos fm.FormStart) {
 	_this.startPos = pos
 }
 
@@ -136,6 +135,6 @@ func (_this *Form) SetIcon(file string) {
 }
 
 func (_this *Form) ShowDialog() {
-	_this.SetStartPosition(f.FormStartPosition_Screen_Center)
+	_this.SetStartPosition(fm.FormStart_Screen_Center)
 	_this.impl.ShowDialog()
 }
