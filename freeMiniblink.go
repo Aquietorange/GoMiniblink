@@ -73,7 +73,7 @@ func (_this *freeMiniblink) MouseEnable(b bool) {
 	_this.lockMouse = b == false
 }
 
-func (_this *freeMiniblink) CallJsFunc(name string, param ...interface{}) interface{} {
+func (_this *freeMiniblink) CallJsFunc(name string, param []interface{}) interface{} {
 	es := mbApi.wkeGlobalExec(_this.GetHandle())
 	var ps []jsValue
 	for i := 0; i < len(param); i++ {

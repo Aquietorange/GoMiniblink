@@ -15,7 +15,7 @@ type Miniblink interface {
 	MouseIsEnable() bool
 	MouseEnable(b bool)
 	ToBitmap() *image.RGBA
-	CallJsFunc(name string, param ...interface{}) interface{}
+	CallJsFunc(name string, param []interface{}) interface{}
 	JsFunc(name string, fn GoFn, state interface{})
 	RunJs(script string) interface{}
 	SetOnConsole(callback ConsoleCallback)

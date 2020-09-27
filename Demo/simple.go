@@ -483,7 +483,7 @@ func main() {
 		uintptr(unsafe.Pointer(utf16PtrFromString(className))),
 		uintptr(unsafe.Pointer(utf16PtrFromString("simple"))),
 		uintptr(WS_OVERLAPPEDWINDOW),
-		100, 100, 400, 300, 0, 0, appInstance, uintptr(unsafe.Pointer(nil)))
+		100, 100, 1480, 800, 0, 0, appInstance, 0)
 	wkeLoadURL.Call(userdata[hWnd], uintptr(utf8To("https://www.baidu.com")))
 	ShowWindow.Call(hWnd, uintptr(SW_SHOW))
 	UpdateWindow.Call(hWnd)

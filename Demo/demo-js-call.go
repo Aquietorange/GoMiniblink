@@ -47,7 +47,7 @@ func main() {
 	})
 	frm.AddChild(mb)
 	frm.EvLoad["show"] = func(s cs.GUI) {
-		mb.LoadUri("https://local/js_call_net.html")
+		mb.LoadUri("https://local/js_call.html")
 	}
 	cs.Run(frm)
 }

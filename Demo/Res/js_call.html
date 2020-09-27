@@ -89,76 +89,24 @@
 <body>
 <fieldset>
     <legend>普通调用,参数和返回值都是基本类型</legend>
-    <ol>
-        <li>.NET定义</li>
-        <li>[NetFunc]</li>
-        <li>private object Func1(int n1, int n2){</li>
-        <li class="sj-1">return "结果是：" + (n1 * n2);</li>
-        <li>}</li>
-    </ol>
-    <ul>
-        <li>JS调用</li>
-        <li>var result = Func1(2, 3);</li>
-        <li>alert(result);</li>
-    </ul>
     <button id="btnFunc1">执行</button>
 </fieldset>
 <fieldset>
-    <legend>向.NET传递函数</legend>
-    <ol>
-        <li>.NET定义</li>
-        <li>[NetFunc]</li>
-        <li>private void Func2(JsFunc func){</li>
-        <li class="sj-1">func(5, 6);</li>
-        <li>}</li>
-    </ol>
-    <ul>
-        <li>JS调用</li>
-        <li>Func2(function(n1, n2) {</li>
-        <li class="sj-1">alert(n1 * n2);</li>
-        <li>});</li>
-    </ul>
+    <legend>向Go传递函数</legend>
     <button id="btnFunc2">执行</button>
 </fieldset>
 <fieldset>
-    <legend>向.NET传递非基本类型</legend>
-    <ol>
-        <li>.NET定义</li>
-        <li>[NetFunc]</li>
-        <li>private object Func3(dynamic data){</li>
-        <li class="sj-1">return data.n1 * data.n2;</li>
-        <li>}</li>
-    </ol>
-    <ul>
-        <li>JS调用</li>
-        <li>var result = Func3({ n1: 4, n2: 5});</li>
-        <li>alert(result);</li>
-    </ul>
+    <legend>向Go传递非基本类型</legend>
     <button id="btnFunc3">执行</button>
 </fieldset>
 <fieldset>
-    <legend>返回值是一个.NET委托</legend>
-    <ol>
-        <li>.NET定义</li>
-        <li>[NetFunc]</li>
-        <li>private object Func5() {</li>
-        <li class="sj-1">return new TempNetFunc(param => "姓名：" + param[0]);</li>
-        <li>}</li>
-    </ol>
-    <ul>
-        <li>JS调用</li>
-        <li>var func = Func5();</li>
-        <li>alert(func("刘德华"));</li>
-    </ul>
+    <legend>返回值是一个Go函数</legend>
     <button id="btnFunc5">执行</button>
 </fieldset>
 <ol>
     <li>额外的说明</li>
-    <li>[NetFunc]默认使用方法名作为函数命名，可以用[NetFunc("newFuncName")]明确指定命名。</li>
-    <li>[NetFunc]其实是BindNetFunc方法的自动实现版本。</li>
-    <li>[NetFunc]是RegisterNetFunc方法扫描并绑定的，而且它可以扫描任意类型。</li>
-    <li>RegisterNetFunc只在窗体模式下会默认扫描当前窗体，控件模式需要手动调用来指定去哪找[NetFunc]。</li>
-    <li>JsFunc对象可以在不同的线程使用，因为内部其实是绑定了线程的。</li>
+    <li>所有从js接收的数字都是float64类型</li>
+    <li>从Js返回的JsFunc可以在不同的线程使用，因为内部绑定了线程。</li>
 </ol>
 </body>
 </html>
