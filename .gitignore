@@ -14,3 +14,5 @@
 /Demo/.vs/
 /Demo/LocalStorage/
 /Demo/cookies.dat
+!miniblink_x86.dll
+!miniblink_x64.dll
