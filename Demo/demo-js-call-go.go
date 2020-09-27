@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
+	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(windows.Provider).Init()
 	cs.App.SetIcon("app.ico")
 

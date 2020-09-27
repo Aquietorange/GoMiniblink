@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
+	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(windows.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
@@ -24,9 +24,9 @@ func main() {
 	mb.SetSize(700, 400)
 	mb.SetLocation(50, 50)
 	mb.ResourceLoader = append(mb.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
-
 	frm.AddChild(mb)
-	frm.EvShow["init"] = func(s cs.GUI) {
+
+	frm.EvLoad["show"] = func(s cs.GUI) {
 		mb.LoadUri("http://local/control.html")
 	}
 	cs.Run(frm)

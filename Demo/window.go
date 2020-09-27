@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("is x64", unsafe.Sizeof(uintptr(0)) == 8)
+	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(windows.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
@@ -21,12 +21,12 @@ func main() {
 	ctrl.SetSize(300, 300)
 	ctrl.SetLocation(100, 100)
 	ctrl.SetBgColor(0x2FAEE3)
-	frm.AddChild(ctrl)
 	ctrl.EvMouseClick["show_pos"] = func(s cs.GUI, e *fm.MouseEvArgs) {
-
+		fmt.Println(s.GetHandle(), e.X, e.Y)
 	}
-	frm.EvMouseClick["show_click"] = func(s cs.GUI, e *fm.MouseEvArgs) {
-
+	frm.AddChild(ctrl)
+	frm.EvMouseClick["show_pos"] = func(s cs.GUI, e *fm.MouseEvArgs) {
+		fmt.Println(s.GetHandle(), e.X, e.Y)
 	}
 	cs.Run(frm)
 }
