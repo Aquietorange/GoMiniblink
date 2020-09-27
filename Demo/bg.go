@@ -5,10 +5,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 func main() {
-	fmt.Println(getCurrentDirectory())
+	s := "abcd"
+	b, _ := syscall.UTF16FromString(s)
+	fmt.Println(b)
 }
 
 func getCurrentDirectory() string {
