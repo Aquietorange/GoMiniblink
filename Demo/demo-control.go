@@ -14,7 +14,7 @@ func main() {
 	cs.App.SetIcon("app.ico")
 
 	frm := new(cs.Form).Init()
-	frm.SetTitle("miniblink窗口")
+	frm.SetTitle("普通窗口")
 	frm.SetSize(800, 500)
 	frm.SetLocation(100, 100)
 	frm.SetBgColor(0x2FAEE3)
@@ -23,11 +23,10 @@ func main() {
 	mb.SetBgColor(0x2FAEE3)
 	mb.SetSize(700, 400)
 	mb.SetLocation(50, 50)
-	mb.ResourceLoader = append(mb.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
 	frm.AddChild(mb)
 
 	frm.EvLoad["show"] = func(s cs.GUI) {
-		mb.LoadUri("http://local/control.html")
+		mb.LoadUri("https://www.baidu.com")
 	}
 	cs.Run(frm)
 }

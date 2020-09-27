@@ -11,8 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 .idea/
+!/Demo/*
+/Demo/*.exe
 /Demo/.vs/
 /Demo/LocalStorage/
 /Demo/cookies.dat
-!miniblink_x86.dll
-!miniblink_x64.dll

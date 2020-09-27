@@ -439,7 +439,6 @@ func (_this *freeMiniblink) viewMouseWheel(e *fm.MouseEvArgs) {
 		flags |= wkeMouseFlags_MBUTTON
 	}
 	if mbApi.wkeFireMouseWheelEvent(_this.wke, int32(e.X), int32(e.Y), int32(e.Delta), int32(flags)) {
-		fmt.Println(e.X, e.Y, e.Delta, flags)
 		e.IsHandle = true
 	}
 }

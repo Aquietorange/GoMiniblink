@@ -82,7 +82,7 @@
     <ul>
         <li>JS定义</li>
         <li>function func_1(name, age) {</li>
-        <li class="sj-1">alert("name=" + name + ", age=" + age);</li>
+        <li class="sj-1">console.log("name=" + name + ", age=" + age);</li>
         <li>}</li>
     </ul>
     <ol>
@@ -91,7 +91,7 @@
     </ol>
 </fieldset>
 <fieldset>
-    <legend>带返回值的</legend>
+    <legend>基础数据类型返回值</legend>
     <ul>
         <li>JS定义</li>
         <li>function func_2() {</li>
@@ -100,8 +100,8 @@
     </ul>
     <ol>
         <li>Go调用</li>
-        <li>var result = CallJsFunc("func_2");</li>
-        <li>MessageBox.Show("名字叫：" + result);</li>
+        <li>f2rs := CallJsFunc("func_2");</li>
+        <li>fmt.Println("func_2 result is", f2rs);</li>
     </ol>
 </fieldset>
 <fieldset>
@@ -110,20 +110,18 @@
         <li>JS定义</li>
         <li>function func_3(func) {</li>
         <li class="sj-1">var result = func(5, 6);</li>
-        <li class="sj-1">alert(result);</li>
+        <li class="sj-1">console.log("func_3 result is " + result);</li>
         <li>}</li>
     </ul>
     <ol>
         <li>Go调用</li>
-        <li>CallJsFunc("func_3", new TempNetFunc(param => {</li>
-        <li class="sj-1">var n1 = Convert.ToInt32(param[0]);</li>
-        <li class="sj-1">var n2 = Convert.ToInt32(param[1]);</li>
-        <li class="sj-1">return n1 * n2;</li>
-        <li>}));</li>
+        <li>CallJsFunc("func_3", func(n1, n2 float64) int {</li>
+        <li class="sj-1">return int(n1) * int(n2)</li>
+        <li>})</li>
     </ol>
 </fieldset>
 <fieldset>
-    <legend>返回值不是基础类型</legend>
+    <legend>非基础类型返回值</legend>
     <ul>
         <li>JS定义</li>
         <li>function func_4() {</li>
@@ -131,13 +129,9 @@
         <li>}</li>
     </ul>
     <ol>
-        <li>.NET调用</li>
-        <li>dynamic data = CallJsFunc("func_4");</li>
-        <li>if (data.age >= 18){</li>
-        <li class="sj-1">MessageBox.Show(data.name + "已成年");</li>
-        <li>} else {</li>
-        <li class="sj-1">MessageBox.Show(data.name + "未成年");</li>
-        <li>}</li>
+        <li>Go调用</li>
+        <li>f4rs := CallJsFunc("func_4").(map[string]interface{})</li>
+        <li>fmt.Println("func_4 result is", f4rs)</li>
     </ol>
 </fieldset>
 <fieldset>
@@ -146,14 +140,14 @@
         <li>JS定义</li>
         <li>function func_5() {</li>
         <li class="sj-1">return function(name) {</li>
-        <li class="sj-2">alert("name=" + name);</li>
+        <li class="sj-2">console.log("name=" + name);</li>
         <li class="sj-1">};</li>
         <li>}</li>
     </ul>
     <ol>
-        <li>.NET调用</li>
-        <li>dynamic func = CallJsFunc("func_5");</li>
-        <li>func("王老五");</li>
+        <li>Go调用</li>
+        <li>fn := CallJsFunc("func_5").(JsFunc)</li>
+        <li>fn("王老五");</li>
     </ol>
 </fieldset>
 </body>
