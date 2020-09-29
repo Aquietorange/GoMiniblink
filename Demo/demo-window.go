@@ -14,7 +14,7 @@ func main() {
 	cs.App = new(windows.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
-	var frm = new(gm.MiniblinkForm).Init()
+	frm := new(gm.MiniblinkForm).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetLocation(100, 100)
 	frm.SetSize(800, 500)

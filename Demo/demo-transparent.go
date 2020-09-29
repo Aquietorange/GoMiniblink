@@ -13,7 +13,7 @@ func main() {
 	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(windows.Provider).Init()
 
-	var frm = new(gm.MiniblinkForm).Init()
+	frm := new(gm.MiniblinkForm).Init()
 	frm.TransparentMode()
 	frm.SetLocation(100, 100)
 	frm.SetSize(300, 300)
