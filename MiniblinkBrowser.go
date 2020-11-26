@@ -1,7 +1,7 @@
-package goMiniblink
+package GoMiniblink
 
 import (
-	cs "gitee.com/aochulai/goMiniblink/forms/controls"
+	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 	"image"
 	url2 "net/url"
 	"reflect"

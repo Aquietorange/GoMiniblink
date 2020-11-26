@@ -1,9 +1,9 @@
 package windows
 
 import (
-	fm "gitee.com/aochulai/goMiniblink/forms"
-	br "gitee.com/aochulai/goMiniblink/forms/bridge"
-	win "gitee.com/aochulai/goMiniblink/forms/windows/win32"
+	fm "gitee.com/aochulai/GoMiniblink/forms"
+	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
+	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
@@ -33,7 +33,7 @@ func (_this *Provider) Init() *Provider {
 	_this.watchAll = make(map[win.HWND][]windowsMsgProc)
 	_this.tmpWnd = make(map[uintptr]baseWindow)
 	_this.handleWnds = make(map[win.HWND]baseWindow)
-	_this.className = "gitee.com/aochulai/goMiniblinkClass"
+	_this.className = "gitee.com/aochulai/GoMiniblinkClass"
 	_this.hInstance = win.GetModuleHandle(nil)
 	_this.mainThreadId = windows.GetCurrentThreadId()
 	_this.registerWndClass()

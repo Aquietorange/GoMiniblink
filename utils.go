@@ -1,4 +1,4 @@
-package goMiniblink
+package GoMiniblink
 
 import (
 	"fmt"

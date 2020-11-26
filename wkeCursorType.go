@@ -1,4 +1,4 @@
-package goMiniblink
+package GoMiniblink
 
 type wkeCursorType int
 

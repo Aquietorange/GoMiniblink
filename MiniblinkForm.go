@@ -1,10 +1,10 @@
-package goMiniblink
+package GoMiniblink
 
 import (
 	"fmt"
-	fm "gitee.com/aochulai/goMiniblink/forms"
-	cs "gitee.com/aochulai/goMiniblink/forms/controls"
-	gww "gitee.com/aochulai/goMiniblink/forms/windows/win32"
+	fm "gitee.com/aochulai/GoMiniblink/forms"
+	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
+	gww "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image"
 	"time"
 	"unsafe"

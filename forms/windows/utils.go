@@ -2,9 +2,9 @@ package windows
 
 import (
 	"fmt"
-	fm "gitee.com/aochulai/goMiniblink/forms"
-	br "gitee.com/aochulai/goMiniblink/forms/bridge"
-	win "gitee.com/aochulai/goMiniblink/forms/windows/win32"
+	fm "gitee.com/aochulai/GoMiniblink/forms"
+	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
+	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image/color"
 	"syscall"
 )

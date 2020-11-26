@@ -1,8 +1,8 @@
 package controls
 
 import (
-	fm "gitee.com/aochulai/goMiniblink/forms"
-	br "gitee.com/aochulai/goMiniblink/forms/bridge"
+	fm "gitee.com/aochulai/GoMiniblink/forms"
+	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
 )
 
 type Form struct {
