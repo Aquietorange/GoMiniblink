@@ -1,10 +1,10 @@
-package GoMiniblink
+package goMiniblink
 
 import (
-	fm "GoMiniblink/forms"
-	cs "GoMiniblink/forms/controls"
-	win "GoMiniblink/forms/windows/win32"
 	"fmt"
+	fm "gitee.com/aochulai/goMiniblink/forms"
+	cs "gitee.com/aochulai/goMiniblink/forms/controls"
+	win "gitee.com/aochulai/goMiniblink/forms/windows/win32"
 	"image"
 	"math"
 	"strconv"

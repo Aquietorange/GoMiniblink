@@ -1,6 +1,6 @@
 package controls
 
-import f "GoMiniblink/forms"
+import f "gitee.com/aochulai/goMiniblink/forms"
 
 func (_this *BaseUI) defOnLoad() {
 	for _, v := range _this.EvLoad {

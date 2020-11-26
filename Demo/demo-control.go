@@ -1,10 +1,10 @@
 package main
 
 import (
-	gm "GoMiniblink"
-	cs "GoMiniblink/forms/controls"
-	gw "GoMiniblink/forms/windows"
 	"fmt"
+	gm "gitee.com/aochulai/goMiniblink"
+	cs "gitee.com/aochulai/goMiniblink/forms/controls"
+	gw "gitee.com/aochulai/goMiniblink/forms/windows"
 	"unsafe"
 )
 

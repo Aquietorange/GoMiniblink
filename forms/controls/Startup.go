@@ -1,7 +1,7 @@
 package controls
 
 import (
-	"GoMiniblink/forms/bridge"
+	"gitee.com/aochulai/goMiniblink/forms/bridge"
 )
 
 type MainForm interface {

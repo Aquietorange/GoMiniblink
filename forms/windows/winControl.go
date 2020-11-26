@@ -1,7 +1,7 @@
 package windows
 
 import (
-	win "GoMiniblink/forms/windows/win32"
+	win "gitee.com/aochulai/goMiniblink/forms/windows/win32"
 	"unsafe"
 )
 

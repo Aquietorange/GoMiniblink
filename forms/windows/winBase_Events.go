@@ -1,7 +1,7 @@
 package windows
 
 import (
-	br "GoMiniblink/forms/bridge"
+	br "gitee.com/aochulai/goMiniblink/forms/bridge"
 )
 
 func (_this *winBase) SetOnShow(proc br.WindowShowProc) br.WindowShowProc {

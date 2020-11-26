@@ -1,4 +1,4 @@
-module GoMiniblink
+module gitee.com/aochulai/goMiniblink
 
 go 1.13
 

@@ -1,9 +1,9 @@
 package windows
 
 import (
-	fm "GoMiniblink/forms"
-	br "GoMiniblink/forms/bridge"
-	win "GoMiniblink/forms/windows/win32"
+	fm "gitee.com/aochulai/goMiniblink/forms"
+	br "gitee.com/aochulai/goMiniblink/forms/bridge"
+	win "gitee.com/aochulai/goMiniblink/forms/windows/win32"
 	"unsafe"
 )
 

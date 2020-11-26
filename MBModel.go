@@ -1,4 +1,4 @@
-package GoMiniblink
+package goMiniblink
 
 type JsFunc func(param ...interface{}) interface{}
 

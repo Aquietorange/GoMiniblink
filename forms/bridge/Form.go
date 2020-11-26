@@ -1,7 +1,7 @@
 package bridge
 
 import (
-	fm "GoMiniblink/forms"
+	fm "gitee.com/aochulai/goMiniblink/forms"
 )
 
 type FormStateProc func(state fm.FormState)
