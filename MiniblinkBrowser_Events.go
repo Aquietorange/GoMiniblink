@@ -1,8 +1,8 @@
 package GoMiniblink
 
 import (
+	"GoMiniblink/forms"
 	"image"
-	"qq2564874169/goMiniblink/forms"
 	"strconv"
 )
 

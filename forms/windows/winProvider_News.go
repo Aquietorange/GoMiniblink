@@ -1,7 +1,7 @@
 package windows
 
 import (
-	br "qq2564874169/goMiniblink/forms/bridge"
+	br "GoMiniblink/forms/bridge"
 )
 
 func (_this *Provider) NewForm(param br.FormParam) br.Form {

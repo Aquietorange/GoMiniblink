@@ -1,7 +1,7 @@
 package bridge
 
 import (
-	f "qq2564874169/goMiniblink/forms"
+	f "GoMiniblink/forms"
 )
 
 type FormParam struct {

@@ -1,17 +1,17 @@
 package main
 
 import (
+	gm "GoMiniblink"
+	fm "GoMiniblink/forms"
+	cs "GoMiniblink/forms/controls"
+	gw "GoMiniblink/forms/windows"
 	"fmt"
-	gm "qq2564874169/goMiniblink"
-	fm "qq2564874169/goMiniblink/forms"
-	cs "qq2564874169/goMiniblink/forms/controls"
-	"qq2564874169/goMiniblink/forms/windows"
 	"unsafe"
 )
 
 func main() {
 	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
-	cs.App = new(windows.Provider).Init()
+	cs.App = new(gw.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
 	frm := new(cs.Form).Init()

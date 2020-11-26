@@ -1,6 +1,6 @@
 package controls
 
-import fm "qq2564874169/goMiniblink/forms"
+import fm "GoMiniblink/forms"
 
 type GUI interface {
 	GetHandle() uintptr

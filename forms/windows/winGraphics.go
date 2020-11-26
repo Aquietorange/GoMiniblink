@@ -1,9 +1,9 @@
 package windows
 
 import (
+	fm "GoMiniblink/forms"
+	win "GoMiniblink/forms/windows/win32"
 	"image"
-	fm "qq2564874169/goMiniblink/forms"
-	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"unsafe"
 )
 

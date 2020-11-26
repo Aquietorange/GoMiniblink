@@ -1,12 +1,12 @@
 package GoMiniblink
 
 import (
+	fm "GoMiniblink/forms"
+	cs "GoMiniblink/forms/controls"
+	win "GoMiniblink/forms/windows/win32"
 	"fmt"
 	"image"
 	"math"
-	fm "qq2564874169/goMiniblink/forms"
-	cs "qq2564874169/goMiniblink/forms/controls"
-	win "qq2564874169/goMiniblink/forms/windows/win32"
 	"strconv"
 	"strings"
 	"time"

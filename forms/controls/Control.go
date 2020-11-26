@@ -1,8 +1,8 @@
 package controls
 
 import (
-	fm "qq2564874169/goMiniblink/forms"
-	br "qq2564874169/goMiniblink/forms/bridge"
+	fm "GoMiniblink/forms"
+	br "GoMiniblink/forms/bridge"
 )
 
 type Control struct {
