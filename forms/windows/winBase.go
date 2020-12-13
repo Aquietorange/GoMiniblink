@@ -5,7 +5,6 @@ import (
 	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
 	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"golang.org/x/sys/windows"
-	"strconv"
 	"sync"
 	"time"
 	"unsafe"
@@ -192,7 +191,7 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_SYSCHAR, win.WM_CHAR:
 		if _this.onKeyPress != nil {
 			e := fm.KeyPressEvArgs{
-				KeyChar: strconv.Itoa(int(wParam)),
+				KeyChar: string(rune(int(wParam))),
 				Value:   wParam,
 				IsSys:   msg == win.WM_SYSCHAR,
 			}

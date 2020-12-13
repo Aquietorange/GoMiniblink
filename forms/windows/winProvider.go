@@ -33,7 +33,7 @@ func (_this *Provider) Init() *Provider {
 	_this.watchAll = make(map[win.HWND][]windowsMsgProc)
 	_this.tmpWnd = make(map[uintptr]baseWindow)
 	_this.handleWnds = make(map[win.HWND]baseWindow)
-	_this.className = "gitee.com/aochulai/GoMiniblinkClass"
+	_this.className = "QQ2564874169/GoMiniblinkClass"
 	_this.hInstance = win.GetModuleHandle(nil)
 	_this.mainThreadId = windows.GetCurrentThreadId()
 	_this.registerWndClass()
@@ -166,10 +166,8 @@ func (_this *Provider) RunMain(form br.Form) {
 	var message win.MSG
 	for {
 		if win.GetMessage(&message, 0, 0, 0) {
-			if !win.IsDialogMessage(message.HWnd, &message) {
-				win.TranslateMessage(&message)
-				win.DispatchMessage(&message)
-			}
+			win.TranslateMessage(&message)
+			win.DispatchMessage(&message)
 		} else {
 			break
 		}
