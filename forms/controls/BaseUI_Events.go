@@ -8,6 +8,12 @@ func (_this *BaseUI) defOnLoad() {
 	}
 }
 
+func (_this *BaseUI) defOnDestroy() {
+	for _, v := range _this.EvDestroy {
+		v(_this.instance)
+	}
+}
+
 func (_this *BaseUI) defOnLostFocus() {
 	for _, v := range _this.EvLostFocus {
 		v(_this.instance)

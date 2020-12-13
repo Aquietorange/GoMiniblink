@@ -9,6 +9,9 @@ type BaseUI struct {
 	EvLoad map[string]func(s GUI)
 	OnLoad func()
 
+	EvDestroy map[string]func(s GUI)
+	OnDestroy func()
+
 	EvKeyDown map[string]func(s GUI, e *fm.KeyEvArgs)
 	OnKeyDown func(e *fm.KeyEvArgs)
 
@@ -68,6 +71,9 @@ func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 	_this.EvLoad = make(map[string]func(GUI))
 	_this.OnLoad = _this.defOnLoad
 
+	_this.EvDestroy = make(map[string]func(GUI))
+	_this.OnDestroy = _this.defOnDestroy
+
 	_this.EvKeyPress = make(map[string]func(GUI, *fm.KeyPressEvArgs))
 	_this.OnKeyPress = _this.defOnKeyPress
 
@@ -109,6 +115,16 @@ func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 
 	_this.EvLostFocus = make(map[string]func(GUI))
 	_this.OnLostFocus = _this.defOnLostFocus
+
+	var bakDestroy br.WindowDestroyProc
+	bakDestroy = _this.impl.SetOnDestroy(func() {
+		if bakDestroy != nil {
+			bakDestroy()
+		}
+		if _this.OnDestroy != nil {
+			_this.OnDestroy()
+		}
+	})
 
 	var bakImeStart br.WindowImeStartCompositionProc
 	bakImeStart = _this.impl.SetOnImeStartComposition(func() bool {
@@ -160,6 +176,7 @@ func (_this *BaseUI) Init(instance GUI, impl br.Window) *BaseUI {
 
 	var bakKeyPress br.WindowKeyPressProc
 	bakKeyPress = _this.impl.SetOnKeyPress(func(e *fm.KeyPressEvArgs) {
+		println("press=", e.KeyChar)
 		if bakKeyPress != nil {
 			bakKeyPress(e)
 		}

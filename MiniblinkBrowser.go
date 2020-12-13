@@ -45,9 +45,14 @@ func (_this *MiniblinkBrowser) Init() *MiniblinkBrowser {
 	_this.OnPaintUpdated = _this.defOnPaintUpdated
 
 	_this.EvRequestBefore["__goMiniblink"] = _this.loadRes
+	_this.EvDestroy["__goMiniblink"] = _this.onClosed
 	_this.core = new(freeMiniblink).init(&_this.Control)
 	_this.mbInit()
 	return _this
+}
+
+func (_this *MiniblinkBrowser) onClosed(_ cs.GUI) {
+	destroyWebView(_this.core.GetHandle())
 }
 
 func (_this *MiniblinkBrowser) loadRes(_ *MiniblinkBrowser, e RequestBeforeEvArgs) {
