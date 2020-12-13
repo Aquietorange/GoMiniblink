@@ -105,6 +105,10 @@ func (_this *MiniblinkBrowser) mbInit() {
 	})
 }
 
+func (_this *MiniblinkBrowser) SetProxy(info ProxyInfo) {
+	_this.core.SetProxy(info)
+}
+
 func (_this *MiniblinkBrowser) LoadUri(uri string) {
 	_this.core.LoadUri(uri)
 }

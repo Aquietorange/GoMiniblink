@@ -12,6 +12,7 @@ type DocumentReadyCallback func(args DocumentReadyEvArgs)
 type PaintUpdatedCallback func(args PaintUpdatedEvArgs)
 
 type Miniblink interface {
+	SetProxy(info ProxyInfo)
 	MouseIsEnable() bool
 	MouseEnable(b bool)
 	ToBitmap() *image.RGBA

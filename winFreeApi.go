@@ -8,9 +8,17 @@ import (
 	"unsafe"
 )
 
+type wkeProxy struct {
+	Type     int32
+	HostName [100]byte
+	Port     uint16
+	UserName [50]byte
+	Password [50]byte
+}
+
 func _toInt64(low, high int32) int64 {
 	var l = int64(high)<<32 + int64(low)
-	return *((*int64)(unsafe.Pointer(&l)))
+	return *(&l)
 }
 
 func _toJsValue(low, high uintptr) jsValue {
@@ -21,7 +29,7 @@ func _toLH(value jsValue) (low, high int32) {
 	if is64 {
 		return 0, 0
 	}
-	return int32(int64(value)), int32(int64(value) >> 32 & 0xffffffff)
+	return int32(value), int32(int64(value) >> 32 & 0xffffffff)
 }
 
 var is64 bool
@@ -102,6 +110,7 @@ type winFreeApi struct {
 	_wkeNetGetRawResponseHead    *windows.LazyProc
 	_wkeOnDocumentReady2         *windows.LazyProc
 	_wkeSetTransparent           *windows.LazyProc
+	_wkeSetViewProxy             *windows.LazyProc
 }
 
 func (_this *winFreeApi) init() *winFreeApi {
@@ -112,6 +121,7 @@ func (_this *winFreeApi) init() *winFreeApi {
 	} else {
 		lib = windows.NewLazyDLL("miniblink_x86.dll")
 	}
+	_this._wkeSetViewProxy = lib.NewProc("wkeSetViewProxy")
 	_this._wkeSetTransparent = lib.NewProc("wkeSetTransparent")
 	_this._wkeOnDocumentReady2 = lib.NewProc("wkeOnDocumentReady2")
 	_this._wkeNetGetRawResponseHead = lib.NewProc("wkeNetGetRawResponseHead")
@@ -191,6 +201,27 @@ func (_this *winFreeApi) init() *winFreeApi {
 		fmt.Println("初始化失败", err)
 	}
 	return _this
+}
+
+func (_this *winFreeApi) wkeSetViewProxy(wke wkeHandle, proxy ProxyInfo) {
+	px := wkeProxy{
+		Type: int32(proxy.Type),
+		Port: uint16(proxy.Port),
+	}
+	for i, c := range proxy.HostName {
+		px.HostName[i] = byte(c)
+	}
+	if proxy.UserName != "" {
+		for i, c := range proxy.UserName {
+			px.UserName[i] = byte(c)
+		}
+	}
+	if proxy.Password != "" {
+		for i, c := range proxy.Password {
+			px.Password[i] = byte(c)
+		}
+	}
+	_this._wkeSetViewProxy.Call(uintptr(wke), uintptr(unsafe.Pointer(&px)))
 }
 
 func (_this *winFreeApi) wkeSetTransparent(wke wkeHandle, enable bool) {

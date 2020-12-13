@@ -65,6 +65,10 @@ func (_this *freeMiniblink) init(control *cs.Control) *freeMiniblink {
 	return _this
 }
 
+func (_this *freeMiniblink) SetProxy(info ProxyInfo) {
+	mbApi.wkeSetViewProxy(_this.wke, info)
+}
+
 func (_this *freeMiniblink) MouseIsEnable() bool {
 	return _this.lockMouse == false
 }
@@ -74,7 +78,7 @@ func (_this *freeMiniblink) MouseEnable(b bool) {
 }
 
 func (_this *freeMiniblink) CallJsFunc(name string, param []interface{}) interface{} {
-	es := mbApi.wkeGlobalExec(_this.GetHandle())
+	es := mbApi.wkeGlobalExec(_this.wke)
 	var ps []jsValue
 	for i := 0; i < len(param); i++ {
 		v := toJsValue(_this, es, param[i])

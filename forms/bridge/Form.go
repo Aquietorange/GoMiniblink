@@ -16,6 +16,9 @@ type Form interface {
 	SetBorderStyle(style fm.FormBorder)
 	ShowToMax()
 	ShowToMin()
+	/*
+		允许在无边框模式下调整窗体大小
+	*/
 	NoneBorderResize()
 	Active()
 

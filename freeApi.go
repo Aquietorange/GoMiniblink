@@ -167,4 +167,5 @@ type freeApi interface {
 	wkeNetGetRawResponseHead(job wkeNetJob) map[string]string
 	wkeOnDocumentReady(wke wkeHandle, callback wkeDocumentReady2Callback, param uintptr)
 	wkeSetTransparent(wke wkeHandle, enable bool)
+	wkeSetViewProxy(wke wkeHandle, proxy ProxyInfo)
 }
