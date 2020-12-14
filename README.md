@@ -20,10 +20,10 @@ Go封装的功能比较少，其实就是 https://gitee.com/aochulai/NetMiniblin
     import (
     	gm "gitee.com/aochulai/GoMiniblink"
     	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-    	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
+    	ws "gitee.com/aochulai/GoMiniblink/forms/windows"
     )
     //windows版本初始化
-    cs.App = new(gw.Provider).Init()
+    cs.App = new(ws.Provider).Init()
     
 	//创建一个窗体并设置基本属性
 	frm := new(cs.Form).Init()
@@ -41,4 +41,5 @@ Go封装的功能比较少，其实就是 https://gitee.com/aochulai/NetMiniblin
 	    //加载网址
 	    mb.LoadUri("https://www.baidu.com")
 	}
+	//将frm作为主窗口打开
 	cs.Run(frm)
