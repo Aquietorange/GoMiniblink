@@ -16,6 +16,7 @@ func (_this *Control) Init() *Control {
 	_this.impl = App.NewControl()
 	_this.BaseUI.Init(_this, _this.impl)
 	_this.anchor = fm.AnchorStyle_Left | fm.AnchorStyle_Top
+	_this.SetSize(200, 200)
 	return _this
 }
 
