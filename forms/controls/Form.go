@@ -43,6 +43,10 @@ func (_this *Form) Init() *Form {
 	return _this.InitEx(br.FormParam{})
 }
 
+func (_this *Form) SetTopMost(isTop bool) {
+	_this.impl.SetTopMost(isTop)
+}
+
 func (_this *Form) NoneBorderResize() {
 	_this.impl.NoneBorderResize()
 }

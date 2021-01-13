@@ -78,6 +78,14 @@ func (_this *winForm) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	return rs
 }
 
+func (_this *winForm) SetTopMost(isTop bool) {
+	if isTop {
+		win.SetWindowPos(_this.handle, win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_NOMOVE|win.SWP_NOSIZE)
+	} else {
+		win.SetWindowPos(_this.handle, win.HWND_NOTOPMOST, 0, 0, 0, 0, win.SWP_NOMOVE|win.SWP_NOSIZE)
+	}
+}
+
 func (_this *winForm) SetOnActive(proc br.FormActiveProc) br.FormActiveProc {
 	pre := _this._onActive
 	_this._onActive = proc
