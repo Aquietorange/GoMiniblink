@@ -30,10 +30,8 @@ func (_this *FileLoader) Domain() string {
 func (_this *FileLoader) ByUri(uri *url2.URL) []byte {
 	path := strings.Join([]string{_this.dir, uri.Path}, "")
 	path = strings.ReplaceAll(path, "/", string(os.PathSeparator))
-	if pathExists(path) {
-		if data, err := ioutil.ReadFile(path); err == nil {
-			return data
-		}
+	if data, err := ioutil.ReadFile(path); err == nil {
+		return data
 	}
 	return nil
 }

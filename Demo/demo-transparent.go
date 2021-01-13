@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
 	gm "gitee.com/aochulai/GoMiniblink"
 	fm "gitee.com/aochulai/GoMiniblink/forms"
 	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
-	"unsafe"
 )
 
 func main() {
-	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(gw.Provider).Init()
 
 	frm := new(gm.MiniblinkForm).Init()

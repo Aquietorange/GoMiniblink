@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
 	gm "gitee.com/aochulai/GoMiniblink"
 	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
-	"unsafe"
 )
 
 func main() {
-	fmt.Println("x64 is", unsafe.Sizeof(uintptr(0)) == 8)
 	cs.App = new(gw.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
