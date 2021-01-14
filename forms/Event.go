@@ -7,11 +7,12 @@ import (
 //todo 应该全是接口
 
 type MouseEvArgs struct {
-	Button      MouseButtons
-	X, Y, Delta int
-	IsDouble    bool
-	Time        time.Time
-	IsHandle    bool
+	Button           MouseButtons
+	X, Y, Delta      int
+	IsDouble         bool
+	Time             time.Time
+	IsHandle         bool
+	ScreenX, ScreenY int
 }
 
 type PaintEvArgs struct {

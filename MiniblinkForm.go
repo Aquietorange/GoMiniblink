@@ -6,7 +6,6 @@ import (
 	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 	gww "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image"
-	"time"
 	"unsafe"
 )
 
@@ -24,7 +23,6 @@ type MiniblinkForm struct {
 	wke           wkeHandle
 	isTransparent bool
 	resizeState   int
-	isDrop        bool
 }
 
 func (_this *MiniblinkForm) Init() *MiniblinkForm {
@@ -48,11 +46,43 @@ func (_this *MiniblinkForm) Init() *MiniblinkForm {
 	_this.View.JsFuncEx(_fnClose, func() {
 		_this.Close()
 	})
-	_this.View.JsFuncEx(_fnDrop, _this.fnDrop)
-	_this.View.EvDocumentReady["__goMiniblink"] = func(_ *MiniblinkBrowser, e DocumentReadyEvArgs) {
+	_this.View.EvDocumentReady["__goMiniblink_init_js"] = func(_ *MiniblinkBrowser, e DocumentReadyEvArgs) {
 		e.RunJs("window.setFormButton();window.mbFormDrop();")
 	}
+	_this.setDrop()
 	return _this
+}
+
+func (_this *MiniblinkForm) setDrop() {
+	isDrop := false
+	var anchor fm.Point
+	var base fm.Point
+	_this.View.JsFuncEx(_fnDrop, func() {
+		isDrop = true
+		_this.View.SetCursor(fm.CursorType_SIZEALL)
+	})
+	_this.View.EvMouseDown["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
+		if isDrop {
+			base = _this.GetBound().Point
+			anchor = fm.Point{
+				X: e.ScreenX,
+				Y: e.ScreenY,
+			}
+		}
+	}
+	_this.View.EvMouseUp["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
+		isDrop = false
+		_this.View.SetCursor(fm.CursorType_Default)
+	}
+	_this.View.EvMouseMove["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
+		if isDrop {
+			var nx = e.ScreenX - anchor.X
+			var ny = e.ScreenY - anchor.Y
+			nx = base.X + nx
+			ny = base.Y + ny
+			_this.SetLocation(nx, ny)
+		}
+	}
 }
 
 func (_this *MiniblinkForm) setOn() {
@@ -198,51 +228,4 @@ func (_this *MiniblinkForm) setFormFn(frame FrameContext) {
 	`
 	js = fmt.Sprintf(js, _fnMax, _fnMin, _fnClose, _fnDrop)
 	frame.RunJs(js)
-}
-
-func (_this *MiniblinkForm) fnDrop() {
-	if _this.GetState() != fm.FormState_Normal ||
-		cs.App.MouseIsDown()[fm.MouseButtons_Left] == false {
-		return
-	}
-	me := _this.View.MouseIsEnable()
-	srcMs := cs.App.MouseLocation()
-	srcFrm := _this.GetBound().Point
-	if me {
-		_this.View.MouseEnable(false)
-	}
-	_this.isDrop = true
-	_this.watchMouseMove(func(p fm.Point) {
-		var nx = p.X - srcMs.X
-		var ny = p.Y - srcMs.Y
-		nx = srcFrm.X + nx
-		ny = srcFrm.Y + ny
-		_this.SetLocation(nx, ny)
-	}, func() {
-		if me {
-			_this.View.MouseEnable(true)
-		}
-		_this.View.SetCursor(fm.CursorType_Default)
-		_this.isDrop = false
-	})
-	_this.View.SetCursor(fm.CursorType_SIZEALL)
-}
-
-func (_this *MiniblinkForm) watchMouseMove(onMove func(p fm.Point), onEnd func()) {
-	go func(mv func(p fm.Point), end func()) {
-		pre := cs.App.MouseLocation()
-		for cs.App.MouseIsDown()[fm.MouseButtons_Left] {
-			p := cs.App.MouseLocation()
-			if pre.IsEqual(p) == false {
-				_this.Invoke(func(state interface{}) {
-					mv(p)
-				}, nil)
-				pre = p
-			}
-			time.Sleep(time.Millisecond * 10)
-		}
-		_this.Invoke(func(_ interface{}) {
-			onEnd()
-		}, nil)
-	}(onMove, onEnd)
 }

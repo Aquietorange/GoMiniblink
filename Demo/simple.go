@@ -490,8 +490,8 @@ func main() {
 	msg := struct {
 		HWnd    uintptr
 		Message uint32
-		WParam  uintptr
-		LParam  uintptr
+		WParam  uint32
+		LParam  int32
 		Time    uint32
 		Pt      struct{ X, Y int32 }
 	}{}

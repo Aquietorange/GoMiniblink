@@ -236,6 +236,13 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
+			p := win.POINT{
+				X: int32(e.X),
+				Y: int32(e.Y),
+			}
+			win.ClientToScreen(hWnd, &p)
+			e.ScreenX = int(p.X)
+			e.ScreenY = int(p.Y)
 			wp := int(wParam)
 			if wp&win.MK_LBUTTON != 0 {
 				e.Button |= fm.MouseButtons_Left
@@ -259,6 +266,13 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				Time:     time.Now(),
 				IsDouble: true,
 			}
+			p := win.POINT{
+				X: int32(e.X),
+				Y: int32(e.Y),
+			}
+			win.ClientToScreen(hWnd, &p)
+			e.ScreenX = int(p.X)
+			e.ScreenY = int(p.Y)
 			switch msg {
 			case win.WM_LBUTTONDOWN:
 				e.Button |= fm.MouseButtons_Left
@@ -281,6 +295,13 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
+			p := win.POINT{
+				X: int32(e.X),
+				Y: int32(e.Y),
+			}
+			win.ClientToScreen(hWnd, &p)
+			e.ScreenX = int(p.X)
+			e.ScreenY = int(p.Y)
 			switch msg {
 			case win.WM_LBUTTONDOWN:
 				e.Button |= fm.MouseButtons_Left
@@ -294,14 +315,21 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 			}
 		}
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
-		_this.lockCursor = false
 		win.ReleaseCapture()
+		_this.lockCursor = false
 		if _this.onMouseUp != nil {
 			e := fm.MouseEvArgs{
 				X:    int(win.GET_X_LPARAM(lParam)),
 				Y:    int(win.GET_Y_LPARAM(lParam)),
 				Time: time.Now(),
 			}
+			p := win.POINT{
+				X: int32(e.X),
+				Y: int32(e.Y),
+			}
+			win.ClientToScreen(hWnd, &p)
+			e.ScreenX = int(p.X)
+			e.ScreenY = int(p.Y)
 			switch msg {
 			case win.WM_LBUTTONDOWN:
 				e.Button |= fm.MouseButtons_Left
@@ -354,6 +382,13 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 				Delta: int(hp),
 				Time:  time.Now(),
 			}
+			p := win.POINT{
+				X: int32(e.X),
+				Y: int32(e.Y),
+			}
+			win.ClientToScreen(hWnd, &p)
+			e.ScreenX = int(p.X)
+			e.ScreenY = int(p.Y)
 			if lp&win.MK_LBUTTON != 0 {
 				e.Button |= fm.MouseButtons_Left
 			}
