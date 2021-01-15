@@ -1494,7 +1494,7 @@ type MSG struct {
 	HWnd    HWND
 	Message uint32
 	WParam  uint32
-	LParam  int32
+	LParam  uintptr
 	Time    uint32
 	Pt      POINT
 }
