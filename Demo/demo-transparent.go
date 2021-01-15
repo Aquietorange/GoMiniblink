@@ -16,6 +16,7 @@ func main() {
 	frm.SetSize(300, 300)
 	frm.SetBorderStyle(fm.FormBorder_None)
 	frm.NoneBorderResize()
+	frm.SetTopMost(true)
 	frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
 	frm.EvLoad["show"] = func(s cs.GUI) {
 		frm.View.LoadUri("http://local/transparent.html")

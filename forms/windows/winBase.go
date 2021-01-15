@@ -317,27 +317,27 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 	case win.WM_LBUTTONUP, win.WM_RBUTTONUP, win.WM_MBUTTONUP:
 		win.ReleaseCapture()
 		_this.lockCursor = false
+		e := fm.MouseEvArgs{
+			X:    int(win.GET_X_LPARAM(lParam)),
+			Y:    int(win.GET_Y_LPARAM(lParam)),
+			Time: time.Now(),
+		}
+		p := win.POINT{
+			X: int32(e.X),
+			Y: int32(e.Y),
+		}
+		win.ClientToScreen(hWnd, &p)
+		e.ScreenX = int(p.X)
+		e.ScreenY = int(p.Y)
+		switch msg {
+		case win.WM_LBUTTONDOWN:
+			e.Button |= fm.MouseButtons_Left
+		case win.WM_RBUTTONDOWN:
+			e.Button |= fm.MouseButtons_Right
+		case win.WM_MBUTTONDOWN:
+			e.Button |= fm.MouseButtons_Middle
+		}
 		if _this.onMouseUp != nil {
-			e := fm.MouseEvArgs{
-				X:    int(win.GET_X_LPARAM(lParam)),
-				Y:    int(win.GET_Y_LPARAM(lParam)),
-				Time: time.Now(),
-			}
-			p := win.POINT{
-				X: int32(e.X),
-				Y: int32(e.Y),
-			}
-			win.ClientToScreen(hWnd, &p)
-			e.ScreenX = int(p.X)
-			e.ScreenY = int(p.Y)
-			switch msg {
-			case win.WM_LBUTTONDOWN:
-				e.Button |= fm.MouseButtons_Left
-			case win.WM_RBUTTONDOWN:
-				e.Button |= fm.MouseButtons_Right
-			case win.WM_MBUTTONDOWN:
-				e.Button |= fm.MouseButtons_Middle
-			}
 			if _this.onMouseUp(&e); e.IsHandle {
 				ret = 1
 			}
@@ -345,7 +345,10 @@ func (_this *winBase) msgProc(hWnd win.HWND, msg uint32, wParam, lParam uintptr)
 		if _this.onMouseClick != nil {
 			var rect win.RECT
 			win.GetWindowRect(hWnd, &rect)
-			mp := _this.app.MouseLocation()
+			mp := fm.Point{
+				X: e.ScreenX,
+				Y: e.ScreenY,
+			}
 			if mp.X < int(rect.Right) && mp.X >= int(rect.Left) && mp.Y >= int(rect.Top) && mp.Y < int(rect.Bottom) {
 				go func() {
 					time.Sleep(time.Duration(time.Millisecond.Nanoseconds() * int64(dbclickTime)))

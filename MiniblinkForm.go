@@ -59,7 +59,6 @@ func (_this *MiniblinkForm) setDrop() {
 	var base fm.Point
 	_this.View.JsFuncEx(_fnDrop, func() {
 		isDrop = true
-		_this.View.SetCursor(fm.CursorType_SIZEALL)
 	})
 	_this.View.EvMouseDown["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
 		if isDrop {
@@ -68,11 +67,14 @@ func (_this *MiniblinkForm) setDrop() {
 				X: e.ScreenX,
 				Y: e.ScreenY,
 			}
+			_this.View.SetCursor(fm.CursorType_SIZEALL)
+			_this.View.MouseEnable(false)
 		}
 	}
 	_this.View.EvMouseUp["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
 		isDrop = false
 		_this.View.SetCursor(fm.CursorType_Default)
+		_this.View.MouseEnable(true)
 	}
 	_this.View.EvMouseMove["__goMiniblink_drop"] = func(s cs.GUI, e *fm.MouseEvArgs) {
 		if isDrop {
@@ -81,6 +83,7 @@ func (_this *MiniblinkForm) setDrop() {
 			nx = base.X + nx
 			ny = base.Y + ny
 			_this.SetLocation(nx, ny)
+			e.IsHandle = true
 		}
 	}
 }
