@@ -45,3 +45,10 @@ type Graphics interface {
 	DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int) Graphics
 	Close()
 }
+
+type MsgBoxParam struct {
+	Title  string
+	Text   string
+	Icon   MsgBoxIcon
+	Button MsgBoxButton
+}

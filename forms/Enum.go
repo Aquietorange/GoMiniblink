@@ -74,3 +74,35 @@ const (
 	AnchorStyle_Bottom AnchorStyle = 8
 	AnchorStyle_Fill   AnchorStyle = 16
 )
+
+type MsgBoxIcon int
+
+const (
+	MsgBoxIcon_Error    MsgBoxIcon = 1
+	MsgBoxIcon_Warn     MsgBoxIcon = 2
+	MsgBoxIcon_Info     MsgBoxIcon = 4
+	MsgBoxIcon_Question MsgBoxIcon = 8
+)
+
+type MsgBoxButton int
+
+const (
+	MsgBoxButton_Ok               MsgBoxButton = 1
+	MsgBoxButton_OkCancel         MsgBoxButton = 2
+	MsgBoxButton_AbortRetryIgnore MsgBoxButton = 4
+	MsgBoxButton_YesNoCancel      MsgBoxButton = 8
+	MsgBoxButton_YesNo            MsgBoxButton = 16
+	MsgBoxButton_RetryCancel      MsgBoxButton = 32
+)
+
+type MsgBoxResult int32
+
+const (
+	MsgBoxResult_Ok     MsgBoxResult = 1
+	MsgBoxResult_Cancel MsgBoxResult = 2
+	MsgBoxResult_Abort  MsgBoxResult = 3
+	MsgBoxResult_Retry  MsgBoxResult = 4
+	MsgBoxResult_Ignore MsgBoxResult = 5
+	MsgBoxResult_Yes    MsgBoxResult = 6
+	MsgBoxResult_No     MsgBoxResult = 7
+)

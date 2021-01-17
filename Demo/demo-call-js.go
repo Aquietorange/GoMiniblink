@@ -5,6 +5,7 @@ import (
 	gm "gitee.com/aochulai/GoMiniblink"
 	fm "gitee.com/aochulai/GoMiniblink/forms"
 	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
+	"gitee.com/aochulai/GoMiniblink/forms/controls/MsgBox"
 	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
 )
 
@@ -19,16 +20,16 @@ func main() {
 	mb := new(gm.MiniblinkBrowser).Init()
 	mb.SetAnchor(fm.AnchorStyle_Fill)
 	mb.ResourceLoader = append(mb.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
-	mb.EvConsole["show"] = func(_ *gm.MiniblinkBrowser, e gm.ConsoleEvArgs) {
+	mb.EvConsole["打印js控制台内容"] = func(_ *gm.MiniblinkBrowser, e gm.ConsoleEvArgs) {
 		fmt.Println("js console:", e.Message())
 	}
-	mb.EvDocumentReady["exec"] = func(s *gm.MiniblinkBrowser, e gm.DocumentReadyEvArgs) {
+	mb.EvDocumentReady["调用html中的js函数"] = func(s *gm.MiniblinkBrowser, e gm.DocumentReadyEvArgs) {
 		//调用func_1
 		mb.CallJsFunc("func_1", "张三", 18)
 
 		//获取func_2返回的基础数据类型
 		f2rs := mb.CallJsFunc("func_2")
-		fmt.Println("func_2 result is", f2rs)
+		MsgBox.ShowInfo("func_2 result is", f2rs.(string))
 
 		//向func_3传递一个go函数
 		mb.CallJsFunc("func_3", func(n1, n2 float64) int {
@@ -38,14 +39,14 @@ func main() {
 
 		//获取func_4返回的非基本数据类型
 		f4rs := mb.CallJsFunc("func_4").(map[string]interface{})
-		fmt.Println("func_4 result is", f4rs)
+		MsgBox.ShowWarn("func_4 result is", fmt.Sprint(f4rs))
 
 		//获取并调用func_5返回的js函数
 		fn := mb.CallJsFunc("func_5").(gm.JsFunc)
 		fn("王老五")
 	}
 	frm.AddChild(mb)
-	frm.EvLoad["show"] = func(s cs.GUI) {
+	frm.EvLoad["加载内容"] = func(s cs.GUI) {
 		mb.LoadUri("https://local/call_js.html")
 	}
 	cs.Run(frm)

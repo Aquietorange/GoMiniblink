@@ -21,4 +21,5 @@ type Provider interface {
 
 	NewForm(param FormParam) Form
 	NewControl() Control
+	NewMsgBox() MsgBox
 }
