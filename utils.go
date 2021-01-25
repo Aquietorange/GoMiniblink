@@ -19,10 +19,7 @@ type fnJsData struct {
 }
 
 func (_this *fnJsData) init(name string) *fnJsData {
-	jdName := "function"
-	for i := 0; i < len(jdName); i++ {
-		_this.name[i] = jdName[i]
-	}
+	_this.name = [100]byte{'f', 'u', 'n', 'c', 't', 'i', 'o', 'n'}
 	_this.fnName = name
 	return _this
 }
@@ -133,9 +130,11 @@ func deleteTempFunc(ptr uintptr) uintptr {
 	delete(keepRef, data.fnName)
 	return 0
 }
+
 func execTempFuncX86(es jsExecState, _, _, _ uintptr, count uint32) uintptr {
 	return execTempFunc(es, 0, 0, count)
 }
+
 func execTempFunc(es jsExecState, _, _ jsValue, count uint32) uintptr {
 	wke := mbApi.jsGetWebView(es)
 	mb := views[wke]
