@@ -92,11 +92,12 @@ func (_this *BaseContainer) AddChild(child Child) {
 	if _, ok := _this.Childs[child.GetHandle()]; ok == false {
 		_this.container.toControls().AddControl(child.toControl())
 		bn := child.GetBound()
+		pb := _this.container.GetBound()
 		rect := fm.Bound2{
 			Left:   bn.X,
 			Top:    bn.Y,
-			Right:  bn.Width + bn.X,
-			Bottom: bn.Height + bn.Y,
+			Right:  pb.Width - bn.Width - bn.X,
+			Bottom: pb.Height - bn.Height - bn.Y,
 		}
 		child.setParent(_this.container)
 		ow := _this.container.GetOwner()
