@@ -11,6 +11,7 @@ func main() {
 	cs.App = new(gw.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
+	//绑定了miniblink的窗体，内部实现了一些用js控制窗体的功能
 	frm := new(gm.MiniblinkForm).Init()
 	frm.SetTitle("miniblink窗口")
 	frm.SetLocation(100, 100)

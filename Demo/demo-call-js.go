@@ -13,6 +13,7 @@ func main() {
 	cs.App = new(gw.Provider).Init()
 	cs.App.SetIcon("app.ico")
 
+	//一个普通的窗体
 	frm := new(cs.Form).Init()
 	frm.SetTitle("JS互操作")
 	frm.SetSize(800, 500)

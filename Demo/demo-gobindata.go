@@ -33,7 +33,6 @@ func (_this *GobindataLoader) Domain() string {
 }
 
 func (_this *GobindataLoader) ByUri(uri *url2.URL) []byte {
-	//Res.Asset是用调试模式生成的，里面的文件路径是全路径，所以在别的电脑上要重新生成一份，或者自己全局替换一下路径目录
 	rs, err := Res.Asset(strings.TrimLeft(uri.Path, "/"))
 	if err != nil {
 		return nil

@@ -1,7 +1,6 @@
 package GoMiniblink
 
 import (
-	"fmt"
 	"golang.org/x/sys/windows"
 	"strconv"
 	"syscall"
@@ -196,10 +195,7 @@ func (_this *winFreeApi) init() *winFreeApi {
 	_this._wkeDestroyWebView = lib.NewProc("wkeDestroyWebView")
 	_this._jsGetWebView = lib.NewProc("jsGetWebView")
 
-	ret, _, err := _this._wkeInitialize.Call()
-	if ret == 0 {
-		fmt.Println("初始化失败", err)
-	}
+	_this._wkeInitialize.Call()
 	return _this
 }
 

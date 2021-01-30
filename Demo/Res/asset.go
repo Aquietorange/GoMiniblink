@@ -18,7 +18,7 @@ func bindata_read(path, name string) ([]byte, error) {
 // call_js_html reads file data from disk. It returns an error on failure.
 func call_js_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\call_js.html",
+		"Res\\call_js.html",
 		"call_js.html",
 	)
 }
@@ -26,7 +26,7 @@ func call_js_html() ([]byte, error) {
 // control_html reads file data from disk. It returns an error on failure.
 func control_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\control.html",
+		"Res\\control.html",
 		"control.html",
 	)
 }
@@ -34,7 +34,7 @@ func control_html() ([]byte, error) {
 // css_test_css_test_css reads file data from disk. It returns an error on failure.
 func css_test_css_test_css() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\css\\test-css\\test.css",
+		"Res\\css\\test-css\\test.css",
 		"css/test-css/test.css",
 	)
 }
@@ -42,7 +42,7 @@ func css_test_css_test_css() ([]byte, error) {
 // css_xspreadsheet_css reads file data from disk. It returns an error on failure.
 func css_xspreadsheet_css() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\css\\xspreadsheet.css",
+		"Res\\css\\xspreadsheet.css",
 		"css/xspreadsheet.css",
 	)
 }
@@ -50,7 +50,7 @@ func css_xspreadsheet_css() ([]byte, error) {
 // drop_file_html reads file data from disk. It returns an error on failure.
 func drop_file_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\drop_file.html",
+		"Res\\drop_file.html",
 		"drop_file.html",
 	)
 }
@@ -58,7 +58,7 @@ func drop_file_html() ([]byte, error) {
 // embed_loader_html reads file data from disk. It returns an error on failure.
 func embed_loader_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\embed_loader.html",
+		"Res\\embed_loader.html",
 		"embed_loader.html",
 	)
 }
@@ -66,7 +66,7 @@ func embed_loader_html() ([]byte, error) {
 // events_html reads file data from disk. It returns an error on failure.
 func events_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\events.html",
+		"Res\\events.html",
 		"events.html",
 	)
 }
@@ -74,7 +74,7 @@ func events_html() ([]byte, error) {
 // gobindata_html reads file data from disk. It returns an error on failure.
 func gobindata_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\gobindata.html",
+		"Res\\gobindata.html",
 		"gobindata.html",
 	)
 }
@@ -82,7 +82,7 @@ func gobindata_html() ([]byte, error) {
 // hook_html reads file data from disk. It returns an error on failure.
 func hook_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\hook.html",
+		"Res\\hook.html",
 		"hook.html",
 	)
 }
@@ -90,7 +90,7 @@ func hook_html() ([]byte, error) {
 // images_chrome_png reads file data from disk. It returns an error on failure.
 func images_chrome_png() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\images\\chrome.png",
+		"Res\\images\\chrome.png",
 		"images/chrome.png",
 	)
 }
@@ -98,7 +98,7 @@ func images_chrome_png() ([]byte, error) {
 // images_close_png reads file data from disk. It returns an error on failure.
 func images_close_png() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\images\\close.png",
+		"Res\\images\\close.png",
 		"images/close.png",
 	)
 }
@@ -106,7 +106,7 @@ func images_close_png() ([]byte, error) {
 // images_runjs_png reads file data from disk. It returns an error on failure.
 func images_runjs_png() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\images\\runjs.png",
+		"Res\\images\\runjs.png",
 		"images/runjs.png",
 	)
 }
@@ -114,7 +114,7 @@ func images_runjs_png() ([]byte, error) {
 // images_web_png reads file data from disk. It returns an error on failure.
 func images_web_png() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\images\\web.png",
+		"Res\\images\\web.png",
 		"images/web.png",
 	)
 }
@@ -122,7 +122,7 @@ func images_web_png() ([]byte, error) {
 // images_xspreadsheet_svg reads file data from disk. It returns an error on failure.
 func images_xspreadsheet_svg() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\images\\xspreadsheet.svg",
+		"Res\\images\\xspreadsheet.svg",
 		"images/xspreadsheet.svg",
 	)
 }
@@ -130,7 +130,7 @@ func images_xspreadsheet_svg() ([]byte, error) {
 // js_hook_js reads file data from disk. It returns an error on failure.
 func js_hook_js() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\js\\hook.js",
+		"Res\\js\\hook.js",
 		"js/hook.js",
 	)
 }
@@ -138,7 +138,7 @@ func js_hook_js() ([]byte, error) {
 // js_xspreadsheet_js reads file data from disk. It returns an error on failure.
 func js_xspreadsheet_js() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\js\\xspreadsheet.js",
+		"Res\\js\\xspreadsheet.js",
 		"js/xspreadsheet.js",
 	)
 }
@@ -146,7 +146,7 @@ func js_xspreadsheet_js() ([]byte, error) {
 // js_call_html reads file data from disk. It returns an error on failure.
 func js_call_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\js_call.html",
+		"Res\\js_call.html",
 		"js_call.html",
 	)
 }
@@ -154,7 +154,7 @@ func js_call_html() ([]byte, error) {
 // runjs_html reads file data from disk. It returns an error on failure.
 func runjs_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\runjs.html",
+		"Res\\runjs.html",
 		"runjs.html",
 	)
 }
@@ -162,7 +162,7 @@ func runjs_html() ([]byte, error) {
 // test_html reads file data from disk. It returns an error on failure.
 func test_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\test.html",
+		"Res\\test.html",
 		"test.html",
 	)
 }
@@ -170,7 +170,7 @@ func test_html() ([]byte, error) {
 // transparent_html reads file data from disk. It returns an error on failure.
 func transparent_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\transparent.html",
+		"Res\\transparent.html",
 		"transparent.html",
 	)
 }
@@ -178,7 +178,7 @@ func transparent_html() ([]byte, error) {
 // web_html reads file data from disk. It returns an error on failure.
 func web_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\web.html",
+		"Res\\web.html",
 		"web.html",
 	)
 }
@@ -186,7 +186,7 @@ func web_html() ([]byte, error) {
 // window_html reads file data from disk. It returns an error on failure.
 func window_html() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\window.html",
+		"Res\\window.html",
 		"window.html",
 	)
 }
@@ -194,7 +194,7 @@ func window_html() ([]byte, error) {
 // zipdemo_zip reads file data from disk. It returns an error on failure.
 func zipdemo_zip() ([]byte, error) {
 	return bindata_read(
-		"D:\\Code\\GoMiniblink\\Demo\\Res\\zipdemo.zip",
+		"Res\\zipdemo.zip",
 		"zipdemo.zip",
 	)
 }
