@@ -41,13 +41,14 @@ func execGoFunc(ctx GoFnContext) interface{} {
 }
 
 type freeMiniblink struct {
-	view      *cs.Control
-	wke       wkeHandle
-	fnMap     map[string]JsFnBinding
-	jsIsReady bool
-	frames    []FrameContext
-	reqMap    map[wkeNetJob]*freeRequestBeforeEvArgs
-	lockMouse bool
+	view        *cs.Control
+	wke         wkeHandle
+	fnMap       map[string]JsFnBinding
+	jsIsReady   bool
+	frames      []FrameContext
+	reqMap      map[wkeNetJob]*freeRequestBeforeEvArgs
+	isLockMouse bool
+	isBmpPaint  bool
 
 	onRequest     RequestBeforeCallback
 	onJsReady     JsReadyCallback
@@ -70,11 +71,11 @@ func (_this *freeMiniblink) SetProxy(info ProxyInfo) {
 }
 
 func (_this *freeMiniblink) MouseIsEnable() bool {
-	return _this.lockMouse == false
+	return _this.isLockMouse == false
 }
 
 func (_this *freeMiniblink) MouseEnable(b bool) {
-	_this.lockMouse = b == false
+	_this.isLockMouse = b == false
 }
 
 func (_this *freeMiniblink) CallJsFunc(name string, param []interface{}) interface{} {
@@ -276,7 +277,7 @@ func (_this *freeMiniblink) setView() {
 	}
 	bakMouseMove := _this.view.OnMouseMove
 	_this.view.OnMouseMove = func(e *fm.MouseEvArgs) {
-		if _this.lockMouse == false {
+		if _this.isLockMouse == false {
 			_this.viewMouseMove(e)
 		}
 		if bakMouseMove != nil {
@@ -285,7 +286,7 @@ func (_this *freeMiniblink) setView() {
 	}
 	bakMouseDown := _this.view.OnMouseDown
 	_this.view.OnMouseDown = func(e *fm.MouseEvArgs) {
-		if _this.lockMouse == false {
+		if _this.isLockMouse == false {
 			_this.viewMouseDown(e)
 		}
 		if bakMouseDown != nil {
@@ -294,7 +295,7 @@ func (_this *freeMiniblink) setView() {
 	}
 	bakMouseUp := _this.view.OnMouseUp
 	_this.view.OnMouseUp = func(e *fm.MouseEvArgs) {
-		if _this.lockMouse == false {
+		if _this.isLockMouse == false {
 			_this.viewMouseUp(e)
 		}
 		if bakMouseUp != nil {
@@ -303,7 +304,7 @@ func (_this *freeMiniblink) setView() {
 	}
 	bakMouseWheel := _this.view.OnMouseWheel
 	_this.view.OnMouseWheel = func(e *fm.MouseEvArgs) {
-		if _this.lockMouse == false {
+		if _this.isLockMouse == false {
 			_this.viewMouseWheel(e)
 		}
 		if bakMouseWheel != nil {
@@ -524,42 +525,62 @@ func (_this *freeMiniblink) ToBitmap() *image.RGBA {
 }
 
 func (_this *freeMiniblink) viewPaint(e fm.PaintEvArgs) {
-	img := _this.ToBitmap()
-	if img.Bounds().Empty() == false {
-		e.Graphics.DrawImage(img, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
+	if _this.isBmpPaint {
+		img := _this.ToBitmap()
+		if img.Bounds().Empty() == false {
+			e.Graphics.DrawImage(img, e.Clip.X, e.Clip.Y, e.Clip.Width, e.Clip.Height, e.Clip.X, e.Clip.Y)
+		}
+	} else {
+		hdc := win.HDC(e.Graphics.GetHandle())
+		mdc := win.HDC(mbApi.wkeGetViewDC(_this.wke))
+		win.BitBlt(hdc, int32(e.Clip.X), int32(e.Clip.Y), int32(e.Clip.Width), int32(e.Clip.Height), mdc, int32(e.Clip.X), int32(e.Clip.Y), win.SRCCOPY)
 	}
 }
 
 func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, rect *wkeRect, width, _ int32) uintptr {
-	bx, by := int(rect.x), int(rect.y)
-	bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
-	bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
-	stride := int(width) * 4
-	pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
-	for y := 0; y < bh; y++ {
-		for x := 0; x < bw*4; x++ {
-			sp := bmp.Stride*y + x
-			dp := stride*(by+y) + bx*4 + x
-			bmp.Pix[sp] = pixs[dp]
+	if _this.isBmpPaint {
+		bx, by := int(rect.x), int(rect.y)
+		bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
+		bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
+		stride := int(width) * 4
+		pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
+		for y := 0; y < bh; y++ {
+			for x := 0; x < bw*4; x++ {
+				sp := bmp.Stride*y + x
+				dp := stride*(by+y) + bx*4 + x
+				bmp.Pix[sp] = pixs[dp]
+			}
 		}
-	}
-	args := new(freePaintUpdatedEvArgs).init(bmp, fm.Bound{
-		Point: fm.Point{
-			X: bx,
-			Y: by,
-		},
-		Rect: fm.Rect{
-			Width:  bw,
-			Height: bh,
-		},
-	})
-	if _this.paintUpdated != nil {
-		_this.paintUpdated(args)
-	}
-	if args.IsCancel() == false {
-		_this.view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+		args := new(freePaintUpdatedEvArgs).init(bmp, fm.Bound{
+			Point: fm.Point{
+				X: bx,
+				Y: by,
+			},
+			Rect: fm.Rect{
+				Width:  bw,
+				Height: bh,
+			},
+		})
+		if _this.paintUpdated != nil {
+			_this.paintUpdated(args)
+		}
+		if args.IsCancel() == false {
+			_this.view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
+		}
+	} else {
+		r := win.RECT{
+			Left:   rect.x,
+			Top:    rect.y,
+			Right:  rect.x + rect.w,
+			Bottom: rect.y + rect.h,
+		}
+		win.InvalidateRect(win.HWND(_this.view.GetHandle()), &r, false)
 	}
 	return 0
+}
+
+func (_this *freeMiniblink) SetBmpPaintMode(b bool) {
+	_this.isBmpPaint = b
 }
 
 func (_this *freeMiniblink) viewResize(e fm.Rect) {

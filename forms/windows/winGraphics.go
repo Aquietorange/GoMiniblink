@@ -17,6 +17,10 @@ func (_this *winGraphics) init(hdc win.HDC) *winGraphics {
 	return _this
 }
 
+func (_this *winGraphics) GetHandle() uintptr {
+	return uintptr(_this.dc)
+}
+
 func (_this *winGraphics) Close() {
 	if _this.onClose != nil {
 		_this.onClose(_this)
@@ -46,8 +50,13 @@ func (_this *winGraphics) DrawImage(src *image.RGBA, xSrc, ySrc, width, height, 
 	}
 	memDc := win.CreateCompatibleDC(_this.dc)
 	win.SelectObject(memDc, win.HGDIOBJ(bmp))
-	win.BitBlt(_this.dc, int32(xDst), int32(yDst), int32(width), int32(height), memDc, 0, 0, win.SRCCOPY)
+	_this.DrawByDc(memDc, 0, 0, width, height, xDst, yDst)
 	win.DeleteDC(memDc)
 	win.DeleteObject(win.HGDIOBJ(bmp))
+	return _this
+}
+
+func (_this *winGraphics) DrawByDc(dc win.HDC, xSrc, ySrc, width, height, xDst, yDst int) *winGraphics {
+	win.BitBlt(_this.dc, int32(xDst), int32(yDst), int32(width), int32(height), dc, int32(xSrc), int32(ySrc), win.SRCCOPY)
 	return _this
 }

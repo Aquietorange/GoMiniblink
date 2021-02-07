@@ -110,6 +110,7 @@ type winFreeApi struct {
 	_wkeOnDocumentReady2         *windows.LazyProc
 	_wkeSetTransparent           *windows.LazyProc
 	_wkeSetViewProxy             *windows.LazyProc
+	_wkeGetViewDC                *windows.LazyProc
 }
 
 func (_this *winFreeApi) init() *winFreeApi {
@@ -194,9 +195,15 @@ func (_this *winFreeApi) init() *winFreeApi {
 	_this._wkeSetFocus = lib.NewProc("wkeSetFocus")
 	_this._wkeDestroyWebView = lib.NewProc("wkeDestroyWebView")
 	_this._jsGetWebView = lib.NewProc("jsGetWebView")
+	_this._wkeGetViewDC = lib.NewProc("wkeGetViewDC")
 
 	_this._wkeInitialize.Call()
 	return _this
+}
+
+func (_this *winFreeApi) wkeGetViewDC(wke wkeHandle) uintptr {
+	r, _, _ := _this._wkeGetViewDC.Call(uintptr(wke))
+	return r
 }
 
 func (_this *winFreeApi) wkeSetViewProxy(wke wkeHandle, proxy ProxyInfo) {

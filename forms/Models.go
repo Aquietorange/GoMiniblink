@@ -42,6 +42,7 @@ type Screen struct {
 }
 
 type Graphics interface {
+	GetHandle() uintptr
 	DrawImage(src *image.RGBA, xSrc, ySrc, width, height, xDst, yDst int) Graphics
 	Close()
 }

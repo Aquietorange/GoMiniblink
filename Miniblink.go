@@ -12,6 +12,7 @@ type DocumentReadyCallback func(args DocumentReadyEvArgs)
 type PaintUpdatedCallback func(args PaintUpdatedEvArgs)
 
 type Miniblink interface {
+	SetBmpPaintMode(b bool)
 	SetProxy(info ProxyInfo)
 	MouseIsEnable() bool
 	MouseEnable(b bool)

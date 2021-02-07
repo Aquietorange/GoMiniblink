@@ -168,4 +168,5 @@ type freeApi interface {
 	wkeOnDocumentReady(wke wkeHandle, callback wkeDocumentReady2Callback, param uintptr)
 	wkeSetTransparent(wke wkeHandle, enable bool)
 	wkeSetViewProxy(wke wkeHandle, proxy ProxyInfo)
+	wkeGetViewDC(wke wkeHandle) uintptr
 }
