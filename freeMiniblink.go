@@ -538,10 +538,11 @@ func (_this *freeMiniblink) viewPaint(e fm.PaintEvArgs) {
 }
 
 func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, rect *wkeRect, width, _ int32) uintptr {
+	bx, by := int(rect.x), int(rect.y)
+	bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
+	var bmp *image.RGBA
 	if _this.isBmpPaint {
-		bx, by := int(rect.x), int(rect.y)
-		bw, bh := int(math.Min(float64(rect.w), float64(width))), int(math.Min(float64(rect.h), float64(mbApi.wkeGetHeight(wke))))
-		bmp := image.NewRGBA(image.Rect(0, 0, bw, bh))
+		bmp = image.NewRGBA(image.Rect(0, 0, bw, bh))
 		stride := int(width) * 4
 		pixs := (*[1 << 30]byte)(unsafe.Pointer(bits))
 		for y := 0; y < bh; y++ {
@@ -551,22 +552,24 @@ func (_this *freeMiniblink) onPaintBitUpdated(wke wkeHandle, _, bits uintptr, re
 				bmp.Pix[sp] = pixs[dp]
 			}
 		}
-		args := new(freePaintUpdatedEvArgs).init(bmp, fm.Bound{
-			Point: fm.Point{
-				X: bx,
-				Y: by,
-			},
-			Rect: fm.Rect{
-				Width:  bw,
-				Height: bh,
-			},
-		})
-		if _this.paintUpdated != nil {
-			_this.paintUpdated(args)
-		}
-		if args.IsCancel() == false {
-			_this.view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
-		}
+	}
+	args := new(freePaintUpdatedEvArgs).init(bmp, fm.Bound{
+		Point: fm.Point{
+			X: bx,
+			Y: by,
+		},
+		Rect: fm.Rect{
+			Width:  bw,
+			Height: bh,
+		},
+	})
+	if _this.paintUpdated != nil {
+		_this.paintUpdated(args)
+	}
+	if args.IsCancel() {
+		return 0
+	} else if _this.isBmpPaint {
+		_this.view.CreateGraphics().DrawImage(bmp, 0, 0, bw, bh, bx, by).Close()
 	} else {
 		r := win.RECT{
 			Left:   rect.x,

@@ -3,10 +3,9 @@ package GoMiniblink
 import (
 	"fmt"
 	fm "gitee.com/aochulai/GoMiniblink/forms"
+	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
 	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	gww "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
-	"image"
-	"unsafe"
+	gw "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 )
 
 var (
@@ -26,7 +25,11 @@ type MiniblinkForm struct {
 }
 
 func (_this *MiniblinkForm) Init() *MiniblinkForm {
-	_this.Form.Init()
+	return _this.InitEx(br.FormParam{})
+}
+
+func (_this *MiniblinkForm) InitEx(param br.FormParam) *MiniblinkForm {
+	_this.Form.InitEx(param)
 	_this.View = new(MiniblinkBrowser).Init()
 	_this.View.SetAnchor(fm.AnchorStyle_Fill)
 	_this.AddChild(_this.View)
@@ -97,18 +100,13 @@ func (_this *MiniblinkForm) setOn() {
 	bakOnLoad := _this.OnLoad
 	_this.OnLoad = func() {
 		if _this.isTransparent {
-			hWnd := gww.HWND(_this.GetHandle())
-			style := gww.GetWindowLong(hWnd, gww.GWL_EXSTYLE)
-			if style&gww.WS_EX_LAYERED != gww.WS_EX_LAYERED {
-				gww.SetWindowLong(hWnd, gww.GWL_EXSTYLE, style|gww.WS_EX_LAYERED)
+			hWnd := gw.HWND(_this.GetHandle())
+			style := gw.GetWindowLong(hWnd, gw.GWL_EXSTYLE)
+			if style&gw.WS_EX_LAYERED != gw.WS_EX_LAYERED {
+				gw.SetWindowLong(hWnd, gw.GWL_EXSTYLE, style|gw.WS_EX_LAYERED)
 			}
-			mbApi.wkeSetTransparent(_this.wke, true)
-			_this.View.OnPaintUpdated = func(e PaintUpdatedEvArgs) {
-				_this.transparentPaint(e.Bitmap(), e.Bound().Width, e.Bound().Height)
-				e.Cancel()
-			}
-			img := _this.View.ToBitmap()
-			_this.transparentPaint(img, img.Bounds().Dx(), img.Bounds().Dy())
+			b := _this.GetBound()
+			_this.transparentPaint(b.Width, b.Height)
 		}
 		bakOnLoad()
 	}
@@ -122,52 +120,31 @@ func (_this *MiniblinkForm) setOn() {
 func (_this *MiniblinkForm) TransparentMode() {
 	_this.isTransparent = true
 	_this.SetBorderStyle(fm.FormBorder_None)
+	_this.View.OnPaintUpdated = func(e PaintUpdatedEvArgs) {
+		_this.transparentPaint(e.Bound().Width, e.Bound().Height)
+		e.Cancel()
+	}
+	mbApi.wkeSetTransparent(_this.wke, true)
 }
 
-func (_this *MiniblinkForm) transparentPaint(image *image.RGBA, width, height int) {
+func (_this *MiniblinkForm) transparentPaint(width, height int) {
 	bn := _this.GetBound()
-	hWnd := gww.HWND(_this.GetHandle())
-	hdc := gww.GetDC(hWnd)
-	memDc := gww.CreateCompatibleDC(0)
-	src := gww.POINT{}
-	dst := gww.POINT{
+	hWnd := gw.HWND(_this.GetHandle())
+	mdc := gw.HDC(mbApi.wkeGetViewDC(_this.View.core.GetHandle()))
+	src := gw.POINT{}
+	dst := gw.POINT{
 		X: int32(bn.X),
 		Y: int32(bn.Y),
 	}
-	size := gww.SIZE{
+	size := gw.SIZE{
 		CX: int32(width),
 		CY: int32(height),
 	}
-	var head gww.BITMAPV5HEADER
-	head.BiSize = uint32(unsafe.Sizeof(head))
-	head.BiWidth = int32(width)
-	head.BiHeight = int32(height * -1)
-	head.BiBitCount = 32
-	head.BiPlanes = 1
-	head.BiCompression = gww.BI_RGB
-	var lpBits unsafe.Pointer
-	bmp := gww.CreateDIBSection(hdc, &head.BITMAPINFOHEADER, gww.DIB_RGB_COLORS, &lpBits, 0, 0)
-	bits := (*[1 << 30]byte)(lpBits)
-	stride := width * 4
-	for y := 0; y < height; y++ {
-		for x := 0; x < width*4; x++ {
-			sp := image.Stride*(y) + x
-			dp := stride*y + x
-			bits[dp] = image.Pix[sp]
-		}
-	}
-	oldBits := gww.SelectObject(memDc, gww.HGDIOBJ(bmp))
-	if bmp != 0 {
-		defer func() {
-			gww.SelectObject(memDc, oldBits)
-			gww.DeleteObject(gww.HGDIOBJ(bmp))
-		}()
-	}
-	blend := gww.BLENDFUNCTION{
+	blend := gw.BLENDFUNCTION{
 		SourceConstantAlpha: 255,
-		AlphaFormat:         gww.AC_SRC_ALPHA,
+		AlphaFormat:         gw.AC_SRC_ALPHA,
 	}
-	gww.UpdateLayeredWindow(hWnd, 0, &dst, &size, memDc, &src, 0, &blend, 2)
+	gw.UpdateLayeredWindow(hWnd, 0, &dst, &size, mdc, &src, 0, &blend, 2)
 }
 
 func (_this *MiniblinkForm) setFormFn(frame FrameContext) {

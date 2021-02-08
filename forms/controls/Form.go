@@ -33,7 +33,7 @@ func (_this *Form) InitEx(param br.FormParam) *Form {
 	_this.state = fm.FormState_Normal
 	_this.border = fm.FormBorder_Default
 	_this.startPos = fm.FormStart_Default
-	_this.showInTaskbar = true
+	_this.showInTaskbar = param.HideInTaskbar == false
 	_this.SetSize(300, 400)
 	_this.setOn()
 	return _this
