@@ -2,10 +2,11 @@ package GoMiniblink
 
 import (
 	"fmt"
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	gw "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
+
+	fm "github.com/hujun528/GoMiniblink/forms"
+	br "github.com/hujun528/GoMiniblink/forms/bridge"
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
+	gw "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 var (

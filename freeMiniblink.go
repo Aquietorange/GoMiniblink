@@ -9,9 +9,11 @@ import (
 	"time"
 	"unsafe"
 
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
+	fm "github.com/hujun528/GoMiniblink/forms"
+
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
+
+	win "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 var fnCall = "fn" + strconv.FormatInt(time.Now().UnixNano(), 32)

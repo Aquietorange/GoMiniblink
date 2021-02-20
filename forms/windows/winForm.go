@@ -1,10 +1,11 @@
 package windows
 
 import (
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"unsafe"
+
+	fm "github.com/hujun528/GoMiniblink/forms"
+	br "github.com/hujun528/GoMiniblink/forms/bridge"
+	win "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 type winForm struct {

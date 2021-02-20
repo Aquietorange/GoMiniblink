@@ -2,11 +2,12 @@ package windows
 
 import (
 	"fmt"
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image/color"
 	"syscall"
+
+	fm "github.com/hujun528/GoMiniblink/forms"
+	br "github.com/hujun528/GoMiniblink/forms/bridge"
+	win "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 func findChild(container br.Controls, hWnd win.HWND) br.Window {

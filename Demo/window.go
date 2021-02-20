@@ -1,8 +1,8 @@
 package main
 
 import (
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
+	gw "github.com/hujun528/GoMiniblink/forms/windows"
 )
 
 func main() {

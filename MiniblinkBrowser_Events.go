@@ -1,9 +1,10 @@
 package GoMiniblink
 
 import (
-	"gitee.com/aochulai/GoMiniblink/forms"
 	"image"
 	"strconv"
+
+	"github.com/hujun528/GoMiniblink/forms"
 )
 
 type PaintUpdatedEvArgs interface {

@@ -1,15 +1,16 @@
 package windows
 
 import (
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
-	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
 	"reflect"
 	"syscall"
 	"unsafe"
+
+	fm "github.com/hujun528/GoMiniblink/forms"
+	br "github.com/hujun528/GoMiniblink/forms/bridge"
+	win "github.com/hujun528/GoMiniblink/forms/windows/win32"
+	"golang.org/x/sys/windows"
 )
 
 type windowsMsgProc func(hWnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr

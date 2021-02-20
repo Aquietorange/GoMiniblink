@@ -1,10 +1,11 @@
 package windows
 
 import (
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image"
 	"unsafe"
+
+	fm "github.com/hujun528/GoMiniblink/forms"
+	win "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 type winGraphics struct {

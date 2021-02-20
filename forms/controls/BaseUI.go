@@ -1,8 +1,8 @@
 package controls
 
 import (
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	br "gitee.com/aochulai/GoMiniblink/forms/bridge"
+	fm "github.com/hujun528/GoMiniblink/forms"
+	br "github.com/hujun528/GoMiniblink/forms/bridge"
 )
 
 type BaseUI struct {

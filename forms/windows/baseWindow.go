@@ -1,7 +1,7 @@
 package windows
 
 import (
-	"gitee.com/aochulai/GoMiniblink/forms/windows/win32"
+	"github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 type baseWindow interface {

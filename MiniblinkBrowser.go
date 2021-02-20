@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
 )
 
 type MiniblinkBrowser struct {

@@ -1,8 +1,8 @@
 package windows
 
 import (
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	w "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
+	fm "github.com/hujun528/GoMiniblink/forms"
+	w "github.com/hujun528/GoMiniblink/forms/windows/win32"
 )
 
 type winMsgBox struct {

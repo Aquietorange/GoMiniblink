@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	gm "gitee.com/aochulai/GoMiniblink"
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
+
+	gm "github.com/hujun528/GoMiniblink"
+	fm "github.com/hujun528/GoMiniblink/forms"
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
+	gw "github.com/hujun528/GoMiniblink/forms/windows"
 )
 
 func main() {

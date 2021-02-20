@@ -1,6 +1,6 @@
 package bridge
 
-import fm "gitee.com/aochulai/GoMiniblink/forms"
+import fm "github.com/hujun528/GoMiniblink/forms"
 
 type MsgBox interface {
 	Show(param fm.MsgBoxParam) fm.MsgBoxResult

@@ -1,13 +1,14 @@
 package main
 
 import (
-	gm "gitee.com/aochulai/GoMiniblink"
-	"gitee.com/aochulai/GoMiniblink/Demo/Res"
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	gw "gitee.com/aochulai/GoMiniblink/forms/windows"
 	url2 "net/url"
 	"strings"
+
+	gm "github.com/hujun528/GoMiniblink"
+	"github.com/hujun528/GoMiniblink/Demo/Res"
+	fm "github.com/hujun528/GoMiniblink/forms"
+	cs "github.com/hujun528/GoMiniblink/forms/controls"
+	gw "github.com/hujun528/GoMiniblink/forms/windows"
 )
 
 func main() {
