@@ -169,4 +169,5 @@ type freeApi interface {
 	wkeSetTransparent(wke wkeHandle, enable bool)
 	wkeSetViewProxy(wke wkeHandle, proxy ProxyInfo)
 	wkeGetViewDC(wke wkeHandle) uintptr
+	wkeSetDebugConfig(wke wkeHandle, debugString string, param string)
 }

@@ -26,5 +26,6 @@ type Miniblink interface {
 	SetOnDocumentReady(callback DocumentReadyCallback)
 	SetOnPaintUpdated(callback PaintUpdatedCallback)
 	LoadUri(uri string)
+	SetDebugConfig(debugString string, param string)
 	GetHandle() wkeHandle
 }

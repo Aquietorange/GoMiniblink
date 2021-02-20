@@ -1,11 +1,12 @@
 package GoMiniblink
 
 import (
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 	"image"
 	url2 "net/url"
 	"reflect"
 	"strings"
+
+	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
 )
 
 type MiniblinkBrowser struct {
@@ -111,6 +112,10 @@ func (_this *MiniblinkBrowser) SetProxy(info ProxyInfo) {
 
 func (_this *MiniblinkBrowser) LoadUri(uri string) {
 	_this.core.LoadUri(uri)
+}
+
+func (_this *MiniblinkBrowser) SetDebugConfig(debugString string, param string) {
+	_this.core.SetDebugConfig(debugString, param)
 }
 
 func (_this *MiniblinkBrowser) JsFunc(name string, fn GoFn, state interface{}) {

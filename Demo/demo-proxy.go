@@ -17,7 +17,7 @@ func main() {
 	frm.View.SetProxy(gm.ProxyInfo{
 		Type:     gm.ProxyType_HTTP,
 		HostName: "127.0.0.1",
-		Port:     58591,
+		Port:     10708,
 	})
 	frm.EvLoad["show"] = func(s cs.GUI) {
 		frm.View.LoadUri("https://www.ip.cn")

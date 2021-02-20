@@ -18,9 +18,11 @@ func main() {
 	frm.SetSize(800, 500)
 	frm.SetBorderStyle(fm.FormBorder_None)
 	frm.NoneBorderResize()
+
 	frm.View.ResourceLoader = append(frm.View.ResourceLoader, new(gm.FileLoader).Init("Res", "local"))
 	frm.EvLoad["show"] = func(s cs.GUI) {
 		frm.View.LoadUri("http://local/window.html")
+		frm.View.SetDebugConfig("showDevTools", "F:\\vuex\\go_demo\\TransactionRobot\\front_end\\inspector.html")
 	}
 	cs.Run(&frm.Form)
 }

@@ -18,5 +18,6 @@ func main() {
 	frm.EvLoad["加载网址"] = func(s cs.GUI) {
 		frm.View.LoadUri("https://www.baidu.com")
 	}
+
 	cs.Run(&frm.Form)
 }

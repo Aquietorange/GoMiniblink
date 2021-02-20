@@ -13,6 +13,7 @@
 .idea/
 !/Demo/*
 /Demo/*.exe
+/Demo/*.dll
 /Demo/.vs/
 /Demo/LocalStorage/
 /Demo/cookies.dat

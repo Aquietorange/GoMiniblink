@@ -2,15 +2,16 @@ package GoMiniblink
 
 import (
 	"fmt"
-	fm "gitee.com/aochulai/GoMiniblink/forms"
-	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
-	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 	"image"
 	"math"
 	"strconv"
 	"strings"
 	"time"
 	"unsafe"
+
+	fm "gitee.com/aochulai/GoMiniblink/forms"
+	cs "gitee.com/aochulai/GoMiniblink/forms/controls"
+	win "gitee.com/aochulai/GoMiniblink/forms/windows/win32"
 )
 
 var fnCall = "fn" + strconv.FormatInt(time.Now().UnixNano(), 32)
@@ -400,6 +401,10 @@ func (_this *freeMiniblink) viewKeyEvent(e *fm.KeyEvArgs, isDown bool) bool {
 
 func (_this *freeMiniblink) LoadUri(uri string) {
 	mbApi.wkeLoadURL(_this.wke, uri)
+}
+
+func (_this *freeMiniblink) SetDebugConfig(debugString string, param string) {
+	mbApi.wkeSetDebugConfig(_this.wke, debugString, param)
 }
 
 func (_this *freeMiniblink) viewSetCursor() bool {
