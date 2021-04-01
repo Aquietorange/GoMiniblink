@@ -114,6 +114,10 @@ func (_this *MiniblinkBrowser) LoadUri(uri string) {
 	_this.core.LoadUri(uri)
 }
 
+func (_this *MiniblinkBrowser) WkeRunMessageLoop() {
+	_this.core.WkeRunMessageLoop()
+}
+
 func (_this *MiniblinkBrowser) SetDebugConfig(debugString string, param string) {
 	_this.core.SetDebugConfig(debugString, param)
 }

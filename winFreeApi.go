@@ -39,6 +39,7 @@ type winFreeApi struct {
 
 	_wkeInitialize               *windows.LazyProc
 	_wkeCreateWebView            *windows.LazyProc
+	_wkeRunMessageLoop           *windows.LazyProc
 	_wkeSetHandle                *windows.LazyProc
 	_wkeOnPaintBitUpdated        *windows.LazyProc
 	_wkeLoadURL                  *windows.LazyProc
@@ -192,6 +193,7 @@ func (_this *winFreeApi) init() *winFreeApi {
 	_this._wkeOnPaintBitUpdated = lib.NewProc("wkeOnPaintBitUpdated")
 	_this._wkeSetHandle = lib.NewProc("wkeSetHandle")
 	_this._wkeCreateWebView = lib.NewProc("wkeCreateWebView")
+	_this._wkeRunMessageLoop = lib.NewProc("wkeRunMessageLoop")
 	_this._wkeInitialize = lib.NewProc("wkeInitialize")
 	_this._wkeGetCaretRect = lib.NewProc("wkeGetCaretRect2")
 	_this._wkeSetFocus = lib.NewProc("wkeSetFocus")
@@ -750,6 +752,10 @@ func (_this *winFreeApi) wkeSetHandle(wke wkeHandle, handle uintptr) {
 func (_this *winFreeApi) wkeCreateWebView() wkeHandle {
 	r, _, _ := _this._wkeCreateWebView.Call()
 	return wkeHandle(r)
+}
+
+func (_this *winFreeApi) wkeRunMessageLoop() {
+	_this._wkeRunMessageLoop.Call()
 }
 
 func (_this *winFreeApi) wkeSetDebugConfig(wke wkeHandle, debugString string, param string) {

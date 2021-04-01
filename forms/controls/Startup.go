@@ -11,5 +11,7 @@ type MainForm interface {
 var App bridge.Provider
 
 func Run(form MainForm) {
+
 	App.RunMain(form.getFormImpl())
+
 }

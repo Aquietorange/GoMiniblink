@@ -404,6 +404,9 @@ func (_this *freeMiniblink) viewKeyEvent(e *fm.KeyEvArgs, isDown bool) bool {
 func (_this *freeMiniblink) LoadUri(uri string) {
 	mbApi.wkeLoadURL(_this.wke, uri)
 }
+func (_this *freeMiniblink) WkeRunMessageLoop() {
+	mbApi.wkeRunMessageLoop()
+}
 
 func (_this *freeMiniblink) SetDebugConfig(debugString string, param string) {
 	mbApi.wkeSetDebugConfig(_this.wke, debugString, param)

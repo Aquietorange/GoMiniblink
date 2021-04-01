@@ -97,6 +97,7 @@ var mbApi freeApi
 
 type freeApi interface {
 	wkeCreateWebView() wkeHandle
+	wkeRunMessageLoop()
 	wkeDestroyWebView(wke wkeHandle)
 	jsGetWebView(es jsExecState) wkeHandle
 	jsSet(es jsExecState, obj jsValue, name string, value jsValue)

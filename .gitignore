@@ -11,8 +11,6 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 .idea/
-/Demo/*.exe
-/Demo/*.dll
-/Demo/.vs/
-/Demo/LocalStorage/
-/Demo/cookies.dat
+/Demo
+/vendor
+/.vscode
