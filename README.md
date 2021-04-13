@@ -1,7 +1,7 @@
 # GoMiniblink
 
 #### 介绍
-Miniblink的免费版封装，官网：https://miniblink.net/
+
 
 1.  不使用CGO
 2.  面向对象
@@ -12,7 +12,6 @@ Miniblink的免费版封装，官网：https://miniblink.net/
 7.  透明窗体
 8.  支持本地目录加载模式
 
-Go封装的功能比较少，其实就是 https://gitee.com/aochulai/NetMiniblink 的简化版，因为我出Go封装的目标是VIP，所以免费版就懒得像NetMiniblink一样写得那么完善啦，不过VIP版会向NetMiniblink完整度看齐。
 
 ### 简单的例子
     package main
